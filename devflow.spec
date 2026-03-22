@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import matplotlib
 import PyQt6
 
 from PyInstaller.utils.hooks import collect_submodules, copy_metadata
@@ -13,7 +12,6 @@ from PyInstaller.utils.hooks import collect_submodules, copy_metadata
 PROJECT_ROOT = Path(SPECPATH).resolve()
 ICON_PATH = PROJECT_ROOT / "assets" / "icons" / "devflow.ico"
 PYQT_ROOT = Path(PyQt6.__file__).resolve().parent
-MATPLOTLIB_ROOT = Path(matplotlib.__file__).resolve().parent
 
 
 def include_tree(source_dir: Path, target_dir: str) -> list[tuple[str, str]]:
@@ -41,7 +39,6 @@ datas += include_tree(PROJECT_ROOT / "assets", "assets")
 datas += include_tree(PYQT_ROOT / "Qt6" / "plugins" / "platforms", "PyQt6/Qt6/plugins/platforms")
 datas += include_tree(PYQT_ROOT / "Qt6" / "plugins" / "styles", "PyQt6/Qt6/plugins/styles")
 datas += include_tree(PYQT_ROOT / "Qt6" / "plugins" / "imageformats", "PyQt6/Qt6/plugins/imageformats")
-datas += include_tree(MATPLOTLIB_ROOT / "mpl-data", "matplotlib/mpl-data")
 datas += safe_copy_metadata("supabase")
 datas += safe_copy_metadata("postgrest")
 datas += safe_copy_metadata("realtime")
@@ -49,8 +46,6 @@ datas += safe_copy_metadata("storage3")
 datas += safe_copy_metadata("supabase-auth")
 datas += safe_copy_metadata("supabase-functions")
 datas += safe_copy_metadata("python-dotenv")
-datas += safe_copy_metadata("matplotlib")
-datas += safe_copy_metadata("win10toast")
 
 binaries = []
 for dll_name in ("libEGL.dll", "libGLESv2.dll"):
@@ -64,20 +59,12 @@ hiddenimports += [
     "PyQt6.QtGui",
     "PyQt6.QtWidgets",
     "PyQt6.sip",
-    "matplotlib",
-    "matplotlib.backends.backend_agg",
-    "matplotlib.backends.backend_qtagg",
-    "win10toast",
     "dotenv",
     "dotenv.main",
     "httpx",
     "httpcore",
     "websockets",
     "yarl",
-    "win32api",
-    "win32con",
-    "win32gui",
-    "win32timezone",
 ]
 hiddenimports += collect_submodules("supabase")
 hiddenimports += collect_submodules("postgrest")

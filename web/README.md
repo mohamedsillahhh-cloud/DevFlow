@@ -1,12 +1,12 @@
 # DevFlow Web
 
-Frontend web do DevFlow em React + Vite + TailwindCSS, com autenticação via Supabase e acesso restrito a um único e-mail autorizado.
+Frontend web do DevFlow em React + Vite, com autenticacao Supabase e acesso restrito por e-mail.
 
-## Variáveis de ambiente
+## Variaveis de ambiente
 
-O `vite.config.ts` lê o `.env` da raiz do repositório. Pode usar os nomes já usados pelo app Python ou os nomes com prefixo `VITE_`.
+O `vite.config.ts` le o `.env` da raiz do repositorio. Pode usar as variaveis compartilhadas com o cliente desktop ou as variantes com prefixo `VITE_`.
 
-Obrigatórias:
+Obrigatorias:
 
 - `VITE_ALLOWED_EMAIL`
 - `SUPABASE_URL` ou `VITE_SUPABASE_URL`
@@ -20,7 +20,7 @@ npm install
 npm run dev
 ```
 
-## Verificação
+## Verificacao
 
 ```bash
 npm run lint
@@ -29,15 +29,13 @@ npm run build
 
 ## Deploy
 
-### Vercel
+Vercel:
 
 - Root Directory: `web`
 - Build Command: `npm run build`
 - Output Directory: `dist`
-- Environment Variables: usar as mesmas do `.env` da raiz
 
-### Railway
+Railway:
 
 - Working Directory: `web`
 - Start Command: `npm run preview -- --host 0.0.0.0 --port $PORT`
-- Environment Variables: iguais às do deploy na Vercel
