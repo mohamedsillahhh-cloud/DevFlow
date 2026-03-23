@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: devflow-web
+    runtime: static
+    rootDir: web
+    buildCommand: npm ci && npm run build
+    staticPublishPath: web/dist
+    buildFilter:
+      paths:
+        - web/**
+        - render.yaml
+    envVars:
+      - key: VITE_ALLOWED_EMAIL
+        sync: false
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

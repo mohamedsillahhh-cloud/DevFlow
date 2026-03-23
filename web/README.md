@@ -4,13 +4,15 @@ Frontend web do DevFlow em React + Vite, com autenticacao Supabase e acesso rest
 
 ## Variaveis de ambiente
 
-O `vite.config.ts` le o `.env` da raiz do repositorio. Pode usar as variaveis compartilhadas com o cliente desktop ou as variantes com prefixo `VITE_`.
+O `vite.config.ts` le o `.env` da raiz do repositorio e expoe apenas variaveis com prefixo `VITE_` para o bundle do frontend.
 
 Obrigatorias:
 
 - `VITE_ALLOWED_EMAIL`
-- `SUPABASE_URL` ou `VITE_SUPABASE_URL`
-- `SUPABASE_KEY` ou `VITE_SUPABASE_ANON_KEY`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+Use apenas a chave anon/publica do Supabase no frontend. Nao use service key.
 
 ## Desenvolvimento
 
@@ -39,3 +41,13 @@ Railway:
 
 - Working Directory: `web`
 - Start Command: `npm run preview -- --host 0.0.0.0 --port $PORT`
+
+Render:
+
+- Blueprint file: `render.yaml` na raiz do repositorio
+- Tipo: Static Site
+- Variaveis obrigatorias:
+  - `VITE_ALLOWED_EMAIL`
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_ANON_KEY`
+- Rewrite para SPA: `/* -> /index.html`

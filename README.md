@@ -9,11 +9,15 @@ Repositorio do DevFlow com duas interfaces para a mesma base Supabase:
 
 Copie `.env.example` para `.env` e preencha as variaveis necessarias:
 
-- `SUPABASE_URL`
-- `SUPABASE_KEY`
-- `VITE_ALLOWED_EMAIL`
+- Desktop PyQt:
+  - `SUPABASE_URL`
+  - `SUPABASE_KEY`
+- Frontend web:
+  - `VITE_ALLOWED_EMAIL`
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_ANON_KEY`
 
-O frontend tambem aceita `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
+No frontend use apenas a chave anon/publica do Supabase. Nao use service key no site estatico.
 
 ## Desenvolvimento
 
@@ -38,3 +42,13 @@ python -m venv .venv
 ```bash
 build.bat
 ```
+
+## Deploy no Render
+
+O Render serve apenas o frontend em `web/`. O cliente desktop em PyQt6 nao roda no Render.
+
+Com este repositorio, pode criar um Static Site a partir do `render.yaml` na raiz. No primeiro deploy, informe:
+
+- `VITE_ALLOWED_EMAIL`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
