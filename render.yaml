@@ -4,7 +4,7 @@ services:
     runtime: static
     rootDir: web
     buildCommand: npm ci && npm run build
-    staticPublishPath: web/dist
+    staticPublishPath: dist
     buildFilter:
       paths:
         - web/**
