@@ -7,7 +7,7 @@ Repositorio do DevFlow com duas interfaces para a mesma base Supabase:
 
 ## Ambiente
 
-Copie `.env.example` para `.env` e preencha as variaveis necessarias:
+Preencha as variaveis necessarias:
 
 - Desktop PyQt:
   - `SUPABASE_URL`
