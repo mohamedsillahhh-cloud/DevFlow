@@ -1,9 +1,10 @@
-import { PlusCircle, RefreshCcw, Trash2 } from 'lucide-react'
+import { Download, PlusCircle, RefreshCcw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { FullScreenLoader } from '../components/full-screen-loader'
 import { Panel } from '../components/panel'
 import { StatCard } from '../components/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
+import { downloadCsv } from '../lib/csv'
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
@@ -11,6 +12,7 @@ import {
   formatCurrency,
   formatDate,
   formatMonthLabel,
+  getRelationItem,
   getMonthBounds,
   isWithinDateRange,
   shiftMonth,
@@ -25,6 +27,19 @@ import {
 } from '../lib/supabase-data'
 
 const TEXTAREA_BASE = `${INPUT_BASE} min-h-[110px] resize-y`
+const CUSTOM_CATEGORY_VALUE = '__custom__'
+const DEFAULT_EXPENSE_CATEGORIES = [
+  'Operacao',
+  'Marketing',
+  'Impostos',
+  'Software',
+  'Ferramentas',
+  'Equipa',
+  'Educacao',
+  'Infraestrutura',
+  'Transporte',
+  'Servicos',
+]
 
 function getTodayInputValue() {
   return new Date().toISOString().slice(0, 10)
@@ -35,6 +50,7 @@ export function FinancePage() {
   const [monthOffset, setMonthOffset] = useState('0')
   const [expenseForm, setExpenseForm] = useState({
     category: '',
+    customCategory: '',
     date: getTodayInputValue(),
     description: '',
     dueDay: '',
@@ -90,6 +106,47 @@ export function FinancePage() {
   const pendentes = gastosMes.filter((item) => item.pago === 0).length
   const recorrentes = gastos.filter((item) => item.recorrente === 1).slice(0, 10)
   const saldo = receitasTotal - gastosTotal
+  const expenseCategoryOptions = Array.from(
+    new Set([
+      ...DEFAULT_EXPENSE_CATEGORIES,
+      ...gastos
+        .map((item) => item.categoria_nome?.trim())
+        .filter((item): item is string => Boolean(item)),
+    ]),
+  ).sort((left, right) => left.localeCompare(right, 'pt-PT'))
+
+  function handleExportExpenses() {
+    downloadCsv(
+      `gastos-${reference.getFullYear()}-${String(reference.getMonth() + 1).padStart(2, '0')}`,
+      [
+        { label: 'Data', value: (row) => row.data },
+        { label: 'Descricao', value: (row) => row.descricao },
+        { label: 'Categoria', value: (row) => row.categoria_nome ?? '' },
+        { label: 'Valor', value: (row) => row.valor.toFixed(2) },
+        { label: 'Metodo', value: (row) => row.metodo ?? '' },
+        { label: 'Pago', value: (row) => (row.pago === 1 ? 'Sim' : 'Nao') },
+      ],
+      gastosMes,
+    )
+    setFeedback('CSV de gastos exportado com sucesso.')
+    setActionError(null)
+  }
+
+  function handleExportIncome() {
+    downloadCsv(
+      `receitas-${reference.getFullYear()}-${String(reference.getMonth() + 1).padStart(2, '0')}`,
+      [
+        { label: 'Data', value: (row) => row.data },
+        { label: 'Descricao', value: (row) => row.descricao },
+        { label: 'Valor', value: (row) => row.valor.toFixed(2) },
+        { label: 'Origem', value: (row) => row.origem ?? '' },
+        { label: 'Projeto', value: (row) => getRelationItem(row.projetos)?.titulo ?? '' },
+      ],
+      receitasMes,
+    )
+    setFeedback('CSV de receitas exportado com sucesso.')
+    setActionError(null)
+  }
 
   async function handleCreateExpense() {
     setFeedback(null)
@@ -98,7 +155,10 @@ export function FinancePage() {
 
     try {
       await createGasto({
-        category: expenseForm.category,
+        category:
+          expenseForm.category === CUSTOM_CATEGORY_VALUE
+            ? expenseForm.customCategory.trim()
+            : expenseForm.category,
         date: expenseForm.date,
         description: expenseForm.description,
         dueDay: expenseForm.recurring && expenseForm.dueDay ? Number(expenseForm.dueDay) : null,
@@ -111,6 +171,7 @@ export function FinancePage() {
 
       setExpenseForm({
         category: '',
+        customCategory: '',
         date: getTodayInputValue(),
         description: '',
         dueDay: '',
@@ -258,14 +319,41 @@ export function FinancePage() {
 
             <label className="space-y-2">
               <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Categoria</span>
-              <input
+              <select
                 className={INPUT_BASE}
-                onChange={(event) => setExpenseForm((current) => ({ ...current, category: event.target.value }))}
-                placeholder="Operacao, marketing, impostos..."
-                type="text"
+                onChange={(event) =>
+                  setExpenseForm((current) => ({
+                    ...current,
+                    category: event.target.value,
+                    customCategory: event.target.value === CUSTOM_CATEGORY_VALUE ? current.customCategory : '',
+                  }))
+                }
                 value={expenseForm.category}
-              />
+              >
+                <option value="">Seleciona uma categoria</option>
+                {expenseCategoryOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+                <option value={CUSTOM_CATEGORY_VALUE}>Outra categoria</option>
+              </select>
             </label>
+
+            {expenseForm.category === CUSTOM_CATEGORY_VALUE ? (
+              <label className="space-y-2">
+                <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Categoria personalizada</span>
+                <input
+                  className={INPUT_BASE}
+                  onChange={(event) =>
+                    setExpenseForm((current) => ({ ...current, customCategory: event.target.value }))
+                  }
+                  placeholder="Escreve a categoria"
+                  type="text"
+                  value={expenseForm.customCategory}
+                />
+              </label>
+            ) : null}
 
             <label className="space-y-2">
               <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Metodo</span>
@@ -295,7 +383,7 @@ export function FinancePage() {
             <label className="flex items-center gap-3 rounded-2xl border border-[#1b1b20] bg-[#0b0b0d] px-4 py-3 text-sm text-[#f0f0f0]">
               <input
                 checked={expenseForm.recurring}
-                className="h-4 w-4 accent-[#e94560]"
+                className="h-4 w-4 accent-[var(--brand)]"
                 onChange={(event) =>
                   setExpenseForm((current) => ({
                     ...current,
@@ -311,7 +399,7 @@ export function FinancePage() {
             <label className="flex items-center gap-3 rounded-2xl border border-[#1b1b20] bg-[#0b0b0d] px-4 py-3 text-sm text-[#f0f0f0]">
               <input
                 checked={expenseForm.paid}
-                className="h-4 w-4 accent-[#e94560]"
+                className="h-4 w-4 accent-[var(--brand)]"
                 onChange={(event) => setExpenseForm((current) => ({ ...current, paid: event.target.checked }))}
                 type="checkbox"
               />
@@ -410,8 +498,8 @@ export function FinancePage() {
         </Panel>
       </div>
 
-      {feedback ? <p className="text-sm text-[#1d9e75]">{feedback}</p> : null}
-      {actionError ? <p className="text-sm text-[#e24b4a]">{actionError}</p> : null}
+      {feedback ? <p className="text-sm text-[var(--color-success)]">{feedback}</p> : null}
+      {actionError ? <p className="text-sm text-[var(--color-danger)]">{actionError}</p> : null}
 
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <select
@@ -426,10 +514,20 @@ export function FinancePage() {
           ))}
         </select>
 
-        <button className={BUTTON_SECONDARY} onClick={() => void reload()} type="button">
-          <RefreshCcw className="mr-2 h-4 w-4" />
-          Atualizar
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button className={BUTTON_SECONDARY} onClick={handleExportExpenses} type="button">
+            <Download className="mr-2 h-4 w-4" />
+            Gastos CSV
+          </button>
+          <button className={BUTTON_SECONDARY} onClick={handleExportIncome} type="button">
+            <Download className="mr-2 h-4 w-4" />
+            Receitas CSV
+          </button>
+          <button className={BUTTON_SECONDARY} onClick={() => void reload()} type="button">
+            <RefreshCcw className="mr-2 h-4 w-4" />
+            Atualizar
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-4">

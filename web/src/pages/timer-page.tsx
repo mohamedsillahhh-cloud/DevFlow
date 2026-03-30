@@ -339,7 +339,7 @@ export function TimerPage() {
         <StatCard accent="#378add" label="Sessoes no mes" value={String(monthSessions.length)} />
         <StatCard accent="#ef9f27" label="Horas no mes" value={formatDurationMinutes(totalMonthMinutes)} />
         <StatCard
-          accent="#e94560"
+          accent="var(--brand)"
           label="Faturavel"
           subtitle="estimativa do mes"
           value={formatCurrency(totalEstimatedAmount, currency)}
@@ -503,8 +503,8 @@ export function TimerPage() {
         </Panel>
       </div>
 
-      {feedback ? <p className="text-sm text-[#1d9e75]">{feedback}</p> : null}
-      {actionError ? <p className="text-sm text-[#e24b4a]">{actionError}</p> : null}
+      {feedback ? <p className="text-sm text-[var(--color-success)]">{feedback}</p> : null}
+      {actionError ? <p className="text-sm text-[var(--color-danger)]">{actionError}</p> : null}
 
       <div className="grid gap-6 xl:grid-cols-[1fr,1fr]">
         <Panel description="Tempo acumulado e faturavel por projeto no periodo selecionado." title="Resumo faturavel">

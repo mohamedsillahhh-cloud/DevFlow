@@ -439,6 +439,24 @@ export async function createProjeto(input: CreateProjetoInput) {
   )
 }
 
+export async function updateProjetoStatus(projectId: number, status: string) {
+  const nextStatus = cleanText(status)?.toLowerCase()
+  if (!nextStatus) {
+    throw new Error('Selecione um status valido.')
+  }
+
+  await runMutation(
+    supabase
+      .from('projetos')
+      .update({
+        atualizado_em: new Date().toISOString(),
+        status: nextStatus,
+      })
+      .eq('id', projectId),
+    'Nao foi possivel atualizar o status do projeto.',
+  )
+}
+
 export async function deleteProjeto(projectId: number) {
   await runOptionalMutation(
     supabase.from('pagamentos').delete().eq('projeto_id', projectId),

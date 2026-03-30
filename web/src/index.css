@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,9 +6,32 @@
 
 :root {
   color-scheme: dark;
-  font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+  font-family: 'Sora', 'Segoe UI', sans-serif;
   background: #000000;
-  color: #f0f0f0;
+  color: #f8f8f8;
+  --bg-canvas: #000000;
+  --bg-shell: rgba(0, 0, 0, 0.94);
+  --surface-1: rgba(8, 8, 8, 0.96);
+  --surface-2: rgba(13, 13, 13, 0.98);
+  --surface-3: rgba(18, 18, 18, 0.99);
+  --surface-soft: rgba(255, 255, 255, 0.03);
+  --border-subtle: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --text-primary: #f8f8f8;
+  --text-secondary: #c8c8c8;
+  --text-muted: #7d7d7d;
+  --brand: #ffffff;
+  --brand-strong: #d9d9d9;
+  --brand-soft: rgba(255, 255, 255, 0.14);
+  --color-success: #3dff9f;
+  --color-danger: #ff5f7a;
+  --color-warning: #ffbf47;
+  --color-info: #3fbcff;
+  --color-violet: #b792ff;
+  --color-pink: #ff69cb;
+  --color-lime: #c5ff57;
+  --shadow-panel: 0 28px 90px rgba(0, 0, 0, 0.58);
+  --shadow-soft: 0 16px 40px rgba(0, 0, 0, 0.34);
 }
 
 * {
@@ -17,17 +40,29 @@
 
 html {
   min-height: 100%;
-  background: #000000;
+  background: var(--bg-canvas);
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at top right, rgba(233, 69, 96, 0.15), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(233, 69, 96, 0.08), transparent 24%),
-    #000000;
-  color: #f0f0f0;
+  background: #000000;
+  color: var(--text-primary);
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 96px 96px;
+  mask-image: radial-gradient(circle at center, black, transparent 74%);
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 0;
 }
 
 body,
@@ -52,10 +87,12 @@ a {
 
 #root {
   min-height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
 ::selection {
-  background: rgba(233, 69, 96, 0.35);
+  background: rgba(255, 255, 255, 0.24);
 }
 
 ::-webkit-scrollbar {
@@ -64,14 +101,14 @@ a {
 }
 
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: #040404;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #232323;
+  background: #1f1f1f;
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #343434;
+  background: #303030;
 }

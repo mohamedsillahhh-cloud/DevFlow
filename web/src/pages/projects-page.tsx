@@ -17,7 +17,7 @@ import {
   getClientName,
   projectDueAmount,
 } from '../lib/format'
-import { createProjeto, deleteProjeto, fetchProjectsSnapshot } from '../lib/supabase-data'
+import { createProjeto, deleteProjeto, fetchProjectsSnapshot, updateProjetoStatus } from '../lib/supabase-data'
 
 const STATUS_OPTIONS = [
   { label: 'Todos os status', value: 'todos' },
@@ -34,6 +34,10 @@ const TEXTAREA_BASE = `${INPUT_BASE} min-h-[110px] resize-y`
 
 function scrollToProjectForm() {
   document.getElementById('project-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function getProjectStatusLabel(status: string) {
+  return PROJECT_STATUS_OPTIONS.find((option) => option.value === status)?.label ?? status
 }
 
 export function ProjectsPage() {
@@ -56,6 +60,7 @@ export function ProjectsPage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null)
   const deferredSearch = useDeferredValue(search)
 
   if (isLoading && !data) {
@@ -180,6 +185,28 @@ export function ProjectsPage() {
       setActionError(caughtError instanceof Error ? caughtError.message : 'Nao foi possivel remover o projeto.')
     } finally {
       setDeletingId(null)
+    }
+  }
+
+  async function handleUpdateProjectStatus(projectId: number, currentStatus: string | null, nextStatus: string, projectTitle: string) {
+    if ((currentStatus ?? 'pendente').toLowerCase() === nextStatus) {
+      return
+    }
+
+    setFeedback(null)
+    setActionError(null)
+    setUpdatingStatusId(projectId)
+
+    try {
+      await updateProjetoStatus(projectId, nextStatus)
+      setFeedback(`Status de "${projectTitle}" atualizado para ${getProjectStatusLabel(nextStatus)}.`)
+      await reload()
+    } catch (caughtError) {
+      setActionError(
+        caughtError instanceof Error ? caughtError.message : 'Nao foi possivel atualizar o status do projeto.',
+      )
+    } finally {
+      setUpdatingStatusId(null)
     }
   }
 
@@ -316,8 +343,8 @@ export function ProjectsPage() {
             </label>
           </div>
 
-          {feedback ? <p className="mt-4 text-sm text-[#1d9e75]">{feedback}</p> : null}
-          {actionError ? <p className="mt-4 text-sm text-[#e24b4a]">{actionError}</p> : null}
+          {feedback ? <p className="mt-4 text-sm text-[var(--color-success)]">{feedback}</p> : null}
+          {actionError ? <p className="mt-4 text-sm text-[var(--color-danger)]">{actionError}</p> : null}
         </Panel>
 
         <Panel
@@ -368,7 +395,7 @@ export function ProjectsPage() {
             {activeFilters.map((item) => (
               <div
                 key={item}
-                className="rounded-full border border-[#3a161c] bg-[#14080b] px-4 py-2 text-xs uppercase tracking-[0.2em] text-[#e94560]"
+                className="rounded-full border border-[var(--border-strong)] bg-[rgba(255,255,255,0.06)] px-4 py-2 text-xs uppercase tracking-[0.2em] text-[var(--brand)]"
               >
                 {item}
               </div>
@@ -437,7 +464,7 @@ export function ProjectsPage() {
                           <div className="flex flex-wrap gap-3 text-xs text-[#66666d]">
                             {project.repo_url ? (
                               <a
-                                className="transition hover:text-[#e94560]"
+                                className="transition hover:text-[var(--brand)]"
                                 href={project.repo_url}
                                 rel="noreferrer"
                                 target="_blank"
@@ -447,7 +474,7 @@ export function ProjectsPage() {
                             ) : null}
                             {project.staging_url ? (
                               <a
-                                className="transition hover:text-[#e94560]"
+                                className="transition hover:text-[var(--brand)]"
                                 href={project.staging_url}
                                 rel="noreferrer"
                                 target="_blank"
@@ -480,15 +507,36 @@ export function ProjectsPage() {
                       <span style={{ color: deadlineColor(project.prazo) }}>{formatDate(project.prazo)}</span>
                     </td>
                     <td className="rounded-r-[22px] border-y border-r border-[#1b1b20] bg-[#0a0a0c] px-4 py-4">
-                      <button
-                        className={`${BUTTON_SECONDARY} px-3 py-2 text-xs`}
-                        disabled={deletingId === project.id}
-                        onClick={() => void handleDeleteProject(project.id, project.titulo)}
-                        type="button"
-                      >
-                        <Trash2 className="mr-2 h-3.5 w-3.5" />
-                        Remover
-                      </button>
+                      <div className="flex min-w-[210px] flex-col gap-2">
+                        <select
+                          className={`${INPUT_BASE} px-3 py-2 text-xs`}
+                          disabled={deletingId === project.id || updatingStatusId === project.id}
+                          onChange={(event) =>
+                            void handleUpdateProjectStatus(project.id, project.status, event.target.value, project.titulo)
+                          }
+                          value={(project.status ?? 'pendente').toLowerCase()}
+                        >
+                          {PROJECT_STATUS_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+
+                        <button
+                          className={`${BUTTON_SECONDARY} px-3 py-2 text-xs`}
+                          disabled={deletingId === project.id || updatingStatusId === project.id}
+                          onClick={() => void handleDeleteProject(project.id, project.titulo)}
+                          type="button"
+                        >
+                          <Trash2 className="mr-2 h-3.5 w-3.5" />
+                          Remover
+                        </button>
+
+                        {updatingStatusId === project.id ? (
+                          <p className="text-[11px] uppercase tracking-[0.18em] text-[#66666d]">A guardar status...</p>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))}

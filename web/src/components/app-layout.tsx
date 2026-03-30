@@ -11,6 +11,9 @@ import {
 } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/use-auth'
+import { useAsyncData } from '../hooks/use-async-data'
+import { getUserDisplayName } from '../lib/format'
+import { fetchConfiguracoes } from '../lib/supabase-data'
 import { BUTTON_SECONDARY } from '../lib/format'
 
 const NAV_ITEMS = [
@@ -25,32 +28,32 @@ const NAV_ITEMS = [
 const PAGE_TITLES: Record<string, { eyebrow: string; title: string; subtitle: string }> = {
   '/config': {
     eyebrow: 'Preferencias',
-    subtitle: 'Ajustes pessoais e parametros de alerta.',
+    subtitle: 'Ajustes pessoais, moeda e parametros do teu cockpit financeiro.',
     title: 'Configuracoes',
   },
   '/dashboard': {
     eyebrow: 'Visao geral',
-    subtitle: 'Receitas, gastos, entregas e sinais de atencao.',
+    subtitle: 'KPIs, alertas, graficos e atalhos de exportacao para decidir rapido.',
     title: 'Dashboard',
   },
   '/financas': {
     eyebrow: 'Fluxo financeiro',
-    subtitle: 'Receitas, despesas e recorrencias do periodo.',
+    subtitle: 'Lancamentos, recorrencias e leitura mensal pronta para Excel.',
     title: 'Financas',
   },
   '/investimentos': {
     eyebrow: 'Patrimonio',
-    subtitle: 'Metas de aporte, posicao atual e movimentos recentes.',
+    subtitle: 'Metas, movimentos e distribuicao dos ativos em tempo real.',
     title: 'Investimentos',
   },
   '/projetos': {
     eyebrow: 'Pipeline',
-    subtitle: 'Estado dos projetos, valores pendentes e prazos.',
+    subtitle: 'Estado dos projetos, prazos, cobranca e operacao do dia a dia.',
     title: 'Projetos',
   },
   '/timer': {
     eyebrow: 'Foco',
-    subtitle: 'Sessao ativa, horas do mes e historico recente.',
+    subtitle: 'Sessoes, horas faturaveis e controlo operacional do tempo investido.',
     title: 'Timer de trabalho',
   },
 }
@@ -58,47 +61,51 @@ const PAGE_TITLES: Record<string, { eyebrow: string; title: string; subtitle: st
 export function AppLayout() {
   const location = useLocation()
   const { signOut, user } = useAuth()
+  const { data: configuracoes } = useAsyncData(fetchConfiguracoes)
   const heading = PAGE_TITLES[location.pathname] ?? PAGE_TITLES['/dashboard']
+  const displayName = getUserDisplayName(configuracoes ?? { nome_usuario: '' }, user?.email)
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#000000] text-[#f0f0f0]">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(233,69,96,0.16),transparent_24%),radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.04),transparent_18%),radial-gradient(circle_at_bottom_left,rgba(233,69,96,0.08),transparent_20%)]" />
+    <div className="relative min-h-screen overflow-x-hidden bg-[var(--bg-canvas)] text-[var(--text-primary)]">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_22%),linear-gradient(180deg,rgba(255,255,255,0.015),transparent_22%)]" />
 
       <div className="relative mx-auto flex min-h-screen max-w-[1680px] flex-col lg:flex-row">
-        <aside className="border-b border-[#141418] bg-[#040405]/88 px-4 py-5 backdrop-blur lg:sticky lg:top-0 lg:h-screen lg:w-[290px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
-          <div className="rounded-[28px] border border-[#17171b] bg-[linear-gradient(180deg,rgba(12,12,14,0.96),rgba(7,7,8,0.96))] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
-            <div className="flex items-start justify-between gap-4">
+        <aside className="border-b border-[var(--border-subtle)] bg-[rgba(0,0,0,0.9)] px-4 py-5 backdrop-blur lg:sticky lg:top-0 lg:h-screen lg:w-[295px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
+          <div className="rounded-[30px] border border-[var(--border-subtle)] bg-[linear-gradient(180deg,rgba(10,10,10,0.98),rgba(4,4,4,0.98))] p-5 shadow-[var(--shadow-panel)]">
+            <div className="flex flex-col gap-4">
               <div>
-                <div className="inline-flex rounded-full border border-[#3a161c] bg-[#14080b] px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-[#e94560]">
-                  Personal workspace
+                <div className="inline-flex rounded-full border border-[var(--border-strong)] bg-[rgba(255,255,255,0.06)] px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-[var(--brand)]">
+                  Business cockpit
                 </div>
-                <h1 className="mt-4 text-[32px] font-semibold tracking-[-0.05em] text-[#f0f0f0]">
+                <h1 className="mt-4 text-[32px] font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
                   DevFlow
                 </h1>
-                <p className="mt-2 max-w-[210px] text-sm leading-6 text-[#8a8a93]">
-                  Workspace privado para pipeline, caixa, investimentos e tempo de execucao.
+                <p className="mt-2 max-w-[220px] text-sm leading-6 text-[var(--text-secondary)]">
+                  Painel operacional para pipeline, caixa, investimentos e horas com leitura executiva.
                 </p>
               </div>
-              <div className="rounded-2xl border border-[#1a1a20] bg-[#0c0c0f] px-3 py-2 text-right">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-[#666666]">Sessao</p>
-                <p className="mt-1 max-w-[112px] truncate text-xs text-[#f0f0f0]">{user?.email}</p>
+
+              <div className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Sessao ativa</p>
+                <p className="mt-2 break-words text-base font-semibold text-[var(--text-primary)]">{displayName}</p>
+                <p className="mt-1 break-all text-xs text-[var(--text-secondary)]">{user?.email}</p>
               </div>
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-              <div className="rounded-2xl border border-[#17171b] bg-[#0a0a0c] px-3 py-3">
-                <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-[#777780]">
-                  <ShieldCheck className="h-3.5 w-3.5 text-[#e94560]" />
+              <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-3 py-3">
+                <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--brand)]" />
                   Auth lock
                 </div>
-                <p className="mt-2 text-sm text-[#f0f0f0]">Acesso por um unico e-mail autorizado.</p>
+                <p className="mt-2 text-sm text-[var(--text-primary)]">Acesso por um unico e-mail autorizado.</p>
               </div>
-              <div className="rounded-2xl border border-[#17171b] bg-[#0a0a0c] px-3 py-3">
-                <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-[#777780]">
-                  <Sparkles className="h-3.5 w-3.5 text-[#e94560]" />
-                  Stack
+              <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-3 py-3">
+                <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
+                  <Sparkles className="h-3.5 w-3.5 text-[var(--brand)]" />
+                  Theme
                 </div>
-                <p className="mt-2 text-sm text-[#f0f0f0]">React, Tailwind e Supabase.</p>
+                <p className="mt-2 text-sm text-[var(--text-primary)]">Dark mode fixo com foco em leitura rapida.</p>
               </div>
             </div>
           </div>
@@ -112,17 +119,17 @@ export function AppLayout() {
                   [
                     'group flex items-center gap-3 rounded-[24px] border px-4 py-3.5 transition duration-200',
                     isActive
-                      ? 'border-[#47202a] bg-[linear-gradient(180deg,rgba(37,10,17,0.98),rgba(26,8,12,0.98))] text-[#f0f0f0] shadow-[0_16px_36px_rgba(233,69,96,0.08)]'
-                      : 'border-[#17171b] bg-[#09090b] text-[#888891] hover:border-[#29292f] hover:bg-[#111114] hover:text-[#f0f0f0]',
+                      ? 'border-[rgba(255,255,255,0.24)] bg-[linear-gradient(180deg,rgba(24,24,24,0.98),rgba(10,10,10,0.98))] text-[var(--text-primary)] shadow-[0_18px_42px_rgba(255,255,255,0.05)]'
+                      : 'border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]',
                   ].join(' ')
                 }
               >
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#1f1f23] bg-[#050507]">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[rgba(7,7,7,0.96)]">
                   <Icon className="h-4 w-4" />
                 </span>
                 <div className="min-w-0">
                   <span className="block text-sm font-medium">{label}</span>
-                  <span className="mt-1 block text-[11px] uppercase tracking-[0.22em] text-[#66666d] group-hover:text-[#7c7c85]">
+                  <span className="mt-1 block text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]">
                     modulo
                   </span>
                 </div>
@@ -130,33 +137,33 @@ export function AppLayout() {
             ))}
           </nav>
 
-          <div className="mt-6 rounded-[24px] border border-[#17171b] bg-[#09090b] p-4 lg:mb-4">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-[#66666d]">Fluxo</p>
-            <p className="mt-2 text-sm leading-6 text-[#8a8a93]">
-              Workspace operavel com registos reais, leitura rapida e menos espaco morto.
+          <div className="mt-6 rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4 lg:mb-4">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Fluxo</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+              Visual preto fixo, dados reais e blocos pensados para decisao e exportacao.
             </p>
           </div>
         </aside>
 
         <div className="flex min-h-screen flex-1 flex-col">
-          <header className="sticky top-0 z-20 border-b border-[#141418] bg-[linear-gradient(180deg,rgba(0,0,0,0.92),rgba(0,0,0,0.74))] px-6 py-5 backdrop-blur lg:px-8">
+          <header className="sticky top-0 z-20 border-b border-[var(--border-subtle)] bg-[linear-gradient(180deg,rgba(0,0,0,0.94),rgba(0,0,0,0.78))] px-6 py-5 backdrop-blur lg:px-8">
             <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-[0.28em] text-[#66666d]">{heading.eyebrow}</p>
-                <h2 className="mt-3 text-[clamp(2.4rem,4vw,3.8rem)] font-semibold tracking-[-0.06em] text-[#f0f0f0]">
+                <p className="text-[11px] uppercase tracking-[0.28em] text-[var(--text-muted)]">{heading.eyebrow}</p>
+                <h2 className="mt-3 text-[clamp(2.4rem,4vw,3.8rem)] font-semibold tracking-[-0.06em] text-[var(--text-primary)]">
                   {heading.title}
                 </h2>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-[#8a8a93]">{heading.subtitle}</p>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">{heading.subtitle}</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#1f1f24] bg-[#0c0c0f] px-4 py-2 text-xs uppercase tracking-[0.22em] text-[#777780]">
-                  <ShieldCheck className="h-3.5 w-3.5 text-[#e94560]" />
+                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-2 text-xs uppercase tracking-[0.22em] text-[var(--text-muted)]">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[var(--brand)]" />
                   Protected
                 </div>
-                <div className="inline-flex max-w-[220px] items-center gap-2 rounded-full border border-[#1f1f24] bg-[#0c0c0f] px-4 py-2 text-xs text-[#f0f0f0]">
-                  <span className="h-2 w-2 rounded-full bg-[#e94560]" />
-                  <span className="truncate">{user?.email}</span>
+                <div className="inline-flex max-w-[280px] items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-2 text-xs text-[var(--text-primary)]">
+                  <span className="h-2 w-2 rounded-full bg-[var(--brand)]" />
+                  <span className="truncate">{displayName}</span>
                 </div>
                 <button
                   className={BUTTON_SECONDARY}

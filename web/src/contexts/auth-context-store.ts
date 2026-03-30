@@ -2,7 +2,7 @@ import { createContext } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 
 export interface AuthContextValue {
-  allowedEmail: string
+  allowedEmails: string[]
   clearNotice: () => void
   configIssues: string[]
   isAuthenticated: boolean
@@ -10,7 +10,9 @@ export interface AuthContextValue {
   notice: string | null
   session: Session | null
   signIn: (email: string, password: string) => Promise<void>
+  signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
+  updatePassword: (password: string) => Promise<void>
   user: User | null
 }
 

@@ -22,13 +22,13 @@ export const CURRENCY_OPTIONS = [
 ]
 
 export const BUTTON_PRIMARY =
-  'inline-flex items-center justify-center rounded-xl border border-transparent bg-[#e94560] px-4 py-3 text-sm font-medium text-white shadow-[0_10px_30px_rgba(233,69,96,0.22)] transition hover:-translate-y-[1px] hover:bg-[#f25c74] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0'
+  'inline-flex items-center justify-center rounded-2xl border border-[rgba(255,255,255,0.42)] bg-[linear-gradient(180deg,#ffffff,#dcdcdc)] px-4 py-3 text-sm font-medium text-[#050505] shadow-[0_16px_36px_rgba(255,255,255,0.08)] transition hover:-translate-y-[1px] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0'
 
 export const BUTTON_SECONDARY =
-  'inline-flex items-center justify-center rounded-xl border border-[#252529] bg-[#0b0b0d]/95 px-4 py-3 text-sm font-medium text-[#f0f0f0] shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:-translate-y-[1px] hover:border-[#38383f] hover:bg-[#111114] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0'
+  'inline-flex items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 text-sm font-medium text-[var(--text-primary)] shadow-[var(--shadow-soft)] transition hover:-translate-y-[1px] hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0'
 
 export const INPUT_BASE =
-  'w-full rounded-xl border border-[#252529] bg-[#0b0b0d]/95 px-4 py-3 text-sm text-[#f0f0f0] placeholder:text-[#4f4f56] transition focus:border-[#e94560] focus:ring-4 focus:ring-[#e94560]/10'
+  'w-full rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition focus:border-[var(--border-strong)] focus:ring-4 focus:ring-[var(--brand-soft)]'
 
 export function mapConfiguracoes(rows: Array<{ chave: string; valor: string }>): ConfigMap {
   return rows.reduce<ConfigMap>(

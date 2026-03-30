@@ -1,6 +1,6 @@
 import { type PropsWithChildren, startTransition, useEffect, useEffectEvent, useMemo, useState } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
-import { configIssues, hasSupabaseConfig, isAllowedEmail } from '../lib/app-config'
+import { appConfig, configIssues, hasSupabaseConfig, isAllowedEmail } from '../lib/app-config'
 import { supabase } from '../lib/supabase'
 import { type AuthContextValue, AuthContext } from './auth-context-store'
 
@@ -10,12 +10,43 @@ const INVALID_LOGIN_MESSAGES = new Set([
   'Invalid grant',
 ])
 
+const NETWORK_ERROR_PATTERNS = [
+  'Failed to fetch',
+  'Load failed',
+  'NetworkError',
+  'fetch',
+]
+
 function mapAuthErrorMessage(error: unknown) {
   const message = error instanceof Error ? error.message : 'Ocorreu um erro inesperado.'
+
   if (INVALID_LOGIN_MESSAGES.has(message)) {
-    return 'E-mail ou senha inválidos.'
+    return 'E-mail ou senha invalidos.'
   }
+
+  if (NETWORK_ERROR_PATTERNS.some((pattern) => message.includes(pattern))) {
+    return 'Nao foi possivel ligar ao Supabase. Verifica a URL do projeto e a internet.'
+  }
+
   return message
+}
+
+function assertAllowedEmail(email: string | null | undefined) {
+  if (!isAllowedEmail(email)) {
+    throw new Error('Esta conta nao esta autorizada a entrar.')
+  }
+}
+
+async function assertSupabaseReachable() {
+  const response = await fetch(`${appConfig.supabaseUrl}/auth/v1/settings`, {
+    headers: {
+      apikey: appConfig.supabaseAnonKey,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Supabase auth respondeu com status ${response.status}.`)
+  }
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -24,17 +55,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [notice, setNotice] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(hasSupabaseConfig)
 
-  const applySession = useEffectEvent(async (nextSession: Session | null) => {
+  const applySession = useEffectEvent((nextSession: Session | null) => {
     const nextUser = nextSession?.user ?? null
 
     if (nextUser && !isAllowedEmail(nextUser.email)) {
-      await supabase.auth.signOut()
       startTransition(() => {
-        setNotice('Acesso não autorizado')
+        setNotice('Acesso nao autorizado')
         setSession(null)
         setUser(null)
         setIsLoading(false)
       })
+      void supabase.auth.signOut()
       return
     }
 
@@ -47,43 +78,68 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     if (!hasSupabaseConfig) {
+      setIsLoading(false)
       return
     }
 
     let active = true
-
-    void (async () => {
-      const { data, error } = await supabase.auth.getSession()
+    const loadingTimeout = window.setTimeout(() => {
       if (!active) {
         return
       }
 
-      if (error) {
+      startTransition(() => {
+        setNotice('A validacao da sessao demorou demasiado. Tenta recarregar a pagina.')
+        setIsLoading(false)
+      })
+    }, 5000)
+
+    void (async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession()
+        if (!active) {
+          return
+        }
+
+        if (error) {
+          startTransition(() => {
+            setNotice(mapAuthErrorMessage(error))
+            setIsLoading(false)
+          })
+          return
+        }
+
+        applySession(data.session)
+      } catch (caughtError) {
+        if (!active) {
+          return
+        }
+
         startTransition(() => {
-          setNotice(mapAuthErrorMessage(error))
+          setNotice(mapAuthErrorMessage(caughtError))
           setIsLoading(false)
         })
-        return
+      } finally {
+        window.clearTimeout(loadingTimeout)
       }
-
-      await applySession(data.session)
     })()
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      void applySession(nextSession)
+      applySession(nextSession)
     })
 
     return () => {
       active = false
+      window.clearTimeout(loadingTimeout)
       subscription.unsubscribe()
     }
   }, [])
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      allowedEmail: import.meta.env.VITE_ALLOWED_EMAIL?.trim().toLowerCase() ?? '',
+      allowedEmails: appConfig.allowedEmails,
       clearNotice: () => setNotice(null),
       configIssues,
       isAuthenticated: Boolean(user),
@@ -97,6 +153,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
           throw new Error(configIssues[0])
         }
 
+        await assertSupabaseReachable()
+        assertAllowedEmail(email)
+
         const { data, error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
@@ -107,10 +166,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
         }
 
         const nextUser = data.user ?? data.session?.user ?? null
-        if (!nextUser || !isAllowedEmail(nextUser.email)) {
+        if (!nextUser) {
+          throw new Error('Nao foi possivel validar o utilizador.')
+        }
+
+        try {
+          assertAllowedEmail(nextUser.email)
+        } catch (validationError) {
           await supabase.auth.signOut()
-          setNotice('Acesso não autorizado')
-          throw new Error('Acesso não autorizado')
+          setNotice('Acesso nao autorizado')
+          throw validationError
         }
 
         startTransition(() => {
@@ -118,11 +183,60 @@ export function AuthProvider({ children }: PropsWithChildren) {
           setUser(nextUser)
         })
       },
+      signInWithGoogle: async () => {
+        setNotice(null)
+
+        if (configIssues.length > 0) {
+          throw new Error(configIssues[0])
+        }
+
+        await assertSupabaseReachable()
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          options: {
+            queryParams: {
+              prompt: 'select_account',
+            },
+            redirectTo: `${window.location.origin}/login`,
+          },
+          provider: 'google',
+        })
+
+        if (error) {
+          throw new Error(mapAuthErrorMessage(error))
+        }
+
+        if (!data.url) {
+          throw new Error('Nao foi possivel iniciar o login com Google.')
+        }
+      },
       signOut: async () => {
         await supabase.auth.signOut()
         startTransition(() => {
           setSession(null)
           setUser(null)
+        })
+      },
+      updatePassword: async (password: string) => {
+        const normalizedPassword = password.trim()
+
+        if (!user) {
+          throw new Error('Sessao invalida. Faz login novamente.')
+        }
+
+        if (!normalizedPassword) {
+          throw new Error('Informe a nova senha.')
+        }
+
+        const { data, error } = await supabase.auth.updateUser({
+          password: normalizedPassword,
+        })
+
+        if (error) {
+          throw new Error(mapAuthErrorMessage(error))
+        }
+
+        startTransition(() => {
+          setUser(data.user ?? user)
         })
       },
       user,

@@ -301,7 +301,7 @@ export function InvestmentsPage() {
             <label className="flex items-center gap-3 rounded-2xl border border-[#1b1b20] bg-[#0b0b0d] px-4 py-3 text-sm text-[#f0f0f0] md:col-span-2">
               <input
                 checked={investmentForm.active}
-                className="h-4 w-4 accent-[#e94560]"
+                className="h-4 w-4 accent-[var(--brand)]"
                 onChange={(event) =>
                   setInvestmentForm((current) => ({ ...current, active: event.target.checked }))
                 }
@@ -412,8 +412,8 @@ export function InvestmentsPage() {
         </Panel>
       </div>
 
-      {feedback ? <p className="text-sm text-[#1d9e75]">{feedback}</p> : null}
-      {actionError ? <p className="text-sm text-[#e24b4a]">{actionError}</p> : null}
+      {feedback ? <p className="text-sm text-[var(--color-success)]">{feedback}</p> : null}
+      {actionError ? <p className="text-sm text-[var(--color-danger)]">{actionError}</p> : null}
 
       <div className="flex justify-end">
         <button className={BUTTON_SECONDARY} onClick={() => void reload()} type="button">
@@ -427,7 +427,7 @@ export function InvestmentsPage() {
         <StatCard accent="#1d9e75" label="Aportado este mes" value={formatCurrency(aportadoMes, currency)} />
         <StatCard accent="#ef9f27" label="Rendimento acumulado" value={formatCurrency(rendimentoTotal, currency)} />
         <StatCard
-          accent="#e94560"
+          accent="var(--brand)"
           label="Metas atingidas"
           value={`${metasAtingidas} / ${progressRows.length}`}
         />
@@ -465,7 +465,7 @@ export function InvestmentsPage() {
                       </div>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-[#141414]">
-                      <div className="h-full rounded-full bg-[#e94560]" style={{ width: `${percent}%` }} />
+                      <div className="h-full rounded-full bg-[linear-gradient(90deg,var(--brand),var(--brand-strong))]" style={{ width: `${percent}%` }} />
                     </div>
                     {investment.meta_valor ? (
                       <p className="text-xs text-[#666666]">
