@@ -78,6 +78,10 @@ export function LoginPage() {
             Continuar com Google
           </button>
 
+          <p className="text-center text-[11px] text-[var(--text-muted)]">
+            Se esta conta foi criada com Google, entra pelo botao acima.
+          </p>
+
           <div className="flex items-center gap-3 text-xs uppercase tracking-[0.22em] text-[var(--text-muted)]">
             <div className="h-px flex-1 bg-[var(--border-subtle)]" />
             ou entra com senha

@@ -4,11 +4,7 @@ import { appConfig, configIssues, hasSupabaseConfig, isAllowedEmail } from '../l
 import { supabase } from '../lib/supabase'
 import { type AuthContextValue, AuthContext } from './auth-context-store'
 
-const INVALID_LOGIN_MESSAGES = new Set([
-  'Email not confirmed',
-  'Invalid login credentials',
-  'Invalid grant',
-])
+const INVALID_LOGIN_MESSAGES = new Set(['Invalid login credentials', 'Invalid grant'])
 
 const NETWORK_ERROR_PATTERNS = [
   'Failed to fetch',
@@ -20,8 +16,12 @@ const NETWORK_ERROR_PATTERNS = [
 function mapAuthErrorMessage(error: unknown) {
   const message = error instanceof Error ? error.message : 'Ocorreu um erro inesperado.'
 
+  if (message === 'Email not confirmed') {
+    return 'O e-mail ainda nao foi confirmado. Confirma a conta no Supabase e tenta novamente.'
+  }
+
   if (INVALID_LOGIN_MESSAGES.has(message)) {
-    return 'E-mail ou senha invalidos.'
+    return 'E-mail ou senha invalidos. Se esta conta foi criada com Google, entra com Google ou redefine a senha.'
   }
 
   if (NETWORK_ERROR_PATTERNS.some((pattern) => message.includes(pattern))) {
