@@ -17,6 +17,7 @@ interface DonutChartProps {
   centerValue: string
   segments: Array<{
     color: string
+    displayValue?: string
     helper?: string
     label: string
     value: number
@@ -26,6 +27,7 @@ interface DonutChartProps {
 interface MiniBarChartProps {
   data: Array<{
     color?: string
+    displayValue?: string
     label: string
     value: number
   }>
@@ -153,19 +155,24 @@ export function DonutChart({ centerLabel, centerValue, segments }: DonutChartPro
   )
   const radius = 42
   const circumference = 2 * Math.PI * radius
-  let offset = 0
+  const segmentsWithOffsets = segments.map((segment, index) => {
+    const previousDash = segments
+      .slice(0, index)
+      .reduce((accumulator, currentSegment) => accumulator + circumference * (currentSegment.value / total), 0)
+
+    return {
+      dash: circumference * (segment.value / total),
+      offset: previousDash,
+      ...segment,
+    }
+  })
 
   return (
     <div className="grid gap-6 lg:grid-cols-[220px,1fr] lg:items-center">
       <div className="relative mx-auto h-[220px] w-[220px]">
         <svg aria-hidden="true" className="h-full w-full -rotate-90" viewBox="0 0 120 120">
           <circle cx="60" cy="60" fill="none" r={radius} stroke="rgba(255,255,255,0.08)" strokeWidth="11" />
-          {segments.map((segment) => {
-            const ratio = segment.value / total
-            const dash = circumference * ratio
-            const currentOffset = offset
-            offset += dash
-
+          {segmentsWithOffsets.map((segment) => {
             return (
               <circle
                 key={segment.label}
@@ -174,8 +181,8 @@ export function DonutChart({ centerLabel, centerValue, segments }: DonutChartPro
                 fill="none"
                 r={radius}
                 stroke={segment.color}
-                strokeDasharray={`${dash} ${circumference - dash}`}
-                strokeDashoffset={-currentOffset}
+                strokeDasharray={`${segment.dash} ${circumference - segment.dash}`}
+                strokeDashoffset={-segment.offset}
                 strokeLinecap="round"
                 strokeWidth="11"
               />
@@ -205,7 +212,9 @@ export function DonutChart({ centerLabel, centerValue, segments }: DonutChartPro
               </div>
             </div>
 
-            <span className="font-mono text-sm text-[var(--text-primary)]">{segment.value}</span>
+            <span className="font-mono text-sm text-[var(--text-primary)]">
+              {segment.displayValue ?? segment.value}
+            </span>
           </div>
         ))}
       </div>
@@ -225,7 +234,7 @@ export function MiniBarChart({ data }: MiniBarChartProps) {
           return (
             <div key={item.label} className="flex min-w-0 flex-1 flex-col items-center gap-3">
               <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                {item.value.toLocaleString('pt-PT')}
+                {item.displayValue ?? item.value.toLocaleString('pt-PT')}
               </span>
               <div className="flex h-full w-full items-end rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-2">
                 <div

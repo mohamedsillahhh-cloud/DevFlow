@@ -38,7 +38,7 @@ const PAGE_TITLES: Record<string, { eyebrow: string; title: string; subtitle: st
   },
   '/financas': {
     eyebrow: 'Fluxo financeiro',
-    subtitle: 'Lancamentos, recorrencias e leitura mensal pronta para Excel.',
+    subtitle: 'Caixa, filtros, recorrencias e analytics prontos para operacao e decisao.',
     title: 'Financas',
   },
   '/investimentos': {
