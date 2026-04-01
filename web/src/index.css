@@ -23,13 +23,13 @@
   --brand: #ffffff;
   --brand-strong: #d9d9d9;
   --brand-soft: rgba(255, 255, 255, 0.14);
-  --color-success: #3dff9f;
-  --color-danger: #ff5f7a;
-  --color-warning: #ffbf47;
-  --color-info: #3fbcff;
-  --color-violet: #b792ff;
-  --color-pink: #ff69cb;
-  --color-lime: #c5ff57;
+  --color-success: #2eff05;
+  --color-danger: #ff0000;
+  --color-warning: #ffd500;
+  --color-info: #1e98da;
+  --color-violet: #4d249f;
+  --color-pink: #ff00a6;
+  --color-lime: #a7ff04;
   --shadow-panel: 0 28px 90px rgba(0, 0, 0, 0.58);
   --shadow-soft: 0 16px 40px rgba(0, 0, 0, 0.34);
 }
