@@ -12,6 +12,7 @@ import { Panel } from '../components/panel'
 import { StatCard } from '../components/stat-card'
 import { StatusBadge } from '../components/status-badge'
 import { useAsyncData } from '../hooks/use-async-data'
+import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import { downloadCsv } from '../lib/csv'
 import {
   BUTTON_SECONDARY,
@@ -25,6 +26,7 @@ import {
   groupByMonth,
   isOpenProject,
   isWithinDateRange,
+  parseDateValue,
   projectDueAmount,
   sortProjectsByDeadline,
   sumBy,
@@ -100,6 +102,9 @@ function monthStamp(reference = new Date()) {
 
 export function DashboardPage() {
   const { data, error, isLoading, reload } = useAsyncData(fetchDashboardSnapshot)
+  useRealtimeSync(['configuracoes', 'projetos', 'gastos', 'receitas', 'investimentos', 'aportes'], reload, {
+    pollIntervalMs: 12000,
+  })
   const [notice, setNotice] = useState<string | null>(null)
 
   if (isLoading && !data) {
@@ -197,7 +202,7 @@ export function DashboardPage() {
     .slice(0, 5)
   const pendingBills = gastos
     .filter((item) => item.pago === 0)
-    .sort((left, right) => new Date(left.data).getTime() - new Date(right.data).getTime())
+    .sort((left, right) => parseDateValue(left.data).getTime() - parseDateValue(right.data).getTime())
     .slice(0, 5)
 
   const statusRows = STATUS_DEFINITIONS.map((definition) => ({
@@ -423,6 +428,7 @@ export function DashboardPage() {
               primary: incomeRow.total,
               secondary: groupedExpenses[index]?.total ?? 0,
             }))}
+            formatValue={(value) => formatCurrency(value, currency)}
             primaryColor="var(--color-info)"
             primaryLabel="Receitas"
             secondaryColor="var(--color-warning)"

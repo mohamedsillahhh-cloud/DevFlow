@@ -4,12 +4,14 @@ import { FullScreenLoader } from '../components/full-screen-loader'
 import { Panel } from '../components/panel'
 import { StatCard } from '../components/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
+import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
   INPUT_BASE,
   formatCurrency,
   formatDate,
+  formatInputDateValue,
   getRelationItem,
   getMonthBounds,
   isWithinDateRange,
@@ -25,12 +27,9 @@ import {
 
 const TEXTAREA_BASE = `${INPUT_BASE} min-h-[110px] resize-y`
 
-function getTodayInputValue() {
-  return new Date().toISOString().slice(0, 10)
-}
-
 export function InvestmentsPage() {
   const { data, error, isLoading, reload } = useAsyncData(fetchInvestmentsSnapshot)
+  useRealtimeSync(['configuracoes', 'investimentos', 'aportes'], reload, { pollIntervalMs: 12000 })
   const [investmentForm, setInvestmentForm] = useState({
     active: true,
     name: '',
@@ -40,7 +39,7 @@ export function InvestmentsPage() {
     type: '',
   })
   const [movementForm, setMovementForm] = useState({
-    date: getTodayInputValue(),
+    date: formatInputDateValue(),
     investmentId: '',
     notes: '',
     type: 'aporte',
@@ -170,7 +169,7 @@ export function InvestmentsPage() {
 
       setMovementForm((current) => ({
         ...current,
-        date: getTodayInputValue(),
+        date: formatInputDateValue(),
         notes: '',
         type: 'aporte',
         value: '',

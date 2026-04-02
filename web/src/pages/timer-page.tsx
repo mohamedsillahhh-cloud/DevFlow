@@ -4,6 +4,7 @@ import { FullScreenLoader } from '../components/full-screen-loader'
 import { Panel } from '../components/panel'
 import { StatCard } from '../components/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
+import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
@@ -73,6 +74,7 @@ function downloadCsv(filename: string, rows: string[][]) {
 
 export function TimerPage() {
   const { data, error, isLoading, reload } = useAsyncData(fetchTimerSnapshot)
+  useRealtimeSync(['configuracoes', 'projetos', 'tempo_projeto'], reload, { pollIntervalMs: 8000 })
   const [selectedProjectId, setSelectedProjectId] = useState('')
   const [startDescription, setStartDescription] = useState('')
   const [stopDescription, setStopDescription] = useState('')

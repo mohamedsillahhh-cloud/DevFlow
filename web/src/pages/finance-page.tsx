@@ -5,6 +5,7 @@ import { FullScreenLoader } from '../components/full-screen-loader'
 import { Panel } from '../components/panel'
 import { StatCard } from '../components/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
+import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import { downloadCsv } from '../lib/csv'
 import {
   BUTTON_PRIMARY,
@@ -12,11 +13,13 @@ import {
   INPUT_BASE,
   formatCurrency,
   formatDate,
+  formatInputDateValue,
   formatMonthLabel,
   getMonthBounds,
   getRelationItem,
   isOpenProject,
   isWithinDateRange,
+  parseDateValue,
   projectDueAmount,
   shiftMonth,
   sumBy,
@@ -53,13 +56,19 @@ const CHART_GRADIENTS = [
   'linear-gradient(180deg,rgba(122,240,255,0.96),rgba(29,131,147,0.58))',
 ]
 const SOLID_COLORS = ['#6c9cff', '#48e0ae', '#ffb84d', '#c98fff', '#ff7792', '#7af0ff']
-
-function getTodayInputValue() {
-  return new Date().toISOString().slice(0, 10)
-}
+const MONTH_PICKER_FORMATTER = new Intl.DateTimeFormat('pt-PT', { month: 'short' })
+const MONTH_NAME_FORMATTER = new Intl.DateTimeFormat('pt-PT', { month: 'long' })
 
 function monthStamp(reference: Date) {
   return `${reference.getFullYear()}-${String(reference.getMonth() + 1).padStart(2, '0')}`
+}
+
+function getMonthChipLabel(monthIndex: number) {
+  return MONTH_PICKER_FORMATTER.format(new Date(2026, monthIndex, 1)).replace('.', '')
+}
+
+function getMonthName(monthIndex: number) {
+  return MONTH_NAME_FORMATTER.format(new Date(2026, monthIndex, 1))
 }
 
 function formatRatio(value: number) {
@@ -117,14 +126,14 @@ function buildMonthlySeries<T>(
 
 function getRecurringDueDate(item: Gasto, reference: Date) {
   const daysInMonth = new Date(reference.getFullYear(), reference.getMonth() + 1, 0).getDate()
-  const baseDay = new Date(item.data).getDate() || 1
+  const baseDay = parseDateValue(item.data).getDate() || 1
   const dueDay = Math.min(item.dia_vencimento ?? baseDay, daysInMonth)
   return new Date(reference.getFullYear(), reference.getMonth(), dueDay)
 }
 
 function getDueStatusLabel(target: Date, currentMonthView: boolean) {
   if (!currentMonthView) {
-    return formatDate(target.toISOString())
+    return formatDate(target)
   }
 
   const today = new Date()
@@ -161,14 +170,18 @@ function getIncomeSourceLabel(item: Receita) {
 
 export function FinancePage() {
   const { data, error, isLoading, reload } = useAsyncData(fetchFinanceSnapshot)
-  const [monthOffset, setMonthOffset] = useState('0')
+  const { isLive } = useRealtimeSync(['configuracoes', 'gastos', 'projetos', 'receitas'], reload, {
+    pollIntervalMs: 12000,
+  })
+  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear())
+  const [selectedMonth, setSelectedMonth] = useState(() => new Date().getMonth())
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [expenseStatusFilter, setExpenseStatusFilter] = useState('all')
   const [expenseForm, setExpenseForm] = useState({
     category: '',
     customCategory: '',
-    date: getTodayInputValue(),
+    date: formatInputDateValue(),
     description: '',
     dueDay: '',
     method: '',
@@ -178,7 +191,7 @@ export function FinancePage() {
     value: '',
   })
   const [incomeForm, setIncomeForm] = useState({
-    date: getTodayInputValue(),
+    date: formatInputDateValue(),
     description: '',
     projectId: '',
     source: '',
@@ -210,14 +223,21 @@ export function FinancePage() {
   }
 
   const { configuracoes, gastos, projetos, receitas } = data
-  const reference = shiftMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1), -Number(monthOffset))
-  const currentMonthView = Number(monthOffset) === 0
+  const today = new Date()
+  const reference = new Date(selectedYear, selectedMonth, 1)
+  const currentMonthView = selectedYear === today.getFullYear() && selectedMonth === today.getMonth()
   const currency = configuracoes.moeda ?? 'CVE'
   const monthLabel = formatMonthLabel(reference)
-  const options = Array.from({ length: 12 }).map((_, index) => {
-    const optionReference = shiftMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1), -index)
-    return { label: formatMonthLabel(optionReference), value: String(index) }
-  })
+  const datedYears = [...gastos, ...receitas]
+    .map((item) => parseDateValue(item.data).getFullYear())
+    .filter((value) => Number.isFinite(value))
+  const minYear = datedYears.length > 0 ? Math.min(...datedYears, today.getFullYear() - 2) : today.getFullYear() - 2
+  const maxYear = datedYears.length > 0 ? Math.max(...datedYears, today.getFullYear() + 2) : today.getFullYear() + 2
+  const yearOptions = Array.from({ length: maxYear - minYear + 1 }, (_, index) => maxYear - index)
+  const monthOptions = Array.from({ length: 12 }, (_, month) => ({
+    label: getMonthChipLabel(month),
+    value: month,
+  }))
   const { end, start } = getMonthBounds(reference)
   const gastosMes = gastos.filter((item) => isWithinDateRange(item.data, start, end))
   const receitasMes = receitas.filter((item) => isWithinDateRange(item.data, start, end))
@@ -247,21 +267,40 @@ export function FinancePage() {
 
   const incomeSeries = buildMonthlySeries(receitas, (item) => item.data, (item) => item.valor, reference, 6)
   const expenseSeries = buildMonthlySeries(gastos, (item) => item.data, (item) => item.valor, reference, 6)
-  const monthlySummaryRows = incomeSeries.map((incomeRow, index) => {
-    const expenseRow = expenseSeries[index]
-    const net = incomeRow.total - (expenseRow?.total ?? 0)
+  const annualSummaryRows = monthOptions.map((option) => {
+    const monthReference = new Date(selectedYear, option.value, 1)
+    const { end: monthEnd, start: monthStart } = getMonthBounds(monthReference)
+    const income = sumBy(receitas, (item) => item.valor, (item) => isWithinDateRange(item.data, monthStart, monthEnd))
+    const expenses = sumBy(gastos, (item) => item.valor, (item) => isWithinDateRange(item.data, monthStart, monthEnd))
+    const net = income - expenses
+    const activity = income + expenses
 
     return {
-      expenses: expenseRow?.total ?? 0,
-      income: incomeRow.total,
-      label: incomeRow.label,
-      margin: incomeRow.total > 0 ? net / incomeRow.total : 0,
+      activity,
+      expenses,
+      income,
+      isActive: option.value === selectedMonth,
+      label: getMonthName(option.value),
+      margin: income > 0 ? net / income : 0,
+      month: option.value,
+      monthChip: option.label.toUpperCase(),
+      monthLabel: formatMonthLabel(monthReference),
       net,
     }
   })
   const trailingIncome = incomeSeries.slice(-3).reduce((accumulator, item) => accumulator + item.total, 0) / 3
   const trailingExpenses = expenseSeries.slice(-3).reduce((accumulator, item) => accumulator + item.total, 0) / 3
   const projectedNet = trailingIncome - trailingExpenses
+  const yearToDateRows = annualSummaryRows.slice(0, selectedMonth + 1)
+  const annualIncome = annualSummaryRows.reduce((accumulator, item) => accumulator + item.income, 0)
+  const annualExpenses = annualSummaryRows.reduce((accumulator, item) => accumulator + item.expenses, 0)
+  const yearToDateIncome = yearToDateRows.reduce((accumulator, item) => accumulator + item.income, 0)
+  const yearToDateExpenses = yearToDateRows.reduce((accumulator, item) => accumulator + item.expenses, 0)
+  const yearToDateNet = yearToDateIncome - yearToDateExpenses
+  const annualActivityMax = Math.max(1, ...annualSummaryRows.map((row) => row.activity))
+  const bestMonth = [...annualSummaryRows].sort((left, right) => right.net - left.net)[0] ?? annualSummaryRows[0]
+  const mostActiveMonth =
+    [...annualSummaryRows].sort((left, right) => right.activity - left.activity)[0] ?? annualSummaryRows[0]
 
   const expenseCategoryRows = Object.entries(
     gastosMes.reduce<Record<string, number>>((accumulator, item) => {
@@ -296,7 +335,7 @@ export function FinancePage() {
 
   const pendingBills = gastos
     .filter((item) => item.pago === 0)
-    .sort((left, right) => new Date(left.data).getTime() - new Date(right.data).getTime())
+    .sort((left, right) => parseDateValue(left.data).getTime() - parseDateValue(right.data).getTime())
     .slice(0, 5)
   const recurringRows = recorrentes
     .map((item) => ({
@@ -332,7 +371,7 @@ export function FinancePage() {
 
   function handleExportSummary() {
     downloadCsv(
-      `resumo-financas-${monthStamp(reference)}`,
+      `resumo-financas-${selectedYear}`,
       [
         { label: 'Mes', value: (row) => row.label },
         { label: 'Receitas', value: (row) => row.income.toFixed(2) },
@@ -340,9 +379,9 @@ export function FinancePage() {
         { label: 'Saldo', value: (row) => row.net.toFixed(2) },
         { label: 'Margem', value: (row) => (row.margin * 100).toFixed(2) },
       ],
-      monthlySummaryRows,
+      annualSummaryRows,
     )
-    setFeedback('Resumo financeiro exportado com sucesso.')
+    setFeedback(`Resumo anual de ${selectedYear} exportado com sucesso.`)
     setActionError(null)
   }
 
@@ -406,10 +445,16 @@ export function FinancePage() {
         value: expenseForm.value ? Number(expenseForm.value) : 0,
       })
 
+      const createdExpenseDate = parseDateValue(expenseForm.date)
+      if (Number.isFinite(createdExpenseDate.getTime())) {
+        setSelectedYear(createdExpenseDate.getFullYear())
+        setSelectedMonth(createdExpenseDate.getMonth())
+      }
+
       setExpenseForm({
         category: '',
         customCategory: '',
-        date: getTodayInputValue(),
+        date: formatInputDateValue(),
         description: '',
         dueDay: '',
         method: '',
@@ -441,8 +486,14 @@ export function FinancePage() {
         value: incomeForm.value ? Number(incomeForm.value) : 0,
       })
 
+      const createdIncomeDate = parseDateValue(incomeForm.date)
+      if (Number.isFinite(createdIncomeDate.getTime())) {
+        setSelectedYear(createdIncomeDate.getFullYear())
+        setSelectedMonth(createdIncomeDate.getMonth())
+      }
+
       setIncomeForm({
-        date: getTodayInputValue(),
+        date: formatInputDateValue(),
         description: '',
         projectId: '',
         source: '',
@@ -516,89 +567,162 @@ export function FinancePage() {
         </div>
       )}
 
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <div className="grid flex-1 gap-3 md:grid-cols-2 xl:grid-cols-[220px,minmax(0,1fr),220px,220px]">
-          <label className="space-y-2">
-            <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Periodo</span>
-            <select className={INPUT_BASE} onChange={(event) => setMonthOffset(event.target.value)} value={monthOffset}>
-              {options.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="space-y-2">
-            <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Pesquisar</span>
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
-              <input
-                className={`${INPUT_BASE} pl-11`}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Descricao, origem, categoria ou metodo"
-                type="text"
-                value={searchQuery}
-              />
-            </div>
-          </label>
-
-          <label className="space-y-2">
-            <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Categoria</span>
-            <select className={INPUT_BASE} onChange={(event) => setCategoryFilter(event.target.value)} value={categoryFilter}>
-              <option value="all">Todas</option>
-              {expenseFilterOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="space-y-2">
-            <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Estado do gasto</span>
-            <select
-              className={INPUT_BASE}
-              onChange={(event) => setExpenseStatusFilter(event.target.value)}
-              value={expenseStatusFilter}
+      <div className="grid gap-6 2xl:grid-cols-[1.15fr,0.85fr]">
+        <Panel
+          actions={
+            <div
+              className={[
+                'inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs uppercase tracking-[0.24em]',
+                isLive
+                  ? 'border-[#143d31] bg-[rgba(20,86,58,0.18)] text-[#7ef7c8]'
+                  : 'border-[#5a4722] bg-[rgba(140,96,15,0.16)] text-[var(--color-warning)]',
+              ].join(' ')}
             >
-              <option value="all">Todos</option>
-              <option value="pending">Pendentes</option>
-              <option value="paid">Pagos</option>
-            </select>
-          </label>
-        </div>
+              <span className={`h-2.5 w-2.5 rounded-full ${isLive ? 'bg-[#2effa8]' : 'bg-[var(--color-warning)]'}`} />
+              {isLive ? 'tempo real' : 'sync ativa'}
+            </div>
+          }
+          description="Escolhe primeiro o ano e depois qualquer um dos 12 meses para focar os dados do periodo."
+          title="Periodo"
+        >
+          <div className="grid gap-5 xl:grid-cols-[220px,minmax(0,1fr)]">
+            <label className="space-y-3">
+              <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Ano</span>
+              <select
+                className={`${INPUT_BASE} text-lg font-semibold tracking-[-0.04em]`}
+                onChange={(event) => setSelectedYear(Number(event.target.value))}
+                value={selectedYear}
+              >
+                {yearOptions.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-        <div className="flex flex-wrap gap-3">
-          <button className={BUTTON_SECONDARY} onClick={handleExportSummary} type="button">
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Resumo CSV
-          </button>
-          <button className={BUTTON_SECONDARY} onClick={handleExportExpenses} type="button">
-            <Download className="mr-2 h-4 w-4" />
-            Gastos CSV
-          </button>
-          <button className={BUTTON_SECONDARY} onClick={handleExportIncome} type="button">
-            <Download className="mr-2 h-4 w-4" />
-            Receitas CSV
-          </button>
-          <button className={BUTTON_SECONDARY} onClick={() => void reload()} type="button">
-            <RefreshCcw className="mr-2 h-4 w-4" />
-            Atualizar
-          </button>
-        </div>
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Mes ativo</p>
+                  <h3 className="mt-2 text-[clamp(1.9rem,3vw,2.8rem)] font-semibold tracking-[-0.06em] text-[var(--text-primary)]">
+                    {monthLabel}
+                  </h3>
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-2 text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[var(--brand)]" />
+                  leitura mensal
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+                {monthOptions.map((option) => {
+                  const isActive = option.value === selectedMonth
+
+                  return (
+                    <button
+                      key={option.value}
+                      className={[
+                        'rounded-[22px] border px-4 py-3 text-left transition',
+                        isActive
+                          ? 'border-[rgba(255,255,255,0.22)] bg-[linear-gradient(180deg,rgba(22,22,22,0.98),rgba(8,8,8,0.98))] text-[var(--text-primary)] shadow-[0_16px_40px_rgba(255,255,255,0.04)]'
+                          : 'border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]',
+                      ].join(' ')}
+                      onClick={() => setSelectedMonth(option.value)}
+                      type="button"
+                    >
+                      <span className="block text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Mes</span>
+                      <span className="mt-2 block text-sm font-medium capitalize">{option.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </Panel>
+
+        <Panel
+          description="Pesquisa rapida, filtros compactos e exportacao do periodo sem sobrecarregar a tela."
+          title="Filtros"
+        >
+          <div className="space-y-4">
+            <label className="space-y-2">
+              <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Pesquisar</span>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+                <input
+                  className={`${INPUT_BASE} pl-11`}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Descricao, origem, categoria ou metodo"
+                  type="text"
+                  value={searchQuery}
+                />
+              </div>
+            </label>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="space-y-2">
+                <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Categoria</span>
+                <select
+                  className={INPUT_BASE}
+                  onChange={(event) => setCategoryFilter(event.target.value)}
+                  value={categoryFilter}
+                >
+                  <option value="all">Todas</option>
+                  {expenseFilterOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="space-y-2">
+                <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Estado do gasto</span>
+                <select
+                  className={INPUT_BASE}
+                  onChange={(event) => setExpenseStatusFilter(event.target.value)}
+                  value={expenseStatusFilter}
+                >
+                  <option value="all">Todos</option>
+                  <option value="pending">Pendentes</option>
+                  <option value="paid">Pagos</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button className={BUTTON_SECONDARY} onClick={handleExportSummary} type="button">
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Resumo CSV
+              </button>
+              <button className={BUTTON_SECONDARY} onClick={handleExportExpenses} type="button">
+                <Download className="mr-2 h-4 w-4" />
+                Gastos CSV
+              </button>
+              <button className={BUTTON_SECONDARY} onClick={handleExportIncome} type="button">
+                <Download className="mr-2 h-4 w-4" />
+                Receitas CSV
+              </button>
+              <button className={BUTTON_SECONDARY} onClick={() => void reload()} type="button">
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Atualizar
+              </button>
+            </div>
+          </div>
+        </Panel>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-5">
         <StatCard
           accent="#1d9e75"
-          label="Receitas do mes"
+          label="Receitas do periodo"
           subtitle={`${receitasMes.length} entrada(s) em ${monthLabel}`}
           value={formatCurrency(receitasTotal, currency)}
         />
         <StatCard
           accent="#e24b4a"
-          label="Gastos do mes"
+          label="Gastos do periodo"
           subtitle={`${gastosMes.length} saida(s) registadas`}
           value={formatCurrency(gastosTotal, currency)}
         />
@@ -639,6 +763,7 @@ export function FinancePage() {
               primary: incomeRow.total,
               secondary: expenseSeries[index]?.total ?? 0,
             }))}
+            formatValue={(value) => formatCurrency(value, currency)}
             primaryColor="var(--color-success)"
             primaryLabel="Receitas"
             secondaryColor="var(--color-danger)"
@@ -670,7 +795,7 @@ export function FinancePage() {
           </div>
         </Panel>
 
-        <Panel description="Leituras rapidas para decidir sem sair da operacao financeira." title="Desk do mes">
+        <Panel description="Leituras rapidas para decidir sem sair da operacao financeira." title="Desk do periodo">
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
             <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
               <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Receita ligada a projeto</p>
@@ -1202,40 +1327,125 @@ export function FinancePage() {
         </div>
       </div>
 
-      <Panel description="Conferencia dos ultimos seis meses encerrando no periodo selecionado." title="Resumo mensal">
-        <div className="overflow-x-auto">
-          <table className="min-w-full border-separate border-spacing-y-2 text-left">
-            <thead>
-              <tr className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
-                <th className="pb-2 pr-4 font-medium">Mes</th>
-                <th className="pb-2 pr-4 font-medium">Receitas</th>
-                <th className="pb-2 pr-4 font-medium">Gastos</th>
-                <th className="pb-2 pr-4 font-medium">Saldo</th>
-                <th className="pb-2 font-medium">Margem</th>
-              </tr>
-            </thead>
-            <tbody>
-              {monthlySummaryRows.map((row) => (
-                <tr key={row.label} className="text-sm">
-                  <td className="rounded-l-[22px] border-y border-l border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-primary)]">
-                    {row.label}
-                  </td>
-                  <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--color-success)]">
-                    {formatCurrency(row.income, currency)}
-                  </td>
-                  <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--color-danger)]">
-                    {formatCurrency(row.expenses, currency)}
-                  </td>
-                  <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-primary)]">
-                    {formatCurrency(row.net, currency)}
-                  </td>
-                  <td className="rounded-r-[22px] border-y border-r border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-secondary)]">
-                    {formatRatio(row.margin)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <Panel
+        actions={
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-2 text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--brand)]" />
+            janeiro a dezembro · {selectedYear}
+          </div>
+        }
+        description="Mapa anual em ordem cronologica, com 12 meses clicaveis, leitura acumulada e foco imediato no mes ativo."
+        title="Resumo anual"
+      >
+        <div className="grid gap-4 xl:grid-cols-4">
+          <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">YTD ate {monthLabel}</p>
+            <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+              {formatCurrency(yearToDateNet, currency)}
+            </p>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              {formatCurrency(yearToDateIncome, currency)} em entradas vs {formatCurrency(yearToDateExpenses, currency)} em saidas.
+            </p>
+          </article>
+
+          <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Fluxo anual</p>
+            <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+              {formatCurrency(annualIncome - annualExpenses, currency)}
+            </p>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              {formatCurrency(annualIncome, currency)} recebidos e {formatCurrency(annualExpenses, currency)} gastos no ano.
+            </p>
+          </article>
+
+          <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Melhor saldo</p>
+            <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+              {bestMonth ? formatCurrency(bestMonth.net, currency) : formatCurrency(0, currency)}
+            </p>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              {bestMonth ? `${bestMonth.label} foi o melhor fecho do ano.` : 'Ainda sem dados no ano selecionado.'}
+            </p>
+          </article>
+
+          <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Pico operacional</p>
+            <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+              {mostActiveMonth ? formatCurrency(mostActiveMonth.activity, currency) : formatCurrency(0, currency)}
+            </p>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              {mostActiveMonth ? `${mostActiveMonth.label} concentrou o maior volume do ano.` : 'Sem volume registado ainda.'}
+            </p>
+          </article>
+        </div>
+
+        <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          {annualSummaryRows.map((row) => {
+            const activityWidth = Math.max((row.activity / annualActivityMax) * 100, row.activity > 0 ? 8 : 0)
+
+            return (
+              <button
+                key={row.month}
+                className={[
+                  'rounded-[26px] border p-4 text-left transition',
+                  row.isActive
+                    ? 'border-[rgba(255,255,255,0.2)] bg-[linear-gradient(180deg,rgba(20,20,20,0.98),rgba(6,6,6,0.98))] shadow-[0_20px_44px_rgba(255,255,255,0.04)]'
+                    : 'border-[var(--border-subtle)] bg-[var(--surface-1)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)]',
+                ].join(' ')}
+                onClick={() => setSelectedMonth(row.month)}
+                type="button"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <span className="inline-flex rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-2.5 py-1 text-[10px] uppercase tracking-[0.24em] text-[var(--text-muted)]">
+                      {row.monthChip}
+                    </span>
+                    <p className="mt-3 text-lg font-semibold capitalize tracking-[-0.04em] text-[var(--text-primary)]">
+                      {row.label}
+                    </p>
+                  </div>
+                  <span
+                    className={[
+                      'rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.24em]',
+                      row.net >= 0
+                        ? 'border-[#143d31] bg-[rgba(20,86,58,0.18)] text-[#7ef7c8]'
+                        : 'border-[#4a1f2a] bg-[rgba(113,29,43,0.18)] text-[#ff8aa0]',
+                    ].join(' ')}
+                  >
+                    {row.isActive ? 'ativo' : formatRatio(row.margin)}
+                  </span>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Receitas</p>
+                    <p className="mt-2 font-mono text-sm text-[var(--color-success)]">{formatCurrency(row.income, currency)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Gastos</p>
+                    <p className="mt-2 font-mono text-sm text-[var(--color-danger)]">{formatCurrency(row.expenses, currency)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Saldo</p>
+                    <p className="mt-2 font-mono text-sm text-[var(--text-primary)]">{formatCurrency(row.net, currency)}</p>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
+                    <span>Volume do mes</span>
+                    <span>{formatCurrency(row.activity, currency)}</span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
+                    <div
+                      className="h-full rounded-full bg-[linear-gradient(90deg,rgba(46,255,168,0.95),rgba(30,152,218,0.72))]"
+                      style={{ width: `${activityWidth}%` }}
+                    />
+                  </div>
+                </div>
+              </button>
+            )
+          })}
         </div>
       </Panel>
     </div>

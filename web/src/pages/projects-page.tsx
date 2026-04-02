@@ -6,6 +6,7 @@ import { Panel } from '../components/panel'
 import { StatCard } from '../components/stat-card'
 import { StatusBadge } from '../components/status-badge'
 import { useAsyncData } from '../hooks/use-async-data'
+import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
@@ -15,6 +16,7 @@ import {
   formatDate,
   formatPercent,
   getClientName,
+  parseDateValue,
   projectDueAmount,
 } from '../lib/format'
 import { createProjeto, deleteProjeto, fetchProjectsSnapshot, updateProjetoStatus } from '../lib/supabase-data'
@@ -42,6 +44,7 @@ function getProjectStatusLabel(status: string) {
 
 export function ProjectsPage() {
   const { data, error, isLoading, reload } = useAsyncData(fetchProjectsSnapshot)
+  useRealtimeSync(['configuracoes', 'clientes', 'projetos'], reload, { pollIntervalMs: 15000 })
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('todos')
   const [form, setForm] = useState({
@@ -109,7 +112,7 @@ export function ProjectsPage() {
     if (!project.prazo) {
       return false
     }
-    const deadline = new Date(project.prazo)
+    const deadline = parseDateValue(project.prazo)
     deadline.setHours(0, 0, 0, 0)
     return (
       deadline < today &&

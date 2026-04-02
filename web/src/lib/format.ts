@@ -1,6 +1,7 @@
 import { type ConfigMap, type Relation, type Projeto, type TempoProjeto } from './types'
 
 const LOCALE = 'pt-PT'
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
 export const DEFAULT_CONFIG: ConfigMap = {
   alerta_conta_dias: '3',
@@ -69,7 +70,7 @@ export function formatCurrency(value: number, currency = 'CVE') {
   return `${symbol} ${formatted}`
 }
 
-export function formatDate(value: string | null | undefined, options?: Intl.DateTimeFormatOptions) {
+export function formatDate(value: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions) {
   if (!value) {
     return '-'
   }
@@ -79,7 +80,7 @@ export function formatDate(value: string | null | undefined, options?: Intl.Date
     month: '2-digit',
     year: 'numeric',
     ...options,
-  }).format(new Date(value))
+  }).format(parseDateValue(value))
 }
 
 export function formatMonthLabel(value: Date) {
@@ -89,13 +90,37 @@ export function formatMonthLabel(value: Date) {
   }).format(value)
 }
 
+export function parseDateValue(value: string | Date | null | undefined) {
+  if (value instanceof Date) {
+    return new Date(value)
+  }
+
+  if (!value) {
+    return new Date(Number.NaN)
+  }
+
+  if (DATE_ONLY_PATTERN.test(value)) {
+    const [year, month, day] = value.split('-').map(Number)
+    return new Date(year, month - 1, day, 12)
+  }
+
+  return new Date(value)
+}
+
+export function formatInputDateValue(reference = new Date()) {
+  const year = reference.getFullYear()
+  const month = String(reference.getMonth() + 1).padStart(2, '0')
+  const day = String(reference.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function deadlineColor(value: string | null | undefined) {
   if (!value) {
     return '#378add'
   }
 
   const today = new Date()
-  const target = new Date(value)
+  const target = parseDateValue(value)
   today.setHours(0, 0, 0, 0)
   target.setHours(0, 0, 0, 0)
   const diff = Math.floor((target.getTime() - today.getTime()) / 86400000)
@@ -130,7 +155,7 @@ export function isWithinDateRange(value: string | null | undefined, start: Date,
     return false
   }
 
-  const current = new Date(value)
+  const current = parseDateValue(value)
   return current >= start && current < end
 }
 
@@ -252,7 +277,7 @@ export function toSortedAlerts(
       continue
     }
 
-    const deadline = new Date(project.prazo)
+    const deadline = parseDateValue(project.prazo)
     deadline.setHours(0, 0, 0, 0)
     const diff = Math.floor((deadline.getTime() - today.getTime()) / 86400000)
 
@@ -280,8 +305,8 @@ export function toSortedAlerts(
 
   for (const bill of gastos
     .filter((item) => item.pago === 0)
-    .sort((left, right) => new Date(left.data).getTime() - new Date(right.data).getTime())) {
-    const dueDate = new Date(bill.data)
+    .sort((left, right) => parseDateValue(left.data).getTime() - parseDateValue(right.data).getTime())) {
+    const dueDate = parseDateValue(bill.data)
     dueDate.setHours(0, 0, 0, 0)
     const diff = Math.floor((dueDate.getTime() - today.getTime()) / 86400000)
     if (diff <= contaDays) {

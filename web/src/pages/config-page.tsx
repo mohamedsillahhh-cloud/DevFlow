@@ -3,6 +3,7 @@ import { FullScreenLoader } from '../components/full-screen-loader'
 import { Panel } from '../components/panel'
 import { useAuth } from '../hooks/use-auth'
 import { useAsyncData } from '../hooks/use-async-data'
+import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
@@ -14,6 +15,7 @@ import { fetchConfiguracoes, saveConfiguracoes } from '../lib/supabase-data'
 
 export function ConfigPage() {
   const { data, error, isLoading, reload } = useAsyncData(fetchConfiguracoes)
+  useRealtimeSync(['configuracoes'], reload, { pollIntervalMs: 15000 })
   const { updatePassword, user } = useAuth()
   const [form, setForm] = useState({
     alerta_conta_dias: '3',
