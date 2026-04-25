@@ -1,54 +1,63 @@
 # DevFlow
 
-Repositorio do DevFlow com duas interfaces para a mesma base Supabase:
+Aplicação full-stack com duas interfaces independentes conectadas ao mesmo banco Supabase:
 
-- `web/`: frontend React + Vite para projetos, financas, investimentos e timer.
-- raiz do projeto: cliente desktop em PyQt6.
+- **`web/`** – Interface web moderna (React + Vite) para gestão de projetos, finanças, investimentos e timer
+- **Raiz** – Cliente desktop nativo desenvolvido em PyQt6
 
-## Ambiente
+## Configuração do Ambiente
 
-Preencha as variaveis necessarias:
+O projeto requer variáveis de ambiente específicas para cada interface:
 
-- Desktop PyQt:
-  - `SUPABASE_URL`
-  - `SUPABASE_KEY`
-- Frontend web:
-  - `VITE_ALLOWED_EMAIL`
-  - `VITE_SUPABASE_URL`
-  - `VITE_SUPABASE_ANON_KEY`
+### Cliente Desktop (PyQt6)
+```
+SUPABASE_URL=sua_url_aqui
+SUPABASE_KEY=sua_chave_aqui
+```
 
-No frontend use apenas a chave anon/publica do Supabase. Nao use service key no site estatico.
+### Interface Web
+```
+VITE_ALLOWED_EMAIL=email@exemplo.com
+VITE_SUPABASE_URL=sua_url_aqui
+VITE_SUPABASE_ANON_KEY=sua_chave_publica_aqui
+```
 
-## Desenvolvimento
+> ⚠️ **Importante**: A interface web utiliza apenas a chave anônima (pública) do Supabase. Nunca exponha a service key em aplicações client-side.
 
-Frontend web:
+## Executando Localmente
 
+### Interface Web
 ```bash
 cd web
 npm install
 npm run dev
 ```
 
-Cliente desktop:
-
+### Cliente Desktop
 ```bash
 python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt
 .venv\Scripts\python main.py
 ```
 
-## Build do executavel
+## Gerando Executável
 
+Para compilar o cliente desktop:
 ```bash
 build.bat
 ```
 
-## Deploy no Render
+## Deploy em Produção
 
-O Render serve apenas o frontend em `web/`. O cliente desktop em PyQt6 nao roda no Render.
+O projeto está configurado para deploy no Render via `render.yaml`:
 
-Com este repositorio, pode criar um Static Site a partir do `render.yaml` na raiz. No primeiro deploy, informe:
+1. Criar novo **Static Site** no Render
+2. Conectar este repositório
+3. Configurar as variáveis de ambiente:
+   - `VITE_ALLOWED_EMAIL`
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
 
-- `VITE_ALLOWED_EMAIL`
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+> 📝 **Nota**: Apenas a interface web (`web/`) é servida no Render. O cliente PyQt6 permanece como aplicação desktop local.
+
+OBRIGADO PELA ATENÇÃO
