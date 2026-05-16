@@ -1,4 +1,15 @@
-import { AlertTriangle, Download, FileSpreadsheet, PlusCircle, RefreshCcw, Search, Trash2 } from 'lucide-react'
+import {
+  AlertTriangle,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  FileSpreadsheet,
+  PlusCircle,
+  RefreshCcw,
+  Search,
+  Trash2,
+} from 'lucide-react'
 import { useDeferredValue, useState } from 'react'
 import { ComparisonAreaChart, DonutChart, MiniBarChart } from '../components/data-viz'
 import { FullScreenLoader } from '../components/full-screen-loader'
@@ -58,6 +69,352 @@ const CHART_GRADIENTS = [
 const SOLID_COLORS = ['#6c9cff', '#48e0ae', '#ffb84d', '#c98fff', '#ff7792', '#7af0ff']
 const MONTH_PICKER_FORMATTER = new Intl.DateTimeFormat('pt-PT', { month: 'short' })
 const MONTH_NAME_FORMATTER = new Intl.DateTimeFormat('pt-PT', { month: 'long' })
+const YEAR_WINDOW_SIZE = 5
+const FILTER_STATUS_OPTIONS = [
+  { label: 'Todos', value: 'all' },
+  { label: 'Pendentes', value: 'pending' },
+  { label: 'Pagos', value: 'paid' },
+] as const
+
+type MonthOption = {
+  label: string
+  value: number
+}
+
+function cx(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(' ')
+}
+
+function getVisibleYearOptions(yearOptions: number[], selectedYear: number) {
+  const orderedYears = [...yearOptions].sort((left, right) => left - right)
+  const selectedIndex = Math.max(orderedYears.indexOf(selectedYear), 0)
+  const windowSize = Math.min(YEAR_WINDOW_SIZE, orderedYears.length)
+  const maxStart = Math.max(orderedYears.length - windowSize, 0)
+  const startIndex = Math.min(Math.max(selectedIndex - Math.floor(windowSize / 2), 0), maxStart)
+
+  return {
+    canGoNext: selectedIndex < orderedYears.length - 1,
+    canGoPrev: selectedIndex > 0,
+    orderedYears,
+    selectedIndex,
+    visibleYears: orderedYears.slice(startIndex, startIndex + windowSize),
+  }
+}
+
+interface PeriodSelectorPanelProps {
+  currentMonthView: boolean
+  expenseCount: number
+  incomeCount: number
+  isLive: boolean
+  monthLabel: string
+  monthOptions: MonthOption[]
+  onSelectMonth: (month: number) => void
+  onSelectYear: (year: number) => void
+  selectedMonth: number
+  selectedYear: number
+  yearOptions: number[]
+}
+
+function PeriodSelectorPanel({
+  currentMonthView,
+  expenseCount,
+  incomeCount,
+  isLive,
+  monthLabel,
+  monthOptions,
+  onSelectMonth,
+  onSelectYear,
+  selectedMonth,
+  selectedYear,
+  yearOptions,
+}: PeriodSelectorPanelProps) {
+  const { canGoNext, canGoPrev, orderedYears, selectedIndex, visibleYears } = getVisibleYearOptions(
+    yearOptions,
+    selectedYear,
+  )
+  const statusLabel = currentMonthView ? 'Mes atual em leitura continua' : 'Consulta historica fechada'
+  const yearControlButtonClass =
+    'inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.025)] text-[var(--text-primary)] transition hover:border-[rgba(255,255,255,0.18)] hover:bg-[rgba(255,255,255,0.045)] focus-visible:border-[rgba(94,234,212,0.42)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(94,234,212,0.16)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[rgba(255,255,255,0.08)] disabled:hover:bg-[rgba(255,255,255,0.025)]'
+
+  return (
+    <Panel
+      actions={
+        <div
+          className={cx(
+            'inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] uppercase tracking-[0.2em]',
+            isLive
+              ? 'border-[rgba(66,170,150,0.34)] bg-[rgba(18,73,66,0.24)] text-[#89f1da]'
+              : 'border-[rgba(120,128,138,0.22)] bg-[rgba(255,255,255,0.04)] text-[var(--text-secondary)]',
+          )}
+        >
+          <span
+            className={cx(
+              'h-2.5 w-2.5 rounded-full',
+              isLive ? 'bg-[#5eead4] shadow-[0_0_0_4px_rgba(94,234,212,0.12)]' : 'bg-[rgba(255,255,255,0.36)]',
+            )}
+          />
+          {isLive ? 'Tempo real' : 'Sync ativa'}
+        </div>
+      }
+      className="rounded-[36px] border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(12,15,16,0.98),rgba(7,9,10,0.98))] p-6"
+      description="Define o ano e o mes de referencia para concentrar toda a leitura financeira."
+      title="Periodo de analise"
+    >
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,285px),minmax(0,1fr)]">
+        <div className="rounded-[30px] border border-[rgba(255,255,255,0.07)] bg-[linear-gradient(180deg,rgba(18,20,21,0.82),rgba(10,12,13,0.96))] p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Referencia anual</p>
+              <p className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+                {selectedYear}
+              </p>
+            </div>
+            <div className="rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[var(--text-muted)]">
+              {yearOptions.length} anos
+            </div>
+          </div>
+
+          <div className="mt-5 flex items-center justify-between gap-3">
+            <button
+              aria-label="Ano anterior"
+              className={yearControlButtonClass}
+              disabled={!canGoPrev}
+              onClick={() => {
+                if (canGoPrev) {
+                  onSelectYear(orderedYears[selectedIndex - 1])
+                }
+              }}
+              type="button"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+
+            <div className="min-w-0 flex-1 rounded-[24px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.025)] px-4 py-3 text-center">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Ano selecionado</p>
+              <p className="mt-2 text-lg font-semibold text-[var(--text-primary)]">{selectedYear}</p>
+            </div>
+
+            <button
+              aria-label="Ano seguinte"
+              className={yearControlButtonClass}
+              disabled={!canGoNext}
+              onClick={() => {
+                if (canGoNext) {
+                  onSelectYear(orderedYears[selectedIndex + 1])
+                }
+              }}
+              type="button"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-5 xl:grid-cols-3">
+            {visibleYears.map((year) => {
+              const isActive = year === selectedYear
+
+              return (
+                <button
+                  aria-pressed={isActive}
+                  className={cx(
+                    'rounded-2xl border px-3 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(94,234,212,0.16)]',
+                    isActive
+                      ? 'border-[rgba(66,170,150,0.34)] bg-[rgba(18,73,66,0.22)] text-[#dffcf6]'
+                      : 'border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.015)] text-[var(--text-secondary)] hover:border-[rgba(255,255,255,0.16)] hover:text-[var(--text-primary)]',
+                  )}
+                  key={year}
+                  onClick={() => onSelectYear(year)}
+                  type="button"
+                >
+                  {year}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="rounded-[30px] border border-[rgba(255,255,255,0.07)] bg-[linear-gradient(180deg,rgba(16,18,19,0.78),rgba(10,11,12,0.92))] p-5">
+          <div className="flex flex-col gap-4 border-b border-[rgba(255,255,255,0.06)] pb-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Mes em foco</p>
+              <h3 className="mt-3 text-[clamp(2.2rem,4vw,3.4rem)] font-semibold tracking-[-0.07em] text-[var(--text-primary)]">
+                {monthLabel}
+              </h3>
+            </div>
+
+            <div className="space-y-2 text-sm text-[var(--text-secondary)] lg:text-right">
+              <p>{statusLabel}</p>
+              <p className="text-[var(--text-muted)]">
+                {incomeCount} receita(s) | {expenseCount} gasto(s) no periodo
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {monthOptions.map((option) => {
+              const isActive = option.value === selectedMonth
+              const monthNumber = String(option.value + 1).padStart(2, '0')
+
+              return (
+                <button
+                  aria-pressed={isActive}
+                  className={cx(
+                    'rounded-[26px] border px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(94,234,212,0.16)]',
+                    isActive
+                      ? 'border-[rgba(66,170,150,0.34)] bg-[linear-gradient(180deg,rgba(17,44,40,0.6),rgba(11,18,18,0.88))] text-[var(--text-primary)]'
+                      : 'border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.018)] text-[var(--text-secondary)] hover:border-[rgba(255,255,255,0.16)] hover:bg-[rgba(255,255,255,0.03)] hover:text-[var(--text-primary)]',
+                  )}
+                  key={option.value}
+                  onClick={() => onSelectMonth(option.value)}
+                  type="button"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-mono text-[11px] text-[var(--text-muted)]">{monthNumber}</span>
+                    <span
+                      className={cx(
+                        'h-2.5 w-2.5 rounded-full transition',
+                        isActive ? 'bg-[#5eead4]' : 'bg-transparent',
+                      )}
+                    />
+                  </div>
+                  <span className="mt-5 block text-lg font-medium capitalize">{option.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </Panel>
+  )
+}
+
+interface FinanceFilterToolbarProps {
+  categoryFilter: string
+  expenseFilterOptions: string[]
+  expenseStatusFilter: string
+  monthLabel: string
+  onCategoryFilterChange: (value: string) => void
+  onExpenseStatusFilterChange: (value: string) => void
+  onExportExpenses: () => void
+  onExportIncome: () => void
+  onExportSummary: () => void
+  onReload: () => void
+  onSearchQueryChange: (value: string) => void
+  searchQuery: string
+}
+
+function FinanceFilterToolbar({
+  categoryFilter,
+  expenseFilterOptions,
+  expenseStatusFilter,
+  monthLabel,
+  onCategoryFilterChange,
+  onExpenseStatusFilterChange,
+  onExportExpenses,
+  onExportIncome,
+  onExportSummary,
+  onReload,
+  onSearchQueryChange,
+  searchQuery,
+}: FinanceFilterToolbarProps) {
+  return (
+    <Panel
+      className="rounded-[36px] border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(12,15,16,0.98),rgba(7,9,10,0.98))] p-6"
+      description="Pesquisa, refina e exporta o periodo atual sem dispersar a leitura do resto da pagina."
+      title="Filtros operacionais"
+    >
+      <div className="space-y-5">
+        <label className="block space-y-2.5">
+          <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Pesquisar</span>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+            <input
+              className={`${INPUT_BASE} rounded-[24px] border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.02)] pl-11 focus:ring-[rgba(94,234,212,0.12)]`}
+              onChange={(event) => onSearchQueryChange(event.target.value)}
+              placeholder="Descricao, origem, categoria ou metodo"
+              type="text"
+              value={searchQuery}
+            />
+          </div>
+        </label>
+
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,0.95fr),minmax(0,1.05fr)]">
+          <label className="block space-y-2.5">
+            <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Categoria</span>
+            <div className="relative">
+              <select
+                className={`${INPUT_BASE} appearance-none rounded-[24px] border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.02)] pr-11 focus:ring-[rgba(94,234,212,0.12)]`}
+                onChange={(event) => onCategoryFilterChange(event.target.value)}
+                value={categoryFilter}
+              >
+                <option value="all">Todas</option>
+                {expenseFilterOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+            </div>
+          </label>
+
+          <div className="space-y-2.5">
+            <span className="block text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
+              Estado do gasto
+            </span>
+            <div className="inline-flex w-full flex-wrap gap-2 rounded-[24px] border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.02)] p-2">
+              {FILTER_STATUS_OPTIONS.map((option) => {
+                const isActive = option.value === expenseStatusFilter
+
+                return (
+                  <button
+                    aria-pressed={isActive}
+                    className={cx(
+                      'min-w-[108px] flex-1 rounded-2xl px-4 py-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(94,234,212,0.16)]',
+                      isActive
+                        ? 'bg-[rgba(18,73,66,0.24)] text-[#dffcf6] shadow-[inset_0_0_0_1px_rgba(66,170,150,0.34)]'
+                        : 'text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--text-primary)]',
+                    )}
+                    key={option.value}
+                    onClick={() => onExpenseStatusFilterChange(option.value)}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4 border-t border-[rgba(255,255,255,0.06)] pt-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="text-sm text-[var(--text-secondary)]">
+            Aplicado a <span className="text-[var(--text-primary)]">{monthLabel}</span>.
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <button className={BUTTON_SECONDARY} onClick={onExportSummary} type="button">
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Resumo CSV
+            </button>
+            <button className={BUTTON_SECONDARY} onClick={onExportExpenses} type="button">
+              <Download className="mr-2 h-4 w-4" />
+              Gastos CSV
+            </button>
+            <button className={BUTTON_SECONDARY} onClick={onExportIncome} type="button">
+              <Download className="mr-2 h-4 w-4" />
+              Receitas CSV
+            </button>
+            <button className={BUTTON_SECONDARY} onClick={onReload} type="button">
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              Atualizar
+            </button>
+          </div>
+        </div>
+      </div>
+    </Panel>
+  )
+}
 
 function monthStamp(reference: Date) {
   return `${reference.getFullYear()}-${String(reference.getMonth() + 1).padStart(2, '0')}`
@@ -568,149 +925,34 @@ export function FinancePage() {
       )}
 
       <div className="grid gap-6 2xl:grid-cols-[1.15fr,0.85fr]">
-        <Panel
-          actions={
-            <div
-              className={[
-                'inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs uppercase tracking-[0.24em]',
-                isLive
-                  ? 'border-[#143d31] bg-[rgba(20,86,58,0.18)] text-[#7ef7c8]'
-                  : 'border-[#5a4722] bg-[rgba(140,96,15,0.16)] text-[var(--color-warning)]',
-              ].join(' ')}
-            >
-              <span className={`h-2.5 w-2.5 rounded-full ${isLive ? 'bg-[#2effa8]' : 'bg-[var(--color-warning)]'}`} />
-              {isLive ? 'tempo real' : 'sync ativa'}
-            </div>
-          }
-          description="Escolhe primeiro o ano e depois qualquer um dos 12 meses para focar os dados do periodo."
-          title="Periodo"
-        >
-          <div className="grid gap-5 xl:grid-cols-[220px,minmax(0,1fr)]">
-            <label className="space-y-3">
-              <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Ano</span>
-              <select
-                className={`${INPUT_BASE} text-lg font-semibold tracking-[-0.04em]`}
-                onChange={(event) => setSelectedYear(Number(event.target.value))}
-                value={selectedYear}
-              >
-                {yearOptions.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </label>
+        <PeriodSelectorPanel
+          currentMonthView={currentMonthView}
+          expenseCount={gastosMes.length}
+          incomeCount={receitasMes.length}
+          isLive={isLive}
+          monthLabel={monthLabel}
+          monthOptions={monthOptions}
+          onSelectMonth={setSelectedMonth}
+          onSelectYear={setSelectedYear}
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
+          yearOptions={yearOptions}
+        />
 
-            <div className="space-y-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Mes ativo</p>
-                  <h3 className="mt-2 text-[clamp(1.9rem,3vw,2.8rem)] font-semibold tracking-[-0.06em] text-[var(--text-primary)]">
-                    {monthLabel}
-                  </h3>
-                </div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-2 text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[var(--brand)]" />
-                  leitura mensal
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
-                {monthOptions.map((option) => {
-                  const isActive = option.value === selectedMonth
-
-                  return (
-                    <button
-                      key={option.value}
-                      className={[
-                        'rounded-[22px] border px-4 py-3 text-left transition',
-                        isActive
-                          ? 'border-[rgba(255,255,255,0.22)] bg-[linear-gradient(180deg,rgba(22,22,22,0.98),rgba(8,8,8,0.98))] text-[var(--text-primary)] shadow-[0_16px_40px_rgba(255,255,255,0.04)]'
-                          : 'border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]',
-                      ].join(' ')}
-                      onClick={() => setSelectedMonth(option.value)}
-                      type="button"
-                    >
-                      <span className="block text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Mes</span>
-                      <span className="mt-2 block text-sm font-medium capitalize">{option.label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </Panel>
-
-        <Panel
-          description="Pesquisa rapida, filtros compactos e exportacao do periodo sem sobrecarregar a tela."
-          title="Filtros"
-        >
-          <div className="space-y-4">
-            <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Pesquisar</span>
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
-                <input
-                  className={`${INPUT_BASE} pl-11`}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder="Descricao, origem, categoria ou metodo"
-                  type="text"
-                  value={searchQuery}
-                />
-              </div>
-            </label>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="space-y-2">
-                <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Categoria</span>
-                <select
-                  className={INPUT_BASE}
-                  onChange={(event) => setCategoryFilter(event.target.value)}
-                  value={categoryFilter}
-                >
-                  <option value="all">Todas</option>
-                  {expenseFilterOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="space-y-2">
-                <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">Estado do gasto</span>
-                <select
-                  className={INPUT_BASE}
-                  onChange={(event) => setExpenseStatusFilter(event.target.value)}
-                  value={expenseStatusFilter}
-                >
-                  <option value="all">Todos</option>
-                  <option value="pending">Pendentes</option>
-                  <option value="paid">Pagos</option>
-                </select>
-              </label>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <button className={BUTTON_SECONDARY} onClick={handleExportSummary} type="button">
-                <FileSpreadsheet className="mr-2 h-4 w-4" />
-                Resumo CSV
-              </button>
-              <button className={BUTTON_SECONDARY} onClick={handleExportExpenses} type="button">
-                <Download className="mr-2 h-4 w-4" />
-                Gastos CSV
-              </button>
-              <button className={BUTTON_SECONDARY} onClick={handleExportIncome} type="button">
-                <Download className="mr-2 h-4 w-4" />
-                Receitas CSV
-              </button>
-              <button className={BUTTON_SECONDARY} onClick={() => void reload()} type="button">
-                <RefreshCcw className="mr-2 h-4 w-4" />
-                Atualizar
-              </button>
-            </div>
-          </div>
-        </Panel>
+        <FinanceFilterToolbar
+          categoryFilter={categoryFilter}
+          expenseFilterOptions={expenseFilterOptions}
+          expenseStatusFilter={expenseStatusFilter}
+          monthLabel={monthLabel}
+          onCategoryFilterChange={setCategoryFilter}
+          onExpenseStatusFilterChange={setExpenseStatusFilter}
+          onExportExpenses={handleExportExpenses}
+          onExportIncome={handleExportIncome}
+          onExportSummary={handleExportSummary}
+          onReload={() => void reload()}
+          onSearchQueryChange={setSearchQuery}
+          searchQuery={searchQuery}
+        />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-5">

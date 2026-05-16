@@ -46,7 +46,7 @@ def get_client() -> Client:
 
     if not SUPABASE_URL or not SUPABASE_KEY:
         raise RuntimeError(
-            "Credenciais do Supabase ausentes. Defina SUPABASE_URL e SUPABASE_KEY no .env ou nas variaveis de ambiente."
+            "Credenciais do Supabase ausentes."
         )
 
     if _client is None:
