@@ -1,8 +1,6 @@
 import {
   AlertTriangle,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Download,
   FileSpreadsheet,
   PlusCircle,
@@ -72,7 +70,6 @@ const CHART_GRADIENTS = [
 const SOLID_COLORS = ['#6c9cff', '#48e0ae', '#ffb84d', '#c98fff', '#ff7792', '#7af0ff']
 const MONTH_PICKER_FORMATTER = new Intl.DateTimeFormat('pt-PT', { month: 'short' })
 const MONTH_NAME_FORMATTER = new Intl.DateTimeFormat('pt-PT', { month: 'long' })
-const YEAR_WINDOW_SIZE = 5
 const FILTER_STATUS_OPTIONS = [
   { label: 'Todos', value: 'all' },
   { label: 'Pendentes', value: 'pending' },
@@ -88,24 +85,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
 }
 
-function getVisibleYearOptions(yearOptions: number[], selectedYear: number) {
-  const orderedYears = [...yearOptions].sort((left, right) => left - right)
-  const selectedIndex = Math.max(orderedYears.indexOf(selectedYear), 0)
-  const windowSize = Math.min(YEAR_WINDOW_SIZE, orderedYears.length)
-  const maxStart = Math.max(orderedYears.length - windowSize, 0)
-  const startIndex = Math.min(Math.max(selectedIndex - Math.floor(windowSize / 2), 0), maxStart)
-
-  return {
-    canGoNext: selectedIndex < orderedYears.length - 1,
-    canGoPrev: selectedIndex > 0,
-    orderedYears,
-    selectedIndex,
-    visibleYears: orderedYears.slice(startIndex, startIndex + windowSize),
-  }
-}
-
 interface PeriodSelectorPanelProps {
-  currentMonthView: boolean
   expenseCount: number
   incomeCount: number
   isLive: boolean
@@ -119,7 +99,6 @@ interface PeriodSelectorPanelProps {
 }
 
 function PeriodSelectorPanel({
-  currentMonthView,
   expenseCount,
   incomeCount,
   isLive,
@@ -131,161 +110,84 @@ function PeriodSelectorPanel({
   selectedYear,
   yearOptions,
 }: PeriodSelectorPanelProps) {
-  const { canGoNext, canGoPrev, orderedYears, selectedIndex, visibleYears } = getVisibleYearOptions(
-    yearOptions,
-    selectedYear,
-  )
-  const statusLabel = currentMonthView ? 'Mes atual em leitura continua' : 'Consulta historica fechada'
-  const yearControlButtonClass =
-    'inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.025)] text-[var(--text-primary)] transition hover:border-[rgba(255,255,255,0.18)] hover:bg-[rgba(255,255,255,0.045)] focus-visible:border-[rgba(94,234,212,0.42)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(94,234,212,0.16)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[rgba(255,255,255,0.08)] disabled:hover:bg-[rgba(255,255,255,0.025)]'
+  const today = new Date()
+  const isCurrentMonth = (m: number) => today.getMonth() === m && today.getFullYear() === selectedYear
+  const sortedYears = [...yearOptions].sort((a, b) => a - b)
 
   return (
     <Panel
       actions={
         <div
           className={cx(
-            'inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] uppercase tracking-[0.2em]',
+            'inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] uppercase tracking-[0.1em]',
             isLive
-              ? 'border-[rgba(66,170,150,0.34)] bg-[rgba(18,73,66,0.24)] text-[#89f1da]'
-              : 'border-[rgba(120,128,138,0.22)] bg-[rgba(255,255,255,0.04)] text-[var(--text-secondary)]',
+              ? 'border-[var(--color-success)]/30 bg-[var(--color-success)]/10 text-[var(--color-success)]'
+              : 'border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-muted)]',
           )}
         >
-          <span
-            className={cx(
-              'h-2.5 w-2.5 rounded-full',
-              isLive ? 'bg-[#5eead4] shadow-[0_0_0_4px_rgba(94,234,212,0.12)]' : 'bg-[rgba(255,255,255,0.36)]',
-            )}
-          />
+          <span className={cx('h-2 w-2 rounded-full', isLive ? 'bg-[var(--color-success)]' : 'bg-[var(--text-muted)]')} />
           {isLive ? 'Tempo real' : 'Sync ativa'}
         </div>
       }
-      className="rounded-[36px] border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(12,15,16,0.98),rgba(7,9,10,0.98))] p-6"
-      description="Define o ano e o mes de referencia para concentrar toda a leitura financeira."
+      description="Seleciona ano e mes para concentrar a leitura financeira."
       title="Periodo de analise"
     >
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,285px),minmax(0,1fr)]">
-        <div className="rounded-[30px] border border-[rgba(255,255,255,0.07)] bg-[linear-gradient(180deg,rgba(18,20,21,0.82),rgba(10,12,13,0.96))] p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Referencia anual</p>
-              <p className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
-                {selectedYear}
-              </p>
-            </div>
-            <div className="rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[var(--text-muted)]">
-              {yearOptions.length} anos
-            </div>
-          </div>
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-secondary)]">
+          {monthLabel}
+        </p>
+        <p className="text-xs text-[var(--text-muted)]">
+          {incomeCount} receita(s) | {expenseCount} gasto(s)
+        </p>
+      </div>
 
-          <div className="mt-5 flex items-center justify-between gap-3">
+      <div className="mt-4 flex items-center gap-2">
+        {sortedYears.slice(0, 7).map((year) => {
+          const isActive = year === selectedYear
+          return (
             <button
-              aria-label="Ano anterior"
-              className={yearControlButtonClass}
-              disabled={!canGoPrev}
-              onClick={() => {
-                if (canGoPrev) {
-                  onSelectYear(orderedYears[selectedIndex - 1])
-                }
-              }}
+              key={year}
+              aria-pressed={isActive}
+              className={cx(
+                'rounded-md px-3 py-1.5 text-sm font-medium transition',
+                isActive
+                  ? 'bg-[var(--brand-soft)] text-[var(--brand)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
+              )}
+              onClick={() => onSelectYear(year)}
               type="button"
             >
-              <ChevronLeft className="h-4 w-4" />
+              {year}
             </button>
+          )
+        })}
+      </div>
 
-            <div className="min-w-0 flex-1 rounded-[24px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.025)] px-4 py-3 text-center">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Ano selecionado</p>
-              <p className="mt-2 text-lg font-semibold text-[var(--text-primary)]">{selectedYear}</p>
-            </div>
+      <div className="mt-4 grid grid-cols-4 gap-1">
+        {monthOptions.map((option) => {
+          const isActive = option.value === selectedMonth
+          const isCurrent = isCurrentMonth(option.value)
 
+          return (
             <button
-              aria-label="Ano seguinte"
-              className={yearControlButtonClass}
-              disabled={!canGoNext}
-              onClick={() => {
-                if (canGoNext) {
-                  onSelectYear(orderedYears[selectedIndex + 1])
-                }
-              }}
+              key={option.value}
+              aria-pressed={isActive}
+              className={cx(
+                'relative rounded-md px-3 py-2 text-center text-sm font-medium transition',
+                isActive
+                  ? 'bg-[var(--brand)] text-white'
+                  : 'text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]',
+              )}
+              onClick={() => onSelectMonth(option.value)}
               type="button"
             >
-              <ChevronRight className="h-4 w-4" />
+              {option.label}
+              {isCurrent && !isActive ? (
+                <span className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[var(--brand)]" />
+              ) : null}
             </button>
-          </div>
-
-          <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-5 xl:grid-cols-3">
-            {visibleYears.map((year) => {
-              const isActive = year === selectedYear
-
-              return (
-                <button
-                  aria-pressed={isActive}
-                  className={cx(
-                    'rounded-2xl border px-3 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(94,234,212,0.16)]',
-                    isActive
-                      ? 'border-[rgba(66,170,150,0.34)] bg-[rgba(18,73,66,0.22)] text-[#dffcf6]'
-                      : 'border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.015)] text-[var(--text-secondary)] hover:border-[rgba(255,255,255,0.16)] hover:text-[var(--text-primary)]',
-                  )}
-                  key={year}
-                  onClick={() => onSelectYear(year)}
-                  type="button"
-                >
-                  {year}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        <div className="rounded-[30px] border border-[rgba(255,255,255,0.07)] bg-[linear-gradient(180deg,rgba(16,18,19,0.78),rgba(10,11,12,0.92))] p-5">
-          <div className="flex flex-col gap-4 border-b border-[rgba(255,255,255,0.06)] pb-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Mes em foco</p>
-              <h3 className="mt-3 text-[clamp(2.2rem,4vw,3.4rem)] font-semibold tracking-[-0.07em] text-[var(--text-primary)]">
-                {monthLabel}
-              </h3>
-            </div>
-
-            <div className="space-y-2 text-sm text-[var(--text-secondary)] lg:text-right">
-              <p>{statusLabel}</p>
-              <p className="text-[var(--text-muted)]">
-                {incomeCount} receita(s) | {expenseCount} gasto(s) no periodo
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-            {monthOptions.map((option) => {
-              const isActive = option.value === selectedMonth
-              const monthNumber = String(option.value + 1).padStart(2, '0')
-
-              return (
-                <button
-                  aria-pressed={isActive}
-                  className={cx(
-                    'rounded-[26px] border px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(94,234,212,0.16)]',
-                    isActive
-                      ? 'border-[rgba(66,170,150,0.34)] bg-[linear-gradient(180deg,rgba(17,44,40,0.6),rgba(11,18,18,0.88))] text-[var(--text-primary)]'
-                      : 'border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.018)] text-[var(--text-secondary)] hover:border-[rgba(255,255,255,0.16)] hover:bg-[rgba(255,255,255,0.03)] hover:text-[var(--text-primary)]',
-                  )}
-                  key={option.value}
-                  onClick={() => onSelectMonth(option.value)}
-                  type="button"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="font-mono text-[11px] text-[var(--text-muted)]">{monthNumber}</span>
-                    <span
-                      className={cx(
-                        'h-2.5 w-2.5 rounded-full transition',
-                        isActive ? 'bg-[#5eead4]' : 'bg-transparent',
-                      )}
-                    />
-                  </div>
-                  <span className="mt-5 block text-lg font-medium capitalize">{option.label}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
+          )
+        })}
       </div>
     </Panel>
   )
@@ -941,7 +843,6 @@ export function FinancePage() {
 
       <div className="grid gap-6 2xl:grid-cols-[1.15fr,0.85fr]">
         <PeriodSelectorPanel
-          currentMonthView={currentMonthView}
           expenseCount={gastosMes.length}
           incomeCount={receitasMes.length}
           isLive={isLive}
