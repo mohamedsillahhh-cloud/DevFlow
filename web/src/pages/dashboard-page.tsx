@@ -399,31 +399,26 @@ export function DashboardPage() {
       {['overview', 'fluxo'].includes(section) ? (
         <div className="grid gap-4 xl:grid-cols-5">
           <StatCard
-            accent="var(--color-success)"
             label="Receitas"
             subtitle={`${receitasDoMes.length} entradas no mes`}
             value={formatCurrency(receitasMes, currency)}
           />
           <StatCard
-            accent="var(--color-danger)"
             label="Gastos"
             subtitle={`${categoriasMes} categorias monitoradas`}
             value={formatCurrency(gastosMes, currency)}
           />
           <StatCard
-            accent="var(--color-info)"
             label="Saldo"
             subtitle="resultado operacional apos aportes"
             value={formatCurrency(saldoMes, currency)}
           />
           <StatCard
-            accent="var(--color-warning)"
             label="A receber"
             subtitle={`${activeProjects} projeto(s) em aberto`}
             value={formatCurrency(pendingReceivables, currency)}
           />
           <StatCard
-            accent="#c98fff"
             label="Ticket medio"
             subtitle="media por receita no mes"
             value={formatCurrency(averageTicket, currency)}

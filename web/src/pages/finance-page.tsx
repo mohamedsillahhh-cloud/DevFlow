@@ -175,7 +175,7 @@ function PeriodSelectorPanel({
               className={cx(
                 'relative rounded-md px-3 py-2 text-center text-sm font-medium transition',
                 isActive
-                  ? 'bg-[var(--brand)] text-white'
+                  ? 'bg-[var(--brand)] text-[var(--inverted-text)]'
                   : 'text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]',
               )}
               onClick={() => onSelectMonth(option.value)}
@@ -888,31 +888,26 @@ export function FinancePage() {
       {section === 'overview' ? (
         <div className="grid gap-4 xl:grid-cols-5">
         <StatCard
-          accent="#1d9e75"
           label="Receitas do periodo"
           subtitle={`${receitasMes.length} entrada(s) em ${monthLabel}`}
           value={formatCurrency(receitasTotal, currency)}
         />
         <StatCard
-          accent="#e24b4a"
           label="Gastos do periodo"
           subtitle={`${gastosMes.length} saida(s) registadas`}
           value={formatCurrency(gastosTotal, currency)}
         />
         <StatCard
-          accent={saldo >= 0 ? '#1d9e75' : '#e24b4a'}
           label="Saldo operacional"
           subtitle={`${formatRatio(cashMargin)} de margem no periodo`}
           value={formatCurrency(saldo, currency)}
         />
         <StatCard
-          accent="#ef9f27"
           label="Pendencias"
           subtitle={`${pendentes.length} conta(s) em aberto`}
           value={formatCurrency(pendenteValor, currency)}
         />
         <StatCard
-          accent="#6c9cff"
           label="A receber"
           subtitle={`${formatCoverage(expenseCoverage)} de cobertura media`}
           value={formatCurrency(pendingReceivables, currency)}
@@ -1015,9 +1010,9 @@ export function FinancePage() {
             </article>
           </div>
 
-          <div className="mt-5 rounded-[24px] border border-[#5a4722] bg-[rgba(140,96,15,0.14)] px-4 py-4">
+          <div className="mt-5 rounded-md border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-4">
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl border border-[#6e552b] bg-[rgba(140,96,15,0.18)] text-[var(--color-warning)]">
+              <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-md border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/15 text-[var(--color-warning)]">
                 <AlertTriangle className="h-4 w-4" />
               </span>
               <div>
@@ -1075,9 +1070,9 @@ export function FinancePage() {
                         {formatCurrency(value, currency)} | {formatRatio(totalIncomeSources > 0 ? value / totalIncomeSources : 0)}
                       </span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
+<div className="h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]">
                       <div
-                        className="h-full rounded-full bg-[linear-gradient(90deg,var(--brand),var(--brand-strong))]"
+                        className="h-full rounded-full bg-[linear-gradient(90deg,var(--brand),var(--text-secondary))]"
                         style={{ width: `${Math.max(totalIncomeSources > 0 ? (value / totalIncomeSources) * 100 : 0, 6)}%` }}
                       />
                     </div>
@@ -1368,8 +1363,8 @@ export function FinancePage() {
                         <span
                           className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.22em] ${
                             item.pago === 1
-                              ? 'border-[#153127] bg-[#08130f] text-[#1d9e75]'
-                              : 'border-[#3d2800] bg-[#120d00] text-[#ef9f27]'
+                              ? 'border-[var(--color-success)]/30 bg-[var(--color-success)]/10 text-[var(--color-success)]'
+                              : 'border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]'
                           }`}
                         >
                           {item.pago === 1 ? 'Pago' : 'Pendente'}
@@ -1383,7 +1378,7 @@ export function FinancePage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <span className="font-mono text-sm text-[#e24b4a]">-{formatCurrency(item.valor, currency)}</span>
+                      <span className="font-mono text-sm text-[var(--color-danger)]">-{formatCurrency(item.valor, currency)}</span>
                       <button
                         className={`${BUTTON_SECONDARY} px-3 py-2 text-xs`}
                         disabled={deletingExpenseId === item.id}
@@ -1424,7 +1419,7 @@ export function FinancePage() {
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <span className="font-mono text-sm text-[#1d9e75]">+{formatCurrency(item.valor, currency)}</span>
+                        <span className="font-mono text-sm text-[var(--color-success)]">+{formatCurrency(item.valor, currency)}</span>
                         <button
                           className={`${BUTTON_SECONDARY} px-3 py-2 text-xs`}
                           disabled={deletingIncomeId === item.id}
@@ -1490,8 +1485,8 @@ export function FinancePage() {
                         <span
                           className={`rounded-full border px-2.5 py-1 text-[11px] uppercase tracking-[0.22em] ${
                             item.pago === 1
-                              ? 'border-[#153127] bg-[#08130f] text-[#1d9e75]'
-                              : 'border-[#3d2800] bg-[#120d00] text-[#ef9f27]'
+                              ? 'border-[var(--color-success)]/30 bg-[var(--color-success)]/10 text-[var(--color-success)]'
+                              : 'border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]'
                           }`}
                         >
                           {item.pago === 1 ? 'Pago' : 'Pendente'}
@@ -1572,7 +1567,7 @@ export function FinancePage() {
                 className={[
                   'rounded-[26px] border p-4 text-left transition',
                   row.isActive
-                    ? 'border-[rgba(255,255,255,0.2)] bg-[linear-gradient(180deg,rgba(20,20,20,0.98),rgba(6,6,6,0.98))] shadow-[0_20px_44px_rgba(255,255,255,0.04)]'
+                    ? 'border-[var(--brand)]/20 bg-[var(--surface-1)] shadow-[0_0_0_1px_var(--brand)]/10'
                     : 'border-[var(--border-subtle)] bg-[var(--surface-1)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)]',
                 ].join(' ')}
                 onClick={() => setSelectedMonth(row.month)}
@@ -1591,8 +1586,8 @@ export function FinancePage() {
                     className={[
                       'rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.24em]',
                       row.net >= 0
-                        ? 'border-[#143d31] bg-[rgba(20,86,58,0.18)] text-[#7ef7c8]'
-                        : 'border-[#4a1f2a] bg-[rgba(113,29,43,0.18)] text-[#ff8aa0]',
+                        ? 'border-[var(--color-success)]/30 bg-[var(--color-success)]/10 text-[var(--color-success)]'
+                        : 'border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 text-[var(--color-danger)]',
                     ].join(' ')}
                   >
                     {row.isActive ? 'ativo' : formatRatio(row.margin)}
@@ -1619,9 +1614,9 @@ export function FinancePage() {
                     <span>Volume do mes</span>
                     <span>{formatCurrency(row.activity, currency)}</span>
                   </div>
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]">
                     <div
-                      className="h-full rounded-full bg-[linear-gradient(90deg,rgba(46,255,168,0.95),rgba(30,152,218,0.72))]"
+                      className="h-full rounded-full bg-[var(--brand)]"
                       style={{ width: `${activityWidth}%` }}
                     />
                   </div>

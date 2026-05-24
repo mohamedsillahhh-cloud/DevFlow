@@ -125,9 +125,9 @@ export function AppLayout() {
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[var(--bg-canvas)] text-[var(--text-primary)]">
       <div className="relative mx-auto flex min-h-screen max-w-[1680px] flex-col lg:flex-row lg:px-4">
-        <aside className="flex w-full flex-col border-b border-[var(--border-subtle)] bg-[#0D0D14] px-4 py-5 lg:sticky lg:top-0 lg:h-screen lg:w-[220px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:border-[var(--border-subtle)] lg:px-4 lg:py-6">
+        <aside className="flex w-full flex-col border-b border-[var(--border-subtle)] bg-[var(--bg-canvas)] px-4 py-5 lg:sticky lg:top-0 lg:h-screen lg:w-[220px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:border-[var(--border-subtle)] lg:px-4 lg:py-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--brand)] text-sm font-bold text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--brand)] text-sm font-bold text-[var(--inverted-text)]">
               D
             </div>
             <span className="font-['Space_Grotesk',sans-serif] text-lg font-semibold tracking-tight text-[var(--text-primary)]">

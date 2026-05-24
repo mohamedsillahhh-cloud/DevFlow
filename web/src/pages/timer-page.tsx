@@ -350,14 +350,12 @@ export function TimerPage() {
       {section !== 'historico' ? (
         <div className="grid gap-4 xl:grid-cols-4">
         <StatCard
-          accent={activeSession ? '#1d9e75' : '#666666'}
           label={activeSession ? 'Sessao ativa' : 'Sem sessao ativa'}
           value={activeSession ? formatClockDuration(activeSession, now) : '--:--:--'}
         />
-        <StatCard accent="#378add" label="Sessoes no mes" value={String(monthSessions.length)} />
-        <StatCard accent="#ef9f27" label="Horas no mes" value={formatDurationMinutes(totalMonthMinutes)} />
+        <StatCard label="Sessoes no mes" value={String(monthSessions.length)} />
+        <StatCard label="Horas no mes" value={formatDurationMinutes(totalMonthMinutes)} />
         <StatCard
-          accent="var(--brand)"
           label="Faturavel"
           subtitle="estimativa do mes"
           value={formatCurrency(totalEstimatedAmount, currency)}

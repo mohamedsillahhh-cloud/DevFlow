@@ -111,7 +111,7 @@ export function LoginPage() {
           </div>
 
           <button
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--brand)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--brand)] px-4 py-2.5 text-sm font-semibold text-[var(--inverted-text)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isSubmitting || configIssues.length > 0}
             type="submit"
           >
