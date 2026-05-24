@@ -23,7 +23,7 @@ export const CURRENCY_OPTIONS = [
 ]
 
 export const BUTTON_PRIMARY =
-  'inline-flex items-center justify-center rounded-lg bg-[var(--brand)] px-4 py-2.5 text-sm font-medium text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center rounded-lg bg-[var(--brand)] px-4 py-2.5 text-sm font-medium text-[var(--inverted-text)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50'
 
 export const BUTTON_SECONDARY =
   'inline-flex items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-transparent px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:cursor-not-allowed disabled:opacity-50'
