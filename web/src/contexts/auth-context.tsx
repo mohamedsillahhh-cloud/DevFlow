@@ -227,6 +227,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
           throw new Error('Informe a nova senha.')
         }
 
+        if (normalizedPassword.length < 8) {
+          throw new Error('A senha deve ter pelo menos 8 caracteres.')
+        }
+
+        if (!/[A-Z]/.test(normalizedPassword)) {
+          throw new Error('A senha deve ter pelo menos uma letra maiuscula.')
+        }
+
+        if (!/[0-9]/.test(normalizedPassword)) {
+          throw new Error('A senha deve ter pelo menos um numero.')
+        }
+
         const { data, error } = await supabase.auth.updateUser({
           password: normalizedPassword,
         })
