@@ -11,8 +11,10 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useDeferredValue, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { ComparisonAreaChart, DonutChart, MiniBarChart } from '../components/data-viz'
 import { FullScreenLoader } from '../components/full-screen-loader'
+import { PageSectionNav } from '../components/page-section-nav'
 import { Panel } from '../components/panel'
 import { StatCard } from '../components/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
@@ -35,6 +37,7 @@ import {
   shiftMonth,
   sumBy,
 } from '../lib/format'
+import { getWorkspaceSection } from '../lib/navigation'
 import {
   createGasto,
   createReceita,
@@ -526,6 +529,7 @@ function getIncomeSourceLabel(item: Receita) {
 }
 
 export function FinancePage() {
+  const location = useLocation()
   const { data, error, isLoading, reload } = useAsyncData(fetchFinanceSnapshot)
   const { isLive } = useRealtimeSync(['configuracoes', 'gastos', 'projetos', 'receitas'], reload, {
     pollIntervalMs: 12000,
@@ -559,6 +563,12 @@ export function FinancePage() {
   const [submittingForm, setSubmittingForm] = useState<'expense' | 'income' | null>(null)
   const [deletingExpenseId, setDeletingExpenseId] = useState<number | null>(null)
   const [deletingIncomeId, setDeletingIncomeId] = useState<number | null>(null)
+  const section = getWorkspaceSection(location.pathname, '/financas', 'overview')
+  const sectionNavItems = [
+    { label: 'Overview', to: '/financas' },
+    { label: 'Lancamentos', to: '/financas/lancamentos' },
+    { label: 'Anual', to: '/financas/anual' },
+  ]
   const deferredSearchQuery = useDeferredValue(searchQuery)
 
   if (isLoading && !data) {
@@ -909,6 +919,11 @@ export function FinancePage() {
 
   return (
     <div className="space-y-6">
+      <PageSectionNav
+        helper="Separacao por funcao: analytics, lancamentos e leitura anual agora vivem em vistas diferentes."
+        items={sectionNavItems}
+      />
+
       {(feedback || actionError) && (
         <div className="grid gap-3 xl:grid-cols-2">
           {feedback ? (
@@ -955,7 +970,8 @@ export function FinancePage() {
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-5">
+      {section === 'overview' ? (
+        <div className="grid gap-4 xl:grid-cols-5">
         <StatCard
           accent="#1d9e75"
           label="Receitas do periodo"
@@ -986,9 +1002,11 @@ export function FinancePage() {
           subtitle={`${formatCoverage(expenseCoverage)} de cobertura media`}
           value={formatCurrency(pendingReceivables, currency)}
         />
-      </div>
+        </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.35fr,0.65fr]">
+      {section === 'overview' ? (
+        <div className="grid gap-6 xl:grid-cols-[1.35fr,0.65fr]">
         <Panel
           actions={
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-3 py-1.5 text-xs uppercase tracking-[0.22em] text-[var(--text-muted)]">
@@ -1098,9 +1116,11 @@ export function FinancePage() {
             </div>
           </div>
         </Panel>
-      </div>
+        </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1fr,1fr]">
+      {section === 'overview' ? (
+        <div className="grid gap-6 xl:grid-cols-[1fr,1fr]">
         <Panel description="Composicao dos gastos do periodo por categoria." title="Gastos por categoria">
           {expenseCategoryRows.length > 0 ? (
             <DonutChart
@@ -1175,8 +1195,10 @@ export function FinancePage() {
             </div>
           </div>
         </Panel>
-      </div>
-      <div className="grid gap-6 2xl:grid-cols-2">
+        </div>
+      ) : null}
+      {section === 'lancamentos' ? (
+        <div className="grid gap-6 2xl:grid-cols-2">
         <Panel
           actions={
             <button
@@ -1194,7 +1216,7 @@ export function FinancePage() {
         >
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Descricao</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Descricao</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) =>
@@ -1207,7 +1229,7 @@ export function FinancePage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Valor</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Valor</span>
               <input
                 className={INPUT_BASE}
                 min="0"
@@ -1220,7 +1242,7 @@ export function FinancePage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Data</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Data</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setExpenseForm((current) => ({ ...current, date: event.target.value }))}
@@ -1230,7 +1252,7 @@ export function FinancePage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Categoria</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Categoria</span>
               <select
                 className={INPUT_BASE}
                 onChange={(event) =>
@@ -1254,7 +1276,7 @@ export function FinancePage() {
 
             {expenseForm.category === CUSTOM_CATEGORY_VALUE ? (
               <label className="space-y-2">
-                <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Categoria personalizada</span>
+                <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Categoria personalizada</span>
                 <input
                   className={INPUT_BASE}
                   onChange={(event) =>
@@ -1268,7 +1290,7 @@ export function FinancePage() {
             ) : null}
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Metodo</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Metodo</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setExpenseForm((current) => ({ ...current, method: event.target.value }))}
@@ -1279,7 +1301,7 @@ export function FinancePage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Dia de vencimento</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Dia de vencimento</span>
               <input
                 className={INPUT_BASE}
                 disabled={!expenseForm.recurring}
@@ -1292,7 +1314,7 @@ export function FinancePage() {
               />
             </label>
 
-            <label className="flex items-center gap-3 rounded-2xl border border-[#1b1b20] bg-[#0b0b0d] px-4 py-3 text-sm text-[#f0f0f0]">
+            <label className="flex items-center gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text-primary)]">
               <input
                 checked={expenseForm.recurring}
                 className="h-4 w-4 accent-[var(--brand)]"
@@ -1308,7 +1330,7 @@ export function FinancePage() {
               Conta recorrente
             </label>
 
-            <label className="flex items-center gap-3 rounded-2xl border border-[#1b1b20] bg-[#0b0b0d] px-4 py-3 text-sm text-[#f0f0f0]">
+            <label className="flex items-center gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text-primary)]">
               <input
                 checked={expenseForm.paid}
                 className="h-4 w-4 accent-[var(--brand)]"
@@ -1319,7 +1341,7 @@ export function FinancePage() {
             </label>
 
             <label className="space-y-2 md:col-span-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Notas</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Notas</span>
               <textarea
                 className={TEXTAREA_BASE}
                 onChange={(event) => setExpenseForm((current) => ({ ...current, notes: event.target.value }))}
@@ -1347,7 +1369,7 @@ export function FinancePage() {
         >
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Descricao</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Descricao</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setIncomeForm((current) => ({ ...current, description: event.target.value }))}
@@ -1358,7 +1380,7 @@ export function FinancePage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Valor</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Valor</span>
               <input
                 className={INPUT_BASE}
                 min="0"
@@ -1371,7 +1393,7 @@ export function FinancePage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Data</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Data</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setIncomeForm((current) => ({ ...current, date: event.target.value }))}
@@ -1381,7 +1403,7 @@ export function FinancePage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Origem</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Origem</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setIncomeForm((current) => ({ ...current, source: event.target.value }))}
@@ -1392,7 +1414,7 @@ export function FinancePage() {
             </label>
 
             <label className="space-y-2 md:col-span-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Projeto ligado</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Projeto ligado</span>
               <select
                 className={INPUT_BASE}
                 onChange={(event) => setIncomeForm((current) => ({ ...current, projectId: event.target.value }))}
@@ -1408,9 +1430,11 @@ export function FinancePage() {
             </label>
           </div>
         </Panel>
-      </div>
+        </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.12fr,0.88fr]">
+      {section === 'lancamentos' ? (
+        <div className="grid gap-6 xl:grid-cols-[1.12fr,0.88fr]">
         <Panel
           description={`Mostrando ${visibleExpenses.length} de ${gastosMes.length} gasto(s) em ${monthLabel}.`}
           title="Gastos do periodo"
@@ -1567,9 +1591,11 @@ export function FinancePage() {
             </div>
           </Panel>
         </div>
-      </div>
+        </div>
+      ) : null}
 
-      <Panel
+      {section === 'anual' ? (
+        <Panel
         actions={
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-2 text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
             <span className="h-2.5 w-2.5 rounded-full bg-[var(--brand)]" />
@@ -1689,7 +1715,8 @@ export function FinancePage() {
             )
           })}
         </div>
-      </Panel>
+        </Panel>
+      ) : null}
     </div>
   )
 }

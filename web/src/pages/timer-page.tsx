@@ -1,6 +1,8 @@
 import { Download, PlayCircle, RefreshCcw, Save, Square } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { FullScreenLoader } from '../components/full-screen-loader'
+import { PageSectionNav } from '../components/page-section-nav'
 import { Panel } from '../components/panel'
 import { StatCard } from '../components/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
@@ -19,6 +21,7 @@ import {
   isWithinDateRange,
   shiftMonth,
 } from '../lib/format'
+import { getWorkspaceSection } from '../lib/navigation'
 import { fetchTimerSnapshot, saveConfiguracoes, startWorkSession, stopWorkSession } from '../lib/supabase-data'
 
 type ProjectRatesMap = Record<string, number>
@@ -73,6 +76,7 @@ function downloadCsv(filename: string, rows: string[][]) {
 }
 
 export function TimerPage() {
+  const location = useLocation()
   const { data, error, isLoading, reload } = useAsyncData(fetchTimerSnapshot)
   useRealtimeSync(['configuracoes', 'projetos', 'tempo_projeto'], reload, { pollIntervalMs: 8000 })
   const [selectedProjectId, setSelectedProjectId] = useState('')
@@ -86,6 +90,12 @@ export function TimerPage() {
   const [defaultRate, setDefaultRate] = useState('0')
   const [projectRates, setProjectRates] = useState<Record<string, string>>({})
   const [now, setNow] = useState(() => new Date())
+  const section = getWorkspaceSection(location.pathname, '/timer', 'overview')
+  const sectionNavItems = [
+    { label: 'Overview', to: '/timer' },
+    { label: 'Faturacao', to: '/timer/faturacao' },
+    { label: 'Historico', to: '/timer/historico' },
+  ]
 
   useEffect(() => {
     if (!data || selectedProjectId) {
@@ -307,6 +317,11 @@ export function TimerPage() {
 
   return (
     <div className="space-y-6">
+      <PageSectionNav
+        helper="Controlo do timer, faturacao e historico agora estao separados para o fluxo ficar menos pesado."
+        items={sectionNavItems}
+      />
+
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <select
           className={`${INPUT_BASE} min-w-[240px] xl:max-w-[280px]`}
@@ -332,7 +347,8 @@ export function TimerPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-4">
+      {section !== 'historico' ? (
+        <div className="grid gap-4 xl:grid-cols-4">
         <StatCard
           accent={activeSession ? '#1d9e75' : '#666666'}
           label={activeSession ? 'Sessao ativa' : 'Sem sessao ativa'}
@@ -346,19 +362,22 @@ export function TimerPage() {
           subtitle="estimativa do mes"
           value={formatCurrency(totalEstimatedAmount, currency)}
         />
-      </div>
+        </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.05fr,1fr]">
-        <Panel description="Inicie ou encerre a sessao atual do projeto." title="Controlo do timer">
+      {section !== 'historico' ? (
+        <div className="grid gap-6 xl:grid-cols-[1.05fr,1fr]">
+        {section === 'overview' ? (
+          <Panel description="Inicie ou encerre a sessao atual do projeto." title="Controlo do timer">
           <div className="space-y-5">
-            <div className="rounded-2xl border border-[#171717] bg-[#090909] p-5">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-5">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
                 {activeSession ? 'Sessao ativa' : 'Sem sessao ativa'}
               </p>
-              <h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[#f0f0f0]">
+              <h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[var(--text-primary)]">
                 {activeSession ? formatClockDuration(activeSession, now) : '--:--:--'}
               </h3>
-              <p className="mt-2 text-sm text-[#888888]">
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">
                 {activeSession
                   ? `Projeto atual: ${getSessionProjectTitle(activeSession)}`
                   : 'Selecione um projeto e inicie uma nova sessao.'}
@@ -421,9 +440,11 @@ export function TimerPage() {
               </div>
             </div>
           </div>
-        </Panel>
+          </Panel>
+        ) : null}
 
-        <Panel
+        {section === 'faturacao' ? (
+          <Panel
           actions={
             <button
               className={BUTTON_SECONDARY}
@@ -440,7 +461,7 @@ export function TimerPage() {
         >
           <div className="space-y-4">
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Valor/hora padrao</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Valor/hora padrao</span>
               <input
                 className={INPUT_BASE}
                 min="0"
@@ -463,12 +484,12 @@ export function TimerPage() {
                   return (
                     <div
                       key={`${item.projectName}-${projectKey || 'removed'}`}
-                      className="rounded-2xl border border-[#171717] bg-[#090909] p-4"
+                      className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4"
                     >
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div>
-                          <p className="text-sm font-medium text-[#f0f0f0]">{item.projectName}</p>
-                          <p className="mt-1 text-xs text-[#666666]">
+                          <p className="text-sm font-medium text-[var(--text-primary)]">{item.projectName}</p>
+                          <p className="mt-1 text-xs text-[var(--text-muted)]">
                             {item.count} sessao(oes) · {formatDecimalHours(item.minutes)}
                           </p>
                         </div>
@@ -486,12 +507,12 @@ export function TimerPage() {
                             />
                           </div>
                         ) : (
-                          <span className="text-xs text-[#666666]">Projeto removido</span>
+                          <span className="text-xs text-[var(--text-muted)]">Projeto removido</span>
                         )}
                       </div>
 
-                      <div className="mt-3 grid gap-2 text-xs text-[#888888] md:grid-cols-2">
-                        <p>Taxa usada: <span className="font-mono text-[#f0f0f0]">{formatCurrency(item.rate, currency)}</span></p>
+                      <div className="mt-3 grid gap-2 text-xs text-[var(--text-secondary)] md:grid-cols-2">
+                        <p>Taxa usada: <span className="font-mono text-[var(--text-primary)]">{formatCurrency(item.rate, currency)}</span></p>
                         <p>Faturavel: <span className="font-mono text-[#1d9e75]">{formatCurrency(item.estimatedAmount, currency)}</span></p>
                       </div>
                     </div>
@@ -499,34 +520,37 @@ export function TimerPage() {
                 })}
               </div>
             ) : (
-              <p className="text-sm text-[#888888]">Sem sessoes no periodo para calcular faturacao.</p>
+              <p className="text-sm text-[var(--text-secondary)]">Sem sessoes no periodo para calcular faturacao.</p>
             )}
           </div>
-        </Panel>
+          </Panel>
+        ) : null}
       </div>
+      ) : null}
 
       {feedback ? <p className="text-sm text-[var(--color-success)]">{feedback}</p> : null}
       {actionError ? <p className="text-sm text-[var(--color-danger)]">{actionError}</p> : null}
 
       <div className="grid gap-6 xl:grid-cols-[1fr,1fr]">
+        {section === 'faturacao' ? (
         <Panel description="Tempo acumulado e faturavel por projeto no periodo selecionado." title="Resumo faturavel">
           {groupedByProject.length > 0 ? (
             <div className="space-y-3">
               {groupedByProject.map((item) => (
                 <div
                   key={`${item.projectName}-${item.projectId ?? 'removed'}`}
-                  className="rounded-2xl border border-[#171717] bg-[#090909] px-4 py-4"
+                  className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-sm font-medium text-[#f0f0f0]">{item.projectName}</p>
-                      <p className="mt-1 text-xs text-[#666666]">
+                      <p className="text-sm font-medium text-[var(--text-primary)]">{item.projectName}</p>
+                      <p className="mt-1 text-xs text-[var(--text-muted)]">
                         {item.count} sessao(oes) · {formatDurationMinutes(item.minutes)}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-mono text-sm text-[#f0f0f0]">{formatCurrency(item.estimatedAmount, currency)}</p>
-                      <p className="mt-1 text-xs text-[#666666]">
+                      <p className="font-mono text-sm text-[var(--text-primary)]">{formatCurrency(item.estimatedAmount, currency)}</p>
+                      <p className="mt-1 text-xs text-[var(--text-muted)]">
                         {formatCurrency(item.rate, currency)}/h
                       </p>
                     </div>
@@ -535,16 +559,17 @@ export function TimerPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-[#888888]">Nenhuma sessao registada neste mes.</p>
+            <p className="text-sm text-[var(--text-secondary)]">Nenhuma sessao registada neste mes.</p>
           )}
         </Panel>
+        ) : null}
 
         <Panel description="Ultimas sessoes registadas na tabela tempo_projeto." title="Historico recente">
           {recentSessions.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full border-separate border-spacing-y-2 text-left">
                 <thead>
-                  <tr className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">
+                  <tr className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
                     <th className="pb-2 pr-4 font-medium">Projeto</th>
                     <th className="pb-2 pr-4 font-medium">Inicio</th>
                     <th className="pb-2 pr-4 font-medium">Fim</th>
@@ -567,10 +592,10 @@ export function TimerPage() {
 
                     return (
                       <tr key={session.id} className="text-sm">
-                        <td className="rounded-l-2xl border-y border-l border-[#171717] bg-[#090909] px-4 py-3 text-[#f0f0f0]">
+                        <td className="rounded-l-2xl border-y border-l border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-primary)]">
                           {getSessionProjectTitle(session)}
                         </td>
-                        <td className="border-y border-[#171717] bg-[#090909] px-4 py-3 text-[#888888]">
+                        <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-secondary)]">
                           {formatDate(session.inicio, {
                             day: '2-digit',
                             hour: '2-digit',
@@ -579,7 +604,7 @@ export function TimerPage() {
                             year: 'numeric',
                           })}
                         </td>
-                        <td className="border-y border-[#171717] bg-[#090909] px-4 py-3 text-[#888888]">
+                        <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-secondary)]">
                           {session.fim
                             ? formatDate(session.fim, {
                                 day: '2-digit',
@@ -590,10 +615,10 @@ export function TimerPage() {
                               })
                             : 'Em curso'}
                         </td>
-                        <td className="border-y border-[#171717] bg-[#090909] px-4 py-3 text-[#888888]">
+                        <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-secondary)]">
                           {formatDurationMinutes(duration)}
                         </td>
-                        <td className="rounded-r-2xl border-y border-r border-[#171717] bg-[#090909] px-4 py-3 text-[#666666]">
+                        <td className="rounded-r-2xl border-y border-r border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-muted)]">
                           {session.descricao || '-'}
                         </td>
                       </tr>
@@ -603,7 +628,7 @@ export function TimerPage() {
               </table>
             </div>
           ) : (
-            <p className="text-sm text-[#888888]">Ainda nao ha sessoes registadas.</p>
+            <p className="text-sm text-[var(--text-secondary)]">Ainda nao ha sessoes registadas.</p>
           )}
         </Panel>
       </div>

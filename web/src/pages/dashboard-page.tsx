@@ -6,8 +6,10 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { ComparisonAreaChart, DonutChart, MiniBarChart } from '../components/data-viz'
 import { FullScreenLoader } from '../components/full-screen-loader'
+import { PageSectionNav } from '../components/page-section-nav'
 import { Panel } from '../components/panel'
 import { StatCard } from '../components/stat-card'
 import { StatusBadge } from '../components/status-badge'
@@ -32,6 +34,7 @@ import {
   sumBy,
   toSortedAlerts,
 } from '../lib/format'
+import { getWorkspaceSection } from '../lib/navigation'
 
 import { fetchDashboardSnapshot } from '../lib/supabase-data'
 
@@ -101,6 +104,7 @@ function monthStamp(reference = new Date()) {
 }
 
 export function DashboardPage() {
+  const location = useLocation()
   const { data, error, isLoading, reload } = useAsyncData(fetchDashboardSnapshot)
   useRealtimeSync(['configuracoes', 'projetos', 'gastos', 'receitas', 'investimentos', 'aportes'], reload, {
     pollIntervalMs: 12000,
@@ -249,6 +253,13 @@ export function DashboardPage() {
       value: formatCoverage(receivableCoverage),
     },
   ]
+  const section = getWorkspaceSection(location.pathname, '/dashboard', 'overview')
+  const sectionNavItems = [
+    { label: 'Overview', to: '/dashboard' },
+    { label: 'Fluxo', to: '/dashboard/fluxo' },
+    { label: 'Pipeline', to: '/dashboard/pipeline' },
+    { label: 'Operacoes', to: '/dashboard/operacoes' },
+  ]
 
   function handleExportSummary() {
     downloadCsv(
@@ -315,6 +326,11 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <PageSectionNav
+        helper="Cada vista concentra uma parte do dashboard para evitar uma tela longa demais e deixar a navegacao mais objetiva."
+        items={sectionNavItems}
+      />
+
       <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
         <div className="flex items-center gap-3 rounded-[28px] border border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-sm text-[var(--text-secondary)] shadow-[var(--shadow-soft)]">
           <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#53371a] bg-[rgba(140,96,15,0.18)] text-[var(--color-warning)]">
@@ -336,32 +352,34 @@ export function DashboardPage() {
       </div>
 
       {notice ? (
-        <div className="rounded-2xl border border-[var(--border-strong)] bg-[rgba(255,255,255,0.06)] px-4 py-3 text-sm text-[var(--text-primary)]">
+        <div className="rounded-2xl border border-[var(--border-strong)] bg-[var(--surface-soft)] px-4 py-3 text-sm text-[var(--text-primary)]">
           {notice}
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-3">
-        {statusRows.map((row) => (
-          <div
-            key={row.key}
-            className="inline-flex items-center gap-3 rounded-full border px-4 py-2.5 text-sm shadow-[var(--shadow-soft)]"
-            style={{
-              backgroundColor: row.surface,
-              borderColor: row.border,
-              color: row.color,
-            }}
-          >
-            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.color }} />
-            <span className="font-medium">{row.label}</span>
-            <span className="rounded-full bg-black/20 px-2 py-0.5 font-mono text-xs text-[var(--text-primary)]">
-              {row.count}
-            </span>
-          </div>
-        ))}
-      </div>
+      {['overview', 'pipeline'].includes(section) ? (
+        <div className="flex flex-wrap gap-3">
+          {statusRows.map((row) => (
+            <div
+              key={row.key}
+              className="inline-flex items-center gap-3 rounded-full border px-4 py-2.5 text-sm shadow-[var(--shadow-soft)]"
+              style={{
+                backgroundColor: row.surface,
+                borderColor: row.border,
+                color: row.color,
+              }}
+            >
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.color }} />
+              <span className="font-medium">{row.label}</span>
+              <span className="rounded-full bg-[var(--surface-soft)] px-2 py-0.5 font-mono text-xs text-[var(--text-primary)]">
+                {row.count}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
 
-      {alerts.length > 0 ? (
+      {alerts.length > 0 && section === 'overview' ? (
         <div className="grid gap-3 xl:grid-cols-3">
           {alerts.slice(0, 3).map((alert) => (
             <div
@@ -378,40 +396,43 @@ export function DashboardPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 xl:grid-cols-5">
-        <StatCard
-          accent="var(--color-success)"
-          label="Receitas"
-          subtitle={`${receitasDoMes.length} entradas no mes`}
-          value={formatCurrency(receitasMes, currency)}
-        />
-        <StatCard
-          accent="var(--color-danger)"
-          label="Gastos"
-          subtitle={`${categoriasMes} categorias monitoradas`}
-          value={formatCurrency(gastosMes, currency)}
-        />
-        <StatCard
-          accent="var(--color-info)"
-          label="Saldo"
-          subtitle="resultado operacional apos aportes"
-          value={formatCurrency(saldoMes, currency)}
-        />
-        <StatCard
-          accent="var(--color-warning)"
-          label="A receber"
-          subtitle={`${activeProjects} projeto(s) em aberto`}
-          value={formatCurrency(pendingReceivables, currency)}
-        />
-        <StatCard
-          accent="#c98fff"
-          label="Ticket medio"
-          subtitle="media por receita no mes"
-          value={formatCurrency(averageTicket, currency)}
-        />
-      </div>
+      {['overview', 'fluxo'].includes(section) ? (
+        <div className="grid gap-4 xl:grid-cols-5">
+          <StatCard
+            accent="var(--color-success)"
+            label="Receitas"
+            subtitle={`${receitasDoMes.length} entradas no mes`}
+            value={formatCurrency(receitasMes, currency)}
+          />
+          <StatCard
+            accent="var(--color-danger)"
+            label="Gastos"
+            subtitle={`${categoriasMes} categorias monitoradas`}
+            value={formatCurrency(gastosMes, currency)}
+          />
+          <StatCard
+            accent="var(--color-info)"
+            label="Saldo"
+            subtitle="resultado operacional apos aportes"
+            value={formatCurrency(saldoMes, currency)}
+          />
+          <StatCard
+            accent="var(--color-warning)"
+            label="A receber"
+            subtitle={`${activeProjects} projeto(s) em aberto`}
+            value={formatCurrency(pendingReceivables, currency)}
+          />
+          <StatCard
+            accent="#c98fff"
+            label="Ticket medio"
+            subtitle="media por receita no mes"
+            value={formatCurrency(averageTicket, currency)}
+          />
+        </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.45fr,0.95fr]">
+      {['overview', 'fluxo'].includes(section) ? (
+        <div className="grid gap-6 xl:grid-cols-[1.45fr,0.95fr]">
         <Panel
           actions={
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-3 py-1.5 text-xs uppercase tracking-[0.22em] text-[var(--text-muted)]">
@@ -476,9 +497,11 @@ export function DashboardPage() {
             <p className="text-sm text-[var(--text-secondary)]">Ainda nao ha projetos com status definido.</p>
           )}
         </Panel>
-      </div>
+        </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
+      {['overview', 'fluxo'].includes(section) ? (
+        <div className="grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
         <Panel description="Leituras rapidas com formulas que podes validar no Excel." title="Desk Excel">
           <div className="grid gap-3 md:grid-cols-2">
             {excelCards.map((card) => (
@@ -538,7 +561,7 @@ export function DashboardPage() {
                         {formatCurrency(value, currency)} · {formatRatio(value / totalCategorias)}
                       </span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
+                    <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]">
                       <div
                         className="h-full rounded-full bg-[linear-gradient(90deg,var(--brand),var(--brand-strong))]"
                         style={{ width: `${Math.max((value / totalCategorias) * 100, 6)}%` }}
@@ -552,9 +575,11 @@ export function DashboardPage() {
             <p className="text-sm text-[var(--text-secondary)]">Nenhum gasto registado no mes atual.</p>
           )}
         </Panel>
-      </div>
+        </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr,0.85fr]">
+      {section === 'pipeline' ? (
+        <div className="grid gap-6 xl:grid-cols-[1.15fr,0.85fr]">
         <Panel
           description="Projetos ativos com leitura do valor pago e do que ainda falta receber."
           title="Pipeline financeiro"
@@ -576,7 +601,7 @@ export function DashboardPage() {
                       <StatusBadge status={project.status} />
                     </div>
 
-                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]">
                       <div
                         className="h-full rounded-full bg-[linear-gradient(90deg,var(--brand),var(--brand-strong))]"
                         style={{ width: `${Math.max(progressValue, progressValue > 0 ? 8 : 0)}%` }}
@@ -631,8 +656,10 @@ export function DashboardPage() {
           </div>
         </Panel>
       </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1fr,1fr]">
+      {section === 'operacoes' ? (
+        <div className="grid gap-6 xl:grid-cols-[1fr,1fr]">
         <Panel description="Tabela mensal pronta para conferencia rapida ou reconciliacao no Excel." title="Resumo mensal">
           <div className="overflow-x-auto">
             <table className="min-w-full border-separate border-spacing-y-2 text-left">
@@ -699,7 +726,8 @@ export function DashboardPage() {
             <p className="text-sm text-[var(--text-secondary)]">Ainda nao ha projetos com prazo cadastrado.</p>
           )}
         </Panel>
-      </div>
+        </div>
+      ) : null}
     </div>
   )
 }

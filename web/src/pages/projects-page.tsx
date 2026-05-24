@@ -1,7 +1,9 @@
 import { BriefcaseBusiness, Filter, PlusCircle, RefreshCcw, Search, Trash2 } from 'lucide-react'
 import { useDeferredValue, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { EmptyState } from '../components/empty-state'
 import { FullScreenLoader } from '../components/full-screen-loader'
+import { PageSectionNav } from '../components/page-section-nav'
 import { Panel } from '../components/panel'
 import { StatCard } from '../components/stat-card'
 import { StatusBadge } from '../components/status-badge'
@@ -19,6 +21,7 @@ import {
   parseDateValue,
   projectDueAmount,
 } from '../lib/format'
+import { getWorkspaceSection } from '../lib/navigation'
 import { createProjeto, deleteProjeto, fetchProjectsSnapshot, updateProjetoStatus } from '../lib/supabase-data'
 
 const STATUS_OPTIONS = [
@@ -43,6 +46,7 @@ function getProjectStatusLabel(status: string) {
 }
 
 export function ProjectsPage() {
+  const location = useLocation()
   const { data, error, isLoading, reload } = useAsyncData(fetchProjectsSnapshot)
   useRealtimeSync(['configuracoes', 'clientes', 'projetos'], reload, { pollIntervalMs: 15000 })
   const [search, setSearch] = useState('')
@@ -65,6 +69,12 @@ export function ProjectsPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null)
   const deferredSearch = useDeferredValue(search)
+  const section = getWorkspaceSection(location.pathname, '/projetos', 'overview')
+  const sectionNavItems = [
+    { label: 'Overview', to: '/projetos' },
+    { label: 'Pipeline', to: '/projetos/pipeline' },
+    { label: 'Novo projeto', to: '/projetos/novo' },
+  ]
 
   if (isLoading && !data) {
     return <FullScreenLoader label="A carregar os projetos..." />
@@ -215,8 +225,14 @@ export function ProjectsPage() {
 
   return (
     <div className="space-y-6">
+      <PageSectionNav
+        helper="Criacao, exploracao do pipeline e operacao do cadastro agora ficam em vistas separadas."
+        items={sectionNavItems}
+      />
+
       <div className="grid gap-6 2xl:grid-cols-[1.05fr,0.95fr]">
-        <Panel
+        {section === 'novo' ? (
+          <Panel
           actions={
             <button
               className={BUTTON_PRIMARY}
@@ -233,7 +249,7 @@ export function ProjectsPage() {
         >
           <div className="grid gap-4 md:grid-cols-2" id="project-form">
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Cliente</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Cliente</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setForm((current) => ({ ...current, clientName: event.target.value }))}
@@ -244,7 +260,7 @@ export function ProjectsPage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Projeto</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Projeto</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
@@ -255,7 +271,7 @@ export function ProjectsPage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Tipo</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Tipo</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setForm((current) => ({ ...current, type: event.target.value }))}
@@ -266,7 +282,7 @@ export function ProjectsPage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Valor total</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Valor total</span>
               <input
                 className={INPUT_BASE}
                 min="0"
@@ -279,7 +295,7 @@ export function ProjectsPage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Status</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Status</span>
               <select
                 className={INPUT_BASE}
                 onChange={(event) => setForm((current) => ({ ...current, status: event.target.value }))}
@@ -294,7 +310,7 @@ export function ProjectsPage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Prazo</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Prazo</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setForm((current) => ({ ...current, deadline: event.target.value }))}
@@ -304,7 +320,7 @@ export function ProjectsPage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Repositorio</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Repositorio</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setForm((current) => ({ ...current, repoUrl: event.target.value }))}
@@ -315,7 +331,7 @@ export function ProjectsPage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Staging</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Staging</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setForm((current) => ({ ...current, stagingUrl: event.target.value }))}
@@ -326,7 +342,7 @@ export function ProjectsPage() {
             </label>
 
             <label className="space-y-2 md:col-span-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Descricao</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Descricao</span>
               <textarea
                 className={TEXTAREA_BASE}
                 onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
@@ -336,7 +352,7 @@ export function ProjectsPage() {
             </label>
 
             <label className="space-y-2 md:col-span-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Notas internas</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Notas internas</span>
               <textarea
                 className={TEXTAREA_BASE}
                 onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
@@ -348,9 +364,11 @@ export function ProjectsPage() {
 
           {feedback ? <p className="mt-4 text-sm text-[var(--color-success)]">{feedback}</p> : null}
           {actionError ? <p className="mt-4 text-sm text-[var(--color-danger)]">{actionError}</p> : null}
-        </Panel>
+          </Panel>
+        ) : null}
 
-        <Panel
+        {['overview', 'pipeline'].includes(section) ? (
+          <Panel
           actions={
             <button className={BUTTON_SECONDARY} onClick={() => void reload()} type="button">
               <RefreshCcw className="mr-2 h-4 w-4" />
@@ -389,25 +407,27 @@ export function ProjectsPage() {
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <div className="rounded-full border border-[#232329] bg-[#0d0d10] px-4 py-2 text-xs uppercase tracking-[0.22em] text-[#76767f]">
+            <div className="rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-2 text-xs uppercase tracking-[0.22em] text-[var(--text-muted)]">
               {filteredProjects.length} resultado(s)
             </div>
-            <div className="rounded-full border border-[#232329] bg-[#0d0d10] px-4 py-2 text-xs uppercase tracking-[0.22em] text-[#76767f]">
+            <div className="rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-2 text-xs uppercase tracking-[0.22em] text-[var(--text-muted)]">
               Base total: {projetos.length}
             </div>
             {activeFilters.map((item) => (
               <div
                 key={item}
-                className="rounded-full border border-[var(--border-strong)] bg-[rgba(255,255,255,0.06)] px-4 py-2 text-xs uppercase tracking-[0.2em] text-[var(--brand)]"
+                className="rounded-full border border-[var(--border-strong)] bg-[var(--surface-soft)] px-4 py-2 text-xs uppercase tracking-[0.2em] text-[var(--brand)]"
               >
                 {item}
               </div>
             ))}
           </div>
-        </Panel>
+          </Panel>
+        ) : null}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-4">
+      {['overview', 'pipeline'].includes(section) ? (
+        <div className="grid gap-4 xl:grid-cols-4">
         <StatCard
           accent="#ef9f27"
           label="A receber"
@@ -432,9 +452,11 @@ export function ProjectsPage() {
           subtitle={`${projetos.length} projetos na base`}
           value={String(paidProjects)}
         />
-      </div>
+        </div>
+      ) : null}
 
-      <Panel
+      {section === 'pipeline' ? (
+        <Panel
         description="Lista consolidada com cliente, status, progresso financeiro, prazo e limpeza rapida."
         title="Lista de projetos"
       >
@@ -442,7 +464,7 @@ export function ProjectsPage() {
           <div className="overflow-x-auto">
             <table className="min-w-full border-separate border-spacing-y-2.5 text-left">
               <thead>
-                <tr className="text-[11px] uppercase tracking-[0.24em] text-[#6d6d75]">
+                <tr className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">
                   <th className="pb-2 pr-4 font-medium">Cliente</th>
                   <th className="pb-2 pr-4 font-medium">Projeto</th>
                   <th className="pb-2 pr-4 font-medium">Tipo</th>
@@ -456,15 +478,15 @@ export function ProjectsPage() {
               </thead>
               <tbody>
                 {filteredProjects.map((project) => (
-                  <tr key={project.id} className="text-sm text-[#f0f0f0]">
-                    <td className="rounded-l-[22px] border-y border-l border-[#1b1b20] bg-[#0a0a0c] px-4 py-4 text-[#8a8a93]">
+                  <tr key={project.id} className="text-sm text-[var(--text-primary)]">
+                    <td className="rounded-l-[22px] border-y border-l border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4 text-[var(--text-secondary)]">
                       {getClientName(project)}
                     </td>
-                    <td className="border-y border-[#1b1b20] bg-[#0a0a0c] px-4 py-4">
+                    <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4">
                       <div className="space-y-1">
-                        <p className="font-medium text-[#f0f0f0]">{project.titulo}</p>
+                        <p className="font-medium text-[var(--text-primary)]">{project.titulo}</p>
                         {project.repo_url || project.staging_url ? (
-                          <div className="flex flex-wrap gap-3 text-xs text-[#66666d]">
+                          <div className="flex flex-wrap gap-3 text-xs text-[var(--text-muted)]">
                             {project.repo_url ? (
                               <a
                                 className="transition hover:text-[var(--brand)]"
@@ -487,29 +509,29 @@ export function ProjectsPage() {
                             ) : null}
                           </div>
                         ) : (
-                          <p className="text-xs text-[#5d5d65]">Sem links externos associados.</p>
+                          <p className="text-xs text-[var(--text-muted)]">Sem links externos associados.</p>
                         )}
                       </div>
                     </td>
-                    <td className="border-y border-[#1b1b20] bg-[#0a0a0c] px-4 py-4 text-[#8a8a93]">
+                    <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4 text-[var(--text-secondary)]">
                       {project.tipo || '-'}
                     </td>
-                    <td className="border-y border-[#1b1b20] bg-[#0a0a0c] px-4 py-4 text-[#8a8a93]">
+                    <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4 text-[var(--text-secondary)]">
                       {formatCurrency(project.valor_total ?? 0, currency)}
                     </td>
-                    <td className="border-y border-[#1b1b20] bg-[#0a0a0c] px-4 py-4 text-[#8a8a93]">
+                    <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4 text-[var(--text-secondary)]">
                       {formatCurrency(project.valor_pago ?? 0, currency)}
                     </td>
-                    <td className="border-y border-[#1b1b20] bg-[#0a0a0c] px-4 py-4 text-[#8a8a93]">
+                    <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4 text-[var(--text-secondary)]">
                       {formatPercent(project.valor_pago ?? 0, project.valor_total ?? 0)}
                     </td>
-                    <td className="border-y border-[#1b1b20] bg-[#0a0a0c] px-4 py-4">
+                    <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4">
                       <StatusBadge status={project.status} />
                     </td>
-                    <td className="border-y border-[#1b1b20] bg-[#0a0a0c] px-4 py-4">
+                    <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4">
                       <span style={{ color: deadlineColor(project.prazo) }}>{formatDate(project.prazo)}</span>
                     </td>
-                    <td className="rounded-r-[22px] border-y border-r border-[#1b1b20] bg-[#0a0a0c] px-4 py-4">
+                    <td className="rounded-r-[22px] border-y border-r border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4">
                       <div className="flex min-w-[210px] flex-col gap-2">
                         <select
                           className={`${INPUT_BASE} px-3 py-2 text-xs`}
@@ -537,7 +559,7 @@ export function ProjectsPage() {
                         </button>
 
                         {updatingStatusId === project.id ? (
-                          <p className="text-[11px] uppercase tracking-[0.18em] text-[#66666d]">A guardar status...</p>
+                          <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--text-muted)]">A guardar status...</p>
                         ) : null}
                       </div>
                     </td>
@@ -579,7 +601,8 @@ export function ProjectsPage() {
             title="Nenhum projeto encontrado"
           />
         )}
-      </Panel>
+        </Panel>
+      ) : null}
     </div>
   )
 }

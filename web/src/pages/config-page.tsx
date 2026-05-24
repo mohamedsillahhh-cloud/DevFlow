@@ -23,7 +23,7 @@ export function ConfigPage() {
     caminho_backup: '',
     moeda: 'CVE',
     nome_usuario: '',
-    tema: 'preto',
+    tema: 'light',
     ultimo_backup: 'nunca',
   })
   const [feedback, setFeedback] = useState<string | null>(null)
@@ -48,7 +48,7 @@ export function ConfigPage() {
       caminho_backup: data.caminho_backup ?? '',
       moeda: data.moeda ?? 'CVE',
       nome_usuario: data.nome_usuario ?? '',
-      tema: data.tema ?? 'preto',
+      tema: data.tema ?? 'light',
       ultimo_backup: data.ultimo_backup ?? 'nunca',
     })
   }, [data])
@@ -78,6 +78,9 @@ export function ConfigPage() {
 
     try {
       await saveConfiguracoes(form)
+      // Sincronizar tema com localStorage e aplicar ao documento
+      window.localStorage.setItem('devflow-theme-mode', form.tema)
+      document.documentElement.setAttribute('data-theme', form.tema)
       setFeedback('Configuracoes guardadas com sucesso.')
       await reload()
     } catch (caughtError) {
@@ -158,6 +161,18 @@ export function ConfigPage() {
                   {option.label}
                 </option>
               ))}
+            </select>
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Tema</span>
+            <select
+              className={INPUT_BASE}
+              onChange={(event) => setForm((current) => ({ ...current, tema: event.target.value }))}
+              value={form.tema}
+            >
+              <option value="light">Branco</option>
+              <option value="dark">Preto</option>
             </select>
           </label>
 

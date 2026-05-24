@@ -1,15 +1,15 @@
 import { type FormEvent, useState } from 'react'
-import { Chrome, LockKeyhole } from 'lucide-react'
+import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/use-auth'
 
 export function LoginPage() {
-  const { allowedEmails, clearNotice, configIssues, isAuthenticated, notice, signIn, signInWithGoogle } =
-    useAuth()
+  const { clearNotice, configIssues, isAuthenticated, notice, signIn } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [submitMode, setSubmitMode] = useState<'google' | 'password' | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   if (isAuthenticated) {
     return <Navigate replace to="/dashboard" />
@@ -21,137 +21,116 @@ export function LoginPage() {
     event.preventDefault()
     setError(null)
     clearNotice()
-    setSubmitMode('password')
+    setIsSubmitting(true)
 
     try {
       await signIn(email, password)
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Nao foi possivel entrar.')
-      setSubmitMode(null)
-    }
-  }
-
-  async function handleGoogleSignIn() {
-    setError(null)
-    clearNotice()
-    setSubmitMode('google')
-
-    try {
-      await signInWithGoogle()
-    } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Nao foi possivel entrar com Google.')
-      setSubmitMode(null)
+      setError('E-mail ou senha incorretos. Tente novamente.')
+      setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--bg-canvas)] px-4">
-      <div className="w-[460px] max-w-full rounded-[28px] border border-[var(--border-subtle)] bg-[linear-gradient(180deg,rgba(10,10,10,0.98),rgba(3,3,3,0.98))] p-8 shadow-[var(--shadow-panel)]">
-        <div className="inline-flex rounded-full border border-[var(--border-strong)] bg-[rgba(255,255,255,0.06)] px-3 py-1 text-[11px] uppercase tracking-[0.28em] text-[var(--brand)]">
-          Dark workspace
-        </div>
-        <h1 className="mt-5 text-[30px] font-semibold tracking-[-0.05em] text-[var(--text-primary)]">DevFlow</h1>
-        <p className="mt-2 text-[13px] text-[var(--text-secondary)]">Acesso pessoal ao painel de gestao</p>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--bg-canvas)] px-4">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--brand-soft),transparent_60%)]" />
 
-        <div className="mt-6 rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Contas autorizadas</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {allowedEmails.map((allowedEmail) => (
-              <span
-                key={allowedEmail}
-                className="rounded-full border border-[var(--border-subtle)] bg-[var(--surface-3)] px-3 py-1.5 text-xs text-[var(--text-primary)]"
-              >
-                {allowedEmail}
-              </span>
-            ))}
-          </div>
+      <div className="relative w-[420px] max-w-full rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-1)]/80 p-8 shadow-2xl shadow-black/5 backdrop-blur-xl">
+        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--brand-soft)]">
+          <LockKeyhole className="h-7 w-7 text-[var(--brand)]" />
         </div>
 
-        <div className="mt-6 space-y-3">
-          <button
-            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 font-medium text-[var(--text-primary)] transition hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={submitMode !== null || configIssues.length > 0}
-            onClick={() => void handleGoogleSignIn()}
-            type="button"
-          >
-            <Chrome className="h-4 w-4" />
-            Continuar com Google
-          </button>
+        <h1 className="text-center text-2xl font-semibold text-[var(--text-primary)]">DevFlow</h1>
+        <p className="mt-1.5 text-center text-sm text-[var(--text-secondary)]">
+          Acesso ao painel de gestao
+        </p>
 
-          <p className="text-center text-[11px] text-[var(--text-muted)]">
-            Se esta conta foi criada com Google, entra pelo botao acima.
-          </p>
-
-          <div className="flex items-center gap-3 text-xs uppercase tracking-[0.22em] text-[var(--text-muted)]">
-            <div className="h-px flex-1 bg-[var(--border-subtle)]" />
-            ou entra com senha
-            <div className="h-px flex-1 bg-[var(--border-subtle)]" />
-          </div>
-        </div>
-
-        <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
           <div>
             <label
-              className="mb-2 block text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]"
+              className="mb-2 block text-xs font-medium text-[var(--text-secondary)]"
               htmlFor="email"
             >
               E-mail
             </label>
-            <input
-              autoComplete="email"
-              className="w-full rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 text-[var(--text-primary)] transition focus:border-[var(--border-strong)] focus:ring-4 focus:ring-[var(--brand-soft)]"
-              id="email"
-              onChange={(event) => {
-                setEmail(event.target.value)
-                if (error || notice) {
-                  setError(null)
-                  clearNotice()
-                }
-              }}
-              required
-              type="email"
-              value={email}
-            />
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+              <input
+                autoComplete="email"
+                className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-2)] py-3 pl-10 pr-4 text-sm text-[var(--text-primary)] transition placeholder:text-[var(--text-muted)] focus:border-[var(--brand)] focus:ring-4 focus:ring-[var(--brand-soft)]"
+                id="email"
+                onChange={(event) => {
+                  setEmail(event.target.value)
+                  if (error || notice) {
+                    setError(null)
+                    clearNotice()
+                  }
+                }}
+                placeholder="seu@email.com"
+                required
+                type="email"
+                value={email}
+              />
+            </div>
           </div>
 
           <div>
             <label
-              className="mb-2 block text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]"
+              className="mb-2 block text-xs font-medium text-[var(--text-secondary)]"
               htmlFor="password"
             >
               Senha
             </label>
-            <input
-              autoComplete="current-password"
-              className="w-full rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 text-[var(--text-primary)] transition focus:border-[var(--border-strong)] focus:ring-4 focus:ring-[var(--brand-soft)]"
-              id="password"
-              onChange={(event) => {
-                setPassword(event.target.value)
-                if (error || notice) {
-                  setError(null)
-                  clearNotice()
-                }
-              }}
-              required
-              type="password"
-              value={password}
-            />
+            <div className="relative">
+              <input
+                autoComplete="current-password"
+                className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-2)] py-3 pl-10 pr-11 text-sm text-[var(--text-primary)] transition placeholder:text-[var(--text-muted)] focus:border-[var(--brand)] focus:ring-4 focus:ring-[var(--brand-soft)]"
+                id="password"
+                onChange={(event) => {
+                  setPassword(event.target.value)
+                  if (error || notice) {
+                    setError(null)
+                    clearNotice()
+                  }
+                }}
+                placeholder="sua senha"
+                required
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+              />
+              <LockKeyhole className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+              <button
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] transition hover:text-[var(--text-primary)]"
+                onClick={() => setShowPassword((prev) => !prev)}
+                tabIndex={-1}
+                type="button"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
 
           <button
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[rgba(255,255,255,0.42)] bg-[linear-gradient(180deg,#ffffff,#dcdcdc)] px-4 py-3 font-medium text-[#050505] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={submitMode !== null || configIssues.length > 0}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[var(--brand)]/25 transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={isSubmitting || configIssues.length > 0}
             type="submit"
           >
-            <LockKeyhole className="h-4 w-4" />
-            Entrar
+            {isSubmitting ? (
+              <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" fill="currentColor" />
+              </svg>
+            ) : (
+              <LockKeyhole className="h-4 w-4" />
+            )}
+            {isSubmitting ? 'Entrando...' : 'Entrar'}
           </button>
 
           {visibleError ? (
-            <p className="min-h-[20px] text-sm text-[var(--color-danger)]">{visibleError}</p>
-          ) : (
-            <div className="min-h-[20px]" />
-          )}
+            <p className="rounded-xl border border-[var(--color-danger)]/20 bg-[var(--color-danger)]/10 px-4 py-3 text-center text-sm text-[var(--color-danger)]">
+              {visibleError}
+            </p>
+          ) : null}
         </form>
       </div>
     </div>

@@ -118,7 +118,7 @@ export function ComparisonAreaChart({
 
       <div className="relative overflow-hidden rounded-[28px] border border-[var(--border-subtle)] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_36%),var(--surface-1)] p-4">
         {activeEntry && activePrimaryPoint && activeSecondaryPoint ? (
-          <div className="pointer-events-none absolute right-4 top-4 z-10 hidden min-w-[220px] rounded-[20px] border border-[rgba(255,255,255,0.12)] bg-[rgba(0,0,0,0.72)] px-4 py-3 shadow-[0_18px_40px_rgba(0,0,0,0.34)] backdrop-blur md:block">
+          <div className="pointer-events-none absolute right-4 top-4 z-10 hidden min-w-[220px] rounded-[20px] border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur md:block">
             <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--text-muted)]">{activeEntry.label}</p>
             <div className="mt-3 grid gap-2">
               <div className="flex items-center justify-between gap-3 text-sm">
@@ -156,7 +156,7 @@ export function ComparisonAreaChart({
             return (
               <line
                 key={line}
-                stroke="rgba(255,255,255,0.08)"
+                stroke="var(--chart-grid)"
                 strokeDasharray="1.5 3"
                 strokeWidth="0.3"
                 x1={paddingX}
@@ -169,7 +169,7 @@ export function ComparisonAreaChart({
 
           {activePrimaryPoint ? (
             <line
-              stroke="rgba(255,255,255,0.14)"
+              stroke="var(--chart-guideline)"
               strokeDasharray="1.5 2.2"
               strokeWidth="0.32"
               x1={activePrimaryPoint.x}
@@ -235,7 +235,7 @@ export function ComparisonAreaChart({
                 className={[
                   'rounded-[18px] border px-3 py-2 text-left text-[10px] uppercase tracking-[0.22em] transition',
                   isActive
-                    ? 'border-[rgba(255,255,255,0.18)] bg-[var(--surface-2)] text-[var(--text-primary)]'
+                    ? 'border-[var(--border-strong)] bg-[var(--surface-2)] text-[var(--text-primary)]'
                     : 'border-transparent bg-transparent text-[var(--text-muted)] hover:border-[var(--border-subtle)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]',
                 ].join(' ')}
                 onMouseEnter={() => setActiveIndex(index)}
@@ -281,7 +281,7 @@ export function DonutChart({ centerLabel, centerValue, segments }: DonutChartPro
     <div className="grid gap-6 lg:grid-cols-[220px,1fr] lg:items-center">
       <div className="relative mx-auto h-[220px] w-[220px]">
         <svg aria-hidden="true" className="h-full w-full -rotate-90" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" fill="none" r={radius} stroke="rgba(255,255,255,0.08)" strokeWidth="11" />
+          <circle cx="60" cy="60" fill="none" r={radius} stroke="var(--chart-grid)" strokeWidth="11" />
           {segmentsWithOffsets.map((segment, index) => {
             const isActive = index === safeActiveIndex
 
@@ -304,7 +304,7 @@ export function DonutChart({ centerLabel, centerValue, segments }: DonutChartPro
           })}
         </svg>
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[radial-gradient(circle,rgba(255,255,255,0.04),rgba(8,8,8,0.94))] px-5 text-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[radial-gradient(circle,var(--surface-2),var(--surface-1))] px-5 text-center">
           <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">{centerLabel}</span>
           <strong className="mt-2 text-4xl font-semibold tracking-[-0.06em] text-[var(--text-primary)]">
             {centerValue}
@@ -349,7 +349,7 @@ export function DonutChart({ centerLabel, centerValue, segments }: DonutChartPro
               className={[
                 'flex w-full items-center justify-between rounded-[22px] border px-4 py-3 text-left transition',
                 isActive
-                  ? 'border-[rgba(255,255,255,0.18)] bg-[var(--surface-1)]'
+                  ? 'border-[var(--border-strong)] bg-[var(--surface-1)]'
                   : 'border-[var(--border-subtle)] bg-[var(--surface-2)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-1)]',
               ].join(' ')}
               onFocus={() => setActiveIndex(index)}
@@ -425,7 +425,7 @@ export function MiniBarChart({ data }: MiniBarChartProps) {
                 className={[
                   'flex h-full w-full items-end rounded-[24px] border p-2 transition',
                   isActive
-                    ? 'border-[rgba(255,255,255,0.18)] bg-[var(--surface-1)]'
+                    ? 'border-[var(--border-strong)] bg-[var(--surface-1)]'
                     : 'border-[var(--border-subtle)] bg-[var(--surface-2)]',
                 ].join(' ')}
               >

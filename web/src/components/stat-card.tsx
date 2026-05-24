@@ -14,23 +14,20 @@ export function StatCard({
   return (
     <article
       className={[
-        'relative overflow-hidden rounded-[30px] border border-[var(--border-subtle)] bg-[linear-gradient(180deg,rgba(12,12,12,0.98),rgba(5,5,5,0.98))] p-6 shadow-[var(--shadow-soft)]',
+        'relative overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[linear-gradient(180deg,var(--surface-2),var(--surface-1))] p-5 shadow-[var(--shadow-soft)]',
         className,
       ]
         .filter(Boolean)
         .join(' ')}
     >
-      <div
-        className="pointer-events-none absolute -right-8 top-0 h-28 w-28 rounded-full blur-3xl"
-        style={{ backgroundColor: accent, opacity: 0.2 }}
-      />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.03),transparent_24%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px]" style={{ backgroundColor: accent, opacity: 0.45 }} />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(126,165,255,0.08),transparent_28%)]" />
       <div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-soft)] px-3 py-1.5">
+        <div className="inline-flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-soft)] px-3 py-1.5">
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: accent }} />
-          <p className="text-[11px] uppercase tracking-[0.28em] text-[var(--text-muted)]">{label}</p>
+          <p className="text-xs font-medium text-[var(--text-muted)]">{label}</p>
         </div>
-        <p className="mt-5 text-[2rem] font-semibold tracking-[-0.05em] text-[var(--text-primary)]">{value}</p>
+        <p className="mt-4 text-[1.9rem] font-semibold text-[var(--text-primary)]">{value}</p>
         {subtitle ? <p className="mt-2 text-sm text-[var(--text-secondary)]">{subtitle}</p> : null}
       </div>
     </article>

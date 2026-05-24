@@ -1,6 +1,8 @@
 import { PlusCircle, RefreshCcw, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { FullScreenLoader } from '../components/full-screen-loader'
+import { PageSectionNav } from '../components/page-section-nav'
 import { Panel } from '../components/panel'
 import { StatCard } from '../components/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
@@ -17,6 +19,7 @@ import {
   isWithinDateRange,
   sumBy,
 } from '../lib/format'
+import { getWorkspaceSection } from '../lib/navigation'
 import {
   createAporte,
   createInvestimento,
@@ -28,6 +31,7 @@ import {
 const TEXTAREA_BASE = `${INPUT_BASE} min-h-[110px] resize-y`
 
 export function InvestmentsPage() {
+  const location = useLocation()
   const { data, error, isLoading, reload } = useAsyncData(fetchInvestmentsSnapshot)
   useRealtimeSync(['configuracoes', 'investimentos', 'aportes'], reload, { pollIntervalMs: 12000 })
   const [investmentForm, setInvestmentForm] = useState({
@@ -50,6 +54,12 @@ export function InvestmentsPage() {
   const [submittingForm, setSubmittingForm] = useState<'investment' | 'movement' | null>(null)
   const [deletingInvestmentId, setDeletingInvestmentId] = useState<number | null>(null)
   const [deletingMovementId, setDeletingMovementId] = useState<number | null>(null)
+  const section = getWorkspaceSection(location.pathname, '/investimentos', 'overview')
+  const sectionNavItems = [
+    { label: 'Overview', to: '/investimentos' },
+    { label: 'Carteira', to: '/investimentos/carteira' },
+    { label: 'Novo', to: '/investimentos/novo' },
+  ]
 
   useEffect(() => {
     if (!data || movementForm.investmentId || data.investimentos.length === 0) {
@@ -231,7 +241,13 @@ export function InvestmentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 2xl:grid-cols-2">
+      <PageSectionNav
+        helper="A carteira ficou dividida entre leitura patrimonial e cadastros, para o fluxo ficar menos pesado."
+        items={sectionNavItems}
+      />
+
+      {section === 'novo' ? (
+        <div className="grid gap-6 2xl:grid-cols-2">
         <Panel
           actions={
             <button
@@ -249,7 +265,7 @@ export function InvestmentsPage() {
         >
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Nome</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Nome</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setInvestmentForm((current) => ({ ...current, name: event.target.value }))}
@@ -260,7 +276,7 @@ export function InvestmentsPage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Tipo</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Tipo</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setInvestmentForm((current) => ({ ...current, type: event.target.value }))}
@@ -271,7 +287,7 @@ export function InvestmentsPage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Meta de valor</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Meta de valor</span>
               <input
                 className={INPUT_BASE}
                 min="0"
@@ -286,7 +302,7 @@ export function InvestmentsPage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Meta de data</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Meta de data</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) =>
@@ -297,7 +313,7 @@ export function InvestmentsPage() {
               />
             </label>
 
-            <label className="flex items-center gap-3 rounded-2xl border border-[#1b1b20] bg-[#0b0b0d] px-4 py-3 text-sm text-[#f0f0f0] md:col-span-2">
+            <label className="flex items-center gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text-primary)] md:col-span-2">
               <input
                 checked={investmentForm.active}
                 className="h-4 w-4 accent-[var(--brand)]"
@@ -310,7 +326,7 @@ export function InvestmentsPage() {
             </label>
 
             <label className="space-y-2 md:col-span-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Notas</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Notas</span>
               <textarea
                 className={TEXTAREA_BASE}
                 onChange={(event) => setInvestmentForm((current) => ({ ...current, notes: event.target.value }))}
@@ -338,7 +354,7 @@ export function InvestmentsPage() {
         >
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2 md:col-span-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Investimento</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Investimento</span>
               <select
                 className={INPUT_BASE}
                 disabled={investimentos.length === 0}
@@ -357,7 +373,7 @@ export function InvestmentsPage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Tipo</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Tipo</span>
               <select
                 className={INPUT_BASE}
                 onChange={(event) => setMovementForm((current) => ({ ...current, type: event.target.value }))}
@@ -370,7 +386,7 @@ export function InvestmentsPage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Valor</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Valor</span>
               <input
                 className={INPUT_BASE}
                 min="0"
@@ -383,7 +399,7 @@ export function InvestmentsPage() {
             </label>
 
             <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Data</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Data</span>
               <input
                 className={INPUT_BASE}
                 onChange={(event) => setMovementForm((current) => ({ ...current, date: event.target.value }))}
@@ -393,7 +409,7 @@ export function InvestmentsPage() {
             </label>
 
             <label className="space-y-2 md:col-span-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Notas</span>
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Notas</span>
               <textarea
                 className={TEXTAREA_BASE}
                 onChange={(event) => setMovementForm((current) => ({ ...current, notes: event.target.value }))}
@@ -404,12 +420,13 @@ export function InvestmentsPage() {
           </div>
 
           {investimentos.length === 0 ? (
-            <p className="mt-4 text-sm text-[#888888]">
+            <p className="mt-4 text-sm text-[var(--text-secondary)]">
               Cria primeiro um investimento para poderes registar movimentos.
             </p>
           ) : null}
         </Panel>
-      </div>
+        </div>
+      ) : null}
 
       {feedback ? <p className="text-sm text-[var(--color-success)]">{feedback}</p> : null}
       {actionError ? <p className="text-sm text-[var(--color-danger)]">{actionError}</p> : null}
@@ -421,7 +438,8 @@ export function InvestmentsPage() {
         </button>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-4">
+      {['overview', 'carteira'].includes(section) ? (
+        <div className="grid gap-4 xl:grid-cols-4">
         <StatCard accent="#378add" label="Total investido" value={formatCurrency(totalInvestido, currency)} />
         <StatCard accent="#1d9e75" label="Aportado este mes" value={formatCurrency(aportadoMes, currency)} />
         <StatCard accent="#ef9f27" label="Rendimento acumulado" value={formatCurrency(rendimentoTotal, currency)} />
@@ -430,9 +448,11 @@ export function InvestmentsPage() {
           label="Metas atingidas"
           value={`${metasAtingidas} / ${progressRows.length}`}
         />
-      </div>
+        </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
+      {['overview', 'carteira'].includes(section) ? (
+        <div className="grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
         <Panel description="Total atual por ativo, progresso da meta e remocao direta." title="Progresso das metas">
           <div className="space-y-5">
             {progressRows.length > 0 ? (
@@ -444,14 +464,14 @@ export function InvestmentsPage() {
                 const missing = Math.max((investment.meta_valor ?? 0) - totalItem, 0)
 
                 return (
-                  <div key={investment.id} className="space-y-3 rounded-2xl border border-[#171717] bg-[#090909] p-4">
+                  <div key={investment.id} className="space-y-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="text-sm font-medium text-[#f0f0f0]">{investment.nome}</p>
-                        <p className="mt-1 text-xs uppercase tracking-[0.2em] text-[#666666]">{investment.tipo}</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)]">{investment.nome}</p>
+                        <p className="mt-1 text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">{investment.tipo}</p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="font-mono text-xs text-[#888888]">{formatCurrency(totalItem, currency)}</span>
+                        <span className="font-mono text-xs text-[var(--text-secondary)]">{formatCurrency(totalItem, currency)}</span>
                         <button
                           className={`${BUTTON_SECONDARY} px-3 py-2 text-xs`}
                           disabled={deletingInvestmentId === investment.id}
@@ -463,21 +483,21 @@ export function InvestmentsPage() {
                         </button>
                       </div>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-[#141414]">
+                    <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]">
                       <div className="h-full rounded-full bg-[linear-gradient(90deg,var(--brand),var(--brand-strong))]" style={{ width: `${percent}%` }} />
                     </div>
                     {investment.meta_valor ? (
-                      <p className="text-xs text-[#666666]">
+                      <p className="text-xs text-[var(--text-muted)]">
                         {Math.round(percent)}% · faltam {formatCurrency(missing, currency)} · meta {formatDate(investment.meta_data)}
                       </p>
                     ) : (
-                      <p className="text-xs text-[#666666]">Sem meta definida.</p>
+                      <p className="text-xs text-[var(--text-muted)]">Sem meta definida.</p>
                     )}
                   </div>
                 )
               })
             ) : (
-              <p className="text-sm text-[#888888]">Nenhum investimento cadastrado ainda.</p>
+              <p className="text-sm text-[var(--text-secondary)]">Nenhum investimento cadastrado ainda.</p>
             )}
           </div>
         </Panel>
@@ -491,12 +511,12 @@ export function InvestmentsPage() {
                 return (
                   <div key={name} className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-[#f0f0f0]">{name}</span>
-                      <span className="font-mono text-xs text-[#888888]">
+                      <span className="text-[var(--text-primary)]">{name}</span>
+                      <span className="font-mono text-xs text-[var(--text-secondary)]">
                         {formatCurrency(value, currency)} · {Math.round(percent)}%
                       </span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-[#141414]">
+                    <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]">
                       <div
                         className="h-full rounded-full bg-[#378add]"
                         style={{ width: `${Math.max(percent, percent > 0 ? 6 : 0)}%` }}
@@ -506,18 +526,20 @@ export function InvestmentsPage() {
                 )
               })
             ) : (
-              <p className="text-sm text-[#888888]">Ainda nao ha saldo alocado para mostrar.</p>
+              <p className="text-sm text-[var(--text-secondary)]">Ainda nao ha saldo alocado para mostrar.</p>
             )}
           </div>
         </Panel>
-      </div>
+        </div>
+      ) : null}
 
-      <Panel description="Aportes, resgates e rendimentos mais recentes." title="Movimentos recentes">
+      {section === 'carteira' ? (
+        <Panel description="Aportes, resgates e rendimentos mais recentes." title="Movimentos recentes">
         {aportes.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full border-separate border-spacing-y-2 text-left">
               <thead>
-                <tr className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">
+                <tr className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
                   <th className="pb-2 pr-4 font-medium">Data</th>
                   <th className="pb-2 pr-4 font-medium">Ativo</th>
                   <th className="pb-2 pr-4 font-medium">Tipo</th>
@@ -528,24 +550,24 @@ export function InvestmentsPage() {
               <tbody>
                 {aportes.slice(0, 10).map((item) => (
                   <tr key={item.id} className="text-sm">
-                    <td className="rounded-l-2xl border-y border-l border-[#171717] bg-[#090909] px-4 py-3 text-[#888888]">
+                    <td className="rounded-l-2xl border-y border-l border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-secondary)]">
                       {formatDate(item.data)}
                     </td>
-                    <td className="border-y border-[#171717] bg-[#090909] px-4 py-3 text-[#f0f0f0]">
+                    <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-primary)]">
                       {getRelationItem(item.investimentos)?.nome ?? 'Ativo removido'}
                     </td>
-                    <td className="border-y border-[#171717] bg-[#090909] px-4 py-3 text-[#888888]">
+                    <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-secondary)]">
                       {item.tipo || '-'}
                     </td>
                     <td
-                      className={`border-y border-[#171717] bg-[#090909] px-4 py-3 font-mono ${
+                      className={`border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 font-mono ${
                         item.tipo === 'resgate' ? 'text-[#e24b4a]' : 'text-[#1d9e75]'
                       }`}
                     >
                       {item.tipo === 'resgate' ? '-' : '+'}
                       {formatCurrency(item.valor, currency)}
                     </td>
-                    <td className="rounded-r-2xl border-y border-r border-[#171717] bg-[#090909] px-4 py-3">
+                    <td className="rounded-r-2xl border-y border-r border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3">
                       <button
                         className={`${BUTTON_SECONDARY} px-3 py-2 text-xs`}
                         disabled={deletingMovementId === item.id}
@@ -567,9 +589,10 @@ export function InvestmentsPage() {
             </table>
           </div>
         ) : (
-          <p className="text-sm text-[#888888]">Nenhum aporte registado ainda.</p>
+          <p className="text-sm text-[var(--text-secondary)]">Nenhum aporte registado ainda.</p>
         )}
-      </Panel>
+        </Panel>
+      ) : null}
     </div>
   )
 }

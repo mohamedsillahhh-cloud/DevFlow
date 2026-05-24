@@ -37,11 +37,11 @@ function AppRoutes() {
         }
       >
         <Route index element={<Navigate replace to="/dashboard" />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/projetos" element={<ProjectsPage />} />
-        <Route path="/financas" element={<FinancePage />} />
-        <Route path="/investimentos" element={<InvestmentsPage />} />
-        <Route path="/timer" element={<TimerPage />} />
+        <Route path="/dashboard/*" element={<DashboardPage />} />
+        <Route path="/projetos/*" element={<ProjectsPage />} />
+        <Route path="/financas/*" element={<FinancePage />} />
+        <Route path="/investimentos/*" element={<InvestmentsPage />} />
+        <Route path="/timer/*" element={<TimerPage />} />
         <Route path="/config" element={<ConfigPage />} />
       </Route>
       <Route path="*" element={<Navigate replace to="/dashboard" />} />
