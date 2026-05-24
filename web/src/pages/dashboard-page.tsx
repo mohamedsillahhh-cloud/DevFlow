@@ -40,46 +40,46 @@ import { fetchDashboardSnapshot } from '../lib/supabase-data'
 
 const STATUS_DEFINITIONS = [
   {
-    border: '#5a4722',
-    color: 'var(--color-warning)',
+    border: 'var(--border-strong)',
+    color: 'var(--chart-1)',
     key: 'pendente',
     label: 'Pending',
-    surface: 'rgba(140,96,15,0.18)',
+    surface: 'var(--surface-1)',
   },
   {
-    border: '#234a73',
-    color: 'var(--color-info)',
+    border: 'var(--border-subtle)',
+    color: 'var(--chart-2)',
     key: 'em_andamento',
     label: 'In progress',
-    surface: 'rgba(26,72,133,0.2)',
+    surface: 'var(--surface-2)',
   },
   {
-    border: '#5e3f84',
-    color: '#c98fff',
+    border: 'var(--border-subtle)',
+    color: 'var(--chart-3)',
     key: 'pago_parcial',
     label: 'Partial paid',
-    surface: 'rgba(118,72,194,0.18)',
+    surface: 'var(--surface-2)',
   },
   {
-    border: '#1f4a39',
-    color: 'var(--color-success)',
+    border: 'var(--border-subtle)',
+    color: 'var(--chart-4)',
     key: 'pago',
     label: 'Success',
-    surface: 'rgba(20,86,58,0.18)',
+    surface: 'var(--surface-2)',
   },
   {
-    border: '#41506a',
-    color: '#8ea0bc',
+    border: 'var(--border-subtle)',
+    color: 'var(--chart-5)',
     key: 'concluido',
     label: 'Closed',
-    surface: 'rgba(92,109,140,0.18)',
+    surface: 'var(--surface-2)',
   },
   {
-    border: '#4a1f2a',
-    color: 'var(--color-danger)',
+    border: 'var(--border-subtle)',
+    color: 'var(--chart-6)',
     key: 'cancelado',
     label: 'Failed',
-    surface: 'rgba(113,29,43,0.18)',
+    surface: 'var(--surface-2)',
   },
 ]
 
@@ -333,7 +333,7 @@ export function DashboardPage() {
 
       <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
         <div className="flex items-center gap-3 rounded-[28px] border border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-sm text-[var(--text-secondary)] shadow-[var(--shadow-soft)]">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#53371a] bg-[rgba(140,96,15,0.18)] text-[var(--color-warning)]">
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-muted)]">
             <AlertTriangle className="h-4 w-4" />
           </span>
           {alerts.length > 0 ? `${alerts.length} alerta(s) ativo(s)` : 'Nenhum alerta ativo no momento'}

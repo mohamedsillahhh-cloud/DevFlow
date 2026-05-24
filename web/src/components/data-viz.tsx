@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 
 interface ComparisonAreaChartProps {
   data: Array<{
@@ -254,6 +254,7 @@ export function ComparisonAreaChart({
 
 export function DonutChart({ centerLabel, centerValue, segments }: DonutChartProps) {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [mounted, setMounted] = useState(false)
   const total = Math.max(
     1,
     segments.reduce((accumulator, segment) => accumulator + segment.value, 0),
@@ -261,15 +262,23 @@ export function DonutChart({ centerLabel, centerValue, segments }: DonutChartPro
   const radius = 42
   const circumference = 2 * Math.PI * radius
   const safeActiveIndex = segments.length > 0 ? Math.min(activeIndex, segments.length - 1) : 0
+  const gap = 1.5
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 80)
+    return () => clearTimeout(timer)
+  }, [])
 
   const segmentsWithOffsets = segments.map((segment, index) => {
+    const rawDash = circumference * (segment.value / total)
     const previousDash = segments
       .slice(0, index)
       .reduce((accumulator, currentSegment) => accumulator + circumference * (currentSegment.value / total), 0)
 
     return {
-      dash: circumference * (segment.value / total),
+      dash: Math.max(rawDash - gap, 0),
       offset: previousDash,
+      rawDash,
       ratio: segment.value / total,
       ...segment,
     }
@@ -284,6 +293,9 @@ export function DonutChart({ centerLabel, centerValue, segments }: DonutChartPro
           <circle cx="60" cy="60" fill="none" r={radius} stroke="var(--chart-grid)" strokeWidth="11" />
           {segmentsWithOffsets.map((segment, index) => {
             const isActive = index === safeActiveIndex
+            const hidden = -(segment.offset + segment.rawDash + gap)
+            const visible = -(segment.offset + gap)
+            const delay = index * 120
 
             return (
               <circle
@@ -295,59 +307,54 @@ export function DonutChart({ centerLabel, centerValue, segments }: DonutChartPro
                 r={radius}
                 stroke={segment.color}
                 strokeDasharray={`${segment.dash} ${circumference - segment.dash}`}
-                strokeDashoffset={-segment.offset}
+                strokeDashoffset={mounted ? visible : hidden}
                 strokeLinecap="round"
-                strokeOpacity={isActive ? 1 : 0.58}
+                strokeOpacity={isActive ? 1 : 0.55}
                 strokeWidth={isActive ? '12' : '10.5'}
+                style={{
+                  transition: `stroke-dashoffset 0.9s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, stroke-width 0.3s ease, stroke-opacity 0.3s ease`,
+                  cursor: 'pointer',
+                }}
               />
             )
           })}
         </svg>
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[radial-gradient(circle,var(--surface-2),var(--surface-1))] px-5 text-center">
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[radial-gradient(circle,var(--surface-2),var(--surface-1))] px-5 text-center"
+          style={{ animation: 'fade-in-up 0.5s ease both' }}
+        >
           <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">{centerLabel}</span>
-          <strong className="mt-2 text-4xl font-semibold tracking-[-0.06em] text-[var(--text-primary)]">
+          <strong
+            key={centerValue}
+            className="mt-2 text-4xl font-semibold tracking-[-0.06em] text-[var(--text-primary)]"
+            style={{ animation: 'fade-in-up 0.4s ease both' }}
+          >
             {centerValue}
           </strong>
           {activeSegment ? (
-            <>
-              <span className="mt-3 text-[11px] uppercase tracking-[0.24em]" style={{ color: activeSegment.color }}>
+            <div key={`${activeSegment.label}-${safeActiveIndex}`} style={{ animation: 'fade-in-up 0.35s ease both' }}>
+              <span className="mt-3 block text-[11px] uppercase tracking-[0.24em]" style={{ color: activeSegment.color }}>
                 {activeSegment.label}
               </span>
-              <span className="mt-1 font-mono text-sm text-[var(--text-secondary)]">
+              <span className="mt-1 block font-mono text-sm text-[var(--text-secondary)]">
                 {Math.round(activeSegment.ratio * 100)}%
               </span>
-            </>
+            </div>
           ) : null}
         </div>
       </div>
 
-      <div className="space-y-3">
-        {activeSegment ? (
-          <div className="rounded-[22px] border border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Segmento em foco</p>
-            <div className="mt-3 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-[var(--text-primary)]">{activeSegment.label}</p>
-                {activeSegment.helper ? (
-                  <p className="mt-1 text-sm text-[var(--text-secondary)]">{activeSegment.helper}</p>
-                ) : null}
-              </div>
-              <span className="font-mono text-sm text-[var(--text-primary)]">
-                {activeSegment.displayValue ?? formatDefaultValue(activeSegment.value)}
-              </span>
-            </div>
-          </div>
-        ) : null}
-
+      <div className="space-y-2">
         {segments.map((segment, index) => {
           const isActive = index === safeActiveIndex
+          const delay = 120 + index * 80
 
           return (
             <button
               key={segment.label}
               className={[
-                'flex w-full items-center justify-between rounded-[22px] border px-4 py-3 text-left transition',
+                'flex w-full items-center justify-between rounded-[14px] border px-4 py-3 text-left transition-all duration-200',
                 isActive
                   ? 'border-[var(--border-strong)] bg-[var(--surface-1)]'
                   : 'border-[var(--border-subtle)] bg-[var(--surface-2)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-1)]',
@@ -355,12 +362,19 @@ export function DonutChart({ centerLabel, centerValue, segments }: DonutChartPro
               onFocus={() => setActiveIndex(index)}
               onMouseEnter={() => setActiveIndex(index)}
               type="button"
+              style={{ animation: `fade-in-up 0.4s ease ${delay}ms both` }}
             >
               <div className="flex min-w-0 items-center gap-3">
-                <span className="h-3 w-3 rounded-full" style={{ backgroundColor: segment.color }} />
+                <span
+                  className="h-3 w-3 rounded-full transition-transform duration-200"
+                  style={{
+                    backgroundColor: segment.color,
+                    transform: isActive ? 'scale(1.25)' : 'scale(1)',
+                  }}
+                />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-[var(--text-primary)]">{segment.label}</p>
-                  {segment.helper ? <p className="mt-1 text-xs text-[var(--text-secondary)]">{segment.helper}</p> : null}
+                  {segment.helper ? <p className="mt-0.5 text-xs text-[var(--text-secondary)]">{segment.helper}</p> : null}
                 </div>
               </div>
 

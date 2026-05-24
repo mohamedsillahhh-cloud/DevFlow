@@ -60,14 +60,14 @@ const DEFAULT_EXPENSE_CATEGORIES = [
   'Servicos',
 ]
 const CHART_GRADIENTS = [
-  'linear-gradient(180deg,rgba(108,156,255,0.96),rgba(42,88,194,0.58))',
-  'linear-gradient(180deg,rgba(72,224,174,0.96),rgba(28,138,98,0.58))',
-  'linear-gradient(180deg,rgba(255,184,77,0.96),rgba(168,107,13,0.58))',
-  'linear-gradient(180deg,rgba(201,143,255,0.96),rgba(118,72,194,0.58))',
-  'linear-gradient(180deg,rgba(255,119,146,0.96),rgba(173,57,83,0.58))',
-  'linear-gradient(180deg,rgba(122,240,255,0.96),rgba(29,131,147,0.58))',
+  'linear-gradient(180deg,var(--chart-1),transparent)',
+  'linear-gradient(180deg,var(--chart-2),transparent)',
+  'linear-gradient(180deg,var(--chart-3),transparent)',
+  'linear-gradient(180deg,var(--chart-4),transparent)',
+  'linear-gradient(180deg,var(--chart-5),transparent)',
+  'linear-gradient(180deg,var(--chart-6),transparent)',
 ]
-const SOLID_COLORS = ['#6c9cff', '#48e0ae', '#ffb84d', '#c98fff', '#ff7792', '#7af0ff']
+const SOLID_COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)', 'var(--chart-6)']
 const MONTH_PICKER_FORMATTER = new Intl.DateTimeFormat('pt-PT', { month: 'short' })
 const MONTH_NAME_FORMATTER = new Intl.DateTimeFormat('pt-PT', { month: 'long' })
 const FILTER_STATUS_OPTIONS = [
