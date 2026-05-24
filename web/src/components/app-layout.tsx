@@ -128,20 +128,48 @@ export function AppLayout() {
 
   const closeMobile = () => setMobileMenuOpen(false)
 
+  useEffect(() => {
+    closeMobile()
+  }, [location.pathname])
+
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[var(--bg-canvas)] text-[var(--text-primary)]">
       <div className="relative mx-auto flex min-h-screen max-w-[1680px] flex-col lg:flex-row lg:px-4">
+        {/* Mobile top bar (logo + hamburger) */}
+        <div className="sticky top-0 z-30 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--bg-canvas)] px-4 py-3 lg:hidden">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--brand)] text-sm font-bold text-[var(--inverted-text)]">
+              D
+            </div>
+            <span className="font-['Space_Grotesk',sans-serif] text-lg font-semibold tracking-tight text-[var(--text-primary)]">
+              DevFlow
+            </span>
+          </div>
+          <button
+            className="flex h-10 w-10 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            type="button"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+
         {/* Mobile overlay backdrop */}
         {mobileMenuOpen && (
           <div
-            className="fixed inset-0 z-30 bg-black/60 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/70 lg:hidden"
             onClick={closeMobile}
           />
         )}
 
-        {/* Sidebar */}
-        <aside className="flex w-full flex-col border-b border-[var(--border-subtle)] bg-[var(--bg-canvas)] px-4 py-5 lg:sticky lg:top-0 lg:h-screen lg:w-[220px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:border-[var(--border-subtle)] lg:px-4 lg:py-6">
-          {/* Logo + mobile hamburger */}
+        {/* Sidebar drawer */}
+        <aside
+          className={[
+            'fixed inset-y-0 left-0 z-50 flex w-[75vw] max-w-[280px] flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-canvas)] px-4 py-6 shadow-2xl transition-transform duration-300 ease-out lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:w-[220px] lg:translate-x-0 lg:overflow-y-auto lg:border-r lg:border-[var(--border-subtle)] lg:px-4 lg:py-6 lg:shadow-none',
+            mobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
+          ].join(' ')}
+        >
+          {/* Logo + close on mobile */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--brand)] text-sm font-bold text-[var(--inverted-text)]">
@@ -152,86 +180,83 @@ export function AppLayout() {
               </span>
             </div>
             <button
-              className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] lg:hidden"
-              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className="flex h-10 w-10 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] lg:hidden"
+              onClick={closeMobile}
               type="button"
             >
-              {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+              <X className="h-5 w-5" />
             </button>
           </div>
 
-          {/* Collapsible content */}
-          <div className={`${mobileMenuOpen ? 'flex' : 'hidden'} flex-col lg:flex`}>
-            <div className="mt-6 flex items-center gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] px-3 py-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--brand-soft)] text-xs font-semibold text-[var(--brand)]">
-                {initials}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-[var(--text-primary)]">{displayName}</p>
-                <p className="truncate text-[11px] text-[var(--text-muted)]">{user?.email}</p>
-              </div>
+          <div className="mt-6 flex items-center gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] px-3 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--brand-soft)] text-xs font-semibold text-[var(--brand)]">
+              {initials}
             </div>
-
-            <nav className="mt-6 flex-1 space-y-1">
-              {NAV_ITEMS.map(({ icon: Icon, label, path }) => (
-                <NavLink
-                  key={path}
-                  to={path}
-                  onClick={closeMobile}
-                  className={({ isActive }) =>
-                    [
-                      'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition',
-                      isActive
-                        ? 'border-l-[3px] border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--brand)]'
-                        : 'border-l-[3px] border-transparent text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]',
-                    ].join(' ')
-                  }
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </NavLink>
-              ))}
-            </nav>
-
-            <button
-              className="mt-4 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--text-muted)] transition hover:text-[var(--text-primary)]"
-              onClick={() => void signOut()}
-              type="button"
-            >
-              <LogOut className="h-4 w-4" />
-              Terminar sessao
-            </button>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-[var(--text-primary)]">{displayName}</p>
+              <p className="truncate text-[11px] text-[var(--text-muted)]">{user?.email}</p>
+            </div>
           </div>
+
+          <nav className="mt-6 flex-1 space-y-1">
+            {NAV_ITEMS.map(({ icon: Icon, label, path }) => (
+              <NavLink
+                key={path}
+                to={path}
+                onClick={closeMobile}
+                className={({ isActive }) =>
+                  [
+                    'group flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition',
+                    isActive
+                      ? 'border-l-[3px] border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--brand)]'
+                      : 'border-l-[3px] border-transparent text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]',
+                  ].join(' ')
+                }
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <button
+            className="mt-4 flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-[var(--text-muted)] transition hover:text-[var(--text-primary)]"
+            onClick={() => void signOut()}
+            type="button"
+          >
+            <LogOut className="h-4 w-4" />
+            Terminar sessao
+          </button>
         </aside>
 
         <div className="flex min-h-screen flex-1 flex-col">
-          <header className="sticky top-0 z-20 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/90 px-4 py-3 backdrop-blur-md md:px-6 md:py-4 lg:px-8">
+          <header className="sticky top-0 z-20 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/90 px-4 py-2 backdrop-blur-md md:px-6 md:py-3 lg:top-0 lg:px-8">
             <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between">
               <div className="min-w-0">
-                <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">{heading.eyebrow}</p>
-                <h2 className="mt-1 text-xl font-bold leading-tight tracking-tight text-[var(--text-primary)] sm:text-2xl md:text-[28px] lg:text-[32px]" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
+                <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)] md:text-[11px]">{heading.eyebrow}</p>
+                <h2 className="mt-0.5 text-lg font-bold leading-tight tracking-tight text-[var(--text-primary)] sm:text-xl md:text-2xl lg:text-[32px]" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
                   {heading.title}
                 </h2>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 md:gap-2">
                 <button
                   aria-label={isDark ? 'Ativar tema claro' : 'Ativar tema escuro'}
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]"
+                  className="flex h-9 w-9 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]"
                   onClick={() => void handleThemeChange(theme === 'dark' ? 'light' : 'dark')}
                   type="button"
                 >
                   {isDark ? <SunMedium className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </button>
-                <span className="hidden rounded-md bg-[var(--brand-soft)] px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-[var(--brand)] sm:inline">
+                <span className="hidden rounded-md bg-[var(--brand-soft)] px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-[var(--brand)] md:inline">
                   Protected
                 </span>
-                <span className="max-w-[120px] truncate text-xs text-[var(--text-muted)] md:max-w-[160px]">{displayName}</span>
+                <span className="hidden truncate text-xs text-[var(--text-muted)] sm:inline max-w-[100px] md:max-w-[160px]">{displayName}</span>
               </div>
             </div>
           </header>
 
-          <main className="flex-1 px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-7">
+          <main className="flex-1 px-3 py-3 md:px-6 md:py-6 lg:px-8 lg:py-7">
             <div className="mx-auto w-full max-w-[1280px]">
               <Outlet />
             </div>
