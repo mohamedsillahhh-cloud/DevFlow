@@ -84,9 +84,8 @@ export function AppLayout() {
 
   // Sincronizar tema com configuracoes quando carrega
   useEffect(() => {
-    if (configuracoes?.tema) {
-      const newTheme = configuracoes.tema === 'dark' ? 'dark' : 'light'
-      setThemeState(newTheme)
+    if (configuracoes?.tema === 'dark' || configuracoes?.tema === 'light') {
+      setThemeState(configuracoes.tema)
     }
   }, [configuracoes?.tema])
 

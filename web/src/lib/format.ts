@@ -9,7 +9,7 @@ export const DEFAULT_CONFIG: ConfigMap = {
   caminho_backup: '',
   moeda: 'CVE',
   nome_usuario: '',
-  tema: 'preto',
+  tema: 'light',
   ultimo_backup: 'nunca',
   valor_hora_padrao: '0',
   valor_hora_projetos: '{}',
