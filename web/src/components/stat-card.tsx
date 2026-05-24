@@ -23,7 +23,7 @@ export function StatCard({
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
       <div>
         <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-secondary)]">{label}</p>
-        <p className="mt-3 font-mono text-[28px] font-semibold leading-none tracking-tight" style={{ color: accent }}>
+        <p className="mt-3 font-mono text-2xl font-semibold leading-none tracking-tight sm:text-[28px]" style={{ color: accent }}>
           {value}
         </p>
         {subtitle ? <p className="mt-2 text-xs text-[var(--text-muted)]">{subtitle}</p> : null}

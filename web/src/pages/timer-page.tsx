@@ -348,7 +348,7 @@ export function TimerPage() {
       </div>
 
       {section !== 'historico' ? (
-        <div className="grid gap-4 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <StatCard
           accent={activeSession ? '#1d9e75' : '#666666'}
           label={activeSession ? 'Sessao ativa' : 'Sem sessao ativa'}

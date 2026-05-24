@@ -230,7 +230,7 @@ export function ProjectsPage() {
         items={sectionNavItems}
       />
 
-      <div className="grid gap-6 2xl:grid-cols-[1.05fr,0.95fr]">
+      <div className="grid gap-6 xl:grid-cols-2 2xl:grid-cols-[1.05fr,0.95fr]">
         {section === 'novo' ? (
           <Panel
           actions={
@@ -427,7 +427,7 @@ export function ProjectsPage() {
       </div>
 
       {['overview', 'pipeline'].includes(section) ? (
-        <div className="grid gap-4 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <StatCard
           accent="#ef9f27"
           label="A receber"

@@ -886,7 +886,7 @@ export function FinancePage() {
       </div>
 
       {section === 'overview' ? (
-        <div className="grid gap-4 xl:grid-cols-5">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <StatCard
           accent="#1d9e75"
           label="Receitas do periodo"
@@ -1113,8 +1113,8 @@ export function FinancePage() {
         </div>
       ) : null}
       {section === 'lancamentos' ? (
-        <div className="grid gap-6 2xl:grid-cols-2">
-        <Panel
+<div className="grid gap-6 xl:grid-cols-2 2xl:grid-cols-2">
+          <Panel
           actions={
             <button
               className={BUTTON_PRIMARY}
@@ -1520,7 +1520,7 @@ export function FinancePage() {
         description="Mapa anual em ordem cronologica, com 12 meses clicaveis, leitura acumulada e foco imediato no mes ativo."
         title="Resumo anual"
       >
-        <div className="grid gap-4 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
             <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">YTD ate {monthLabel}</p>
             <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">

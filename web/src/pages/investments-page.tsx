@@ -247,7 +247,7 @@ export function InvestmentsPage() {
       />
 
       {section === 'novo' ? (
-        <div className="grid gap-6 2xl:grid-cols-2">
+<div className="grid gap-6 xl:grid-cols-2 2xl:grid-cols-2">
         <Panel
           actions={
             <button
@@ -439,7 +439,7 @@ export function InvestmentsPage() {
       </div>
 
       {['overview', 'carteira'].includes(section) ? (
-        <div className="grid gap-4 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <StatCard accent="#378add" label="Total investido" value={formatCurrency(totalInvestido, currency)} />
         <StatCard accent="#1d9e75" label="Aportado este mes" value={formatCurrency(aportadoMes, currency)} />
         <StatCard accent="#ef9f27" label="Rendimento acumulado" value={formatCurrency(rendimentoTotal, currency)} />

@@ -397,7 +397,7 @@ export function DashboardPage() {
       ) : null}
 
       {['overview', 'fluxo'].includes(section) ? (
-        <div className="grid gap-4 xl:grid-cols-5">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <StatCard
             accent="var(--color-success)"
             label="Receitas"
