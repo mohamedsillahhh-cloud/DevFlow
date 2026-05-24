@@ -208,8 +208,8 @@ interface FinanceFilterToolbarProps {
   searchQuery: string
 }
 
-const labelStyle = 'text-[10px] font-medium uppercase tracking-[0.1em] text-[#444]'
-const inputBase = 'w-full rounded border border-[#222] bg-[#111] px-3 text-sm text-[#F0F0F0] placeholder:text-[#555] transition focus:border-[#444] focus:ring-1 focus:ring-[#444] outline-none'
+const labelStyle = 'text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]'
+const inputBase = 'w-full rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition focus:border-[var(--text-secondary)] focus:ring-1 focus:ring-[var(--text-muted)] outline-none'
 
 function FinanceFilterToolbar({
   categoryFilter,
@@ -226,17 +226,17 @@ function FinanceFilterToolbar({
   searchQuery,
 }: FinanceFilterToolbarProps) {
   return (
-    <div className="rounded border border-[#222] bg-[#0A0A0A] p-4">
+    <div className="rounded border border-[var(--border-subtle)] bg-[var(--bg-canvas)] p-4">
       <div className="flex items-center justify-between gap-4">
-        <p className="text-sm font-medium text-[#F0F0F0]">Filtros operacionais</p>
-        <p className="text-[11px] text-[#555]">Pesquisa, refina e exporta</p>
+        <p className="text-sm font-medium text-[var(--text-primary)]">Filtros operacionais</p>
+        <p className="text-[11px] text-[var(--text-muted)]">Pesquisa, refina e exporta</p>
       </div>
 
       <div className="mt-4 space-y-3">
         <label className="block">
           <span className={labelStyle}>Pesquisar</span>
           <div className="relative mt-1.5">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#555]" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-muted)]" />
             <input
               className={`${inputBase} h-[38px] pl-[34px]`}
               onChange={(event) => onSearchQueryChange(event.target.value)}
@@ -263,7 +263,7 @@ function FinanceFilterToolbar({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#555]" />
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-muted)]" />
             </div>
           </label>
 
@@ -284,8 +284,8 @@ function FinanceFilterToolbar({
                       isLast && 'rounded-r border-r',
                       !isFirst && 'border-l-0',
                       isActive
-                        ? 'bg-white text-black border-white'
-                        : 'bg-transparent text-[#555] border-[#333] hover:text-[#F0F0F0] hover:border-[#555]',
+                        ? 'bg-[var(--inverted-surface)] text-[var(--inverted-text)] border-[var(--inverted-surface)]'
+                        : 'bg-transparent text-[var(--text-muted)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)]',
                     )}
                     onClick={() => onExpenseStatusFilterChange(option.value)}
                     type="button"
@@ -300,28 +300,28 @@ function FinanceFilterToolbar({
 
         <div className="grid grid-cols-2 gap-2">
           <button
-            className="inline-flex items-center justify-center gap-2 rounded border border-[#222] bg-[#111] px-3 py-2 text-[13px] font-medium text-[#F0F0F0] transition hover:bg-[#1A1A1A] disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-3 py-2 text-[13px] font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50"
             onClick={onExportSummary} type="button"
           >
             <FileSpreadsheet className="h-3.5 w-3.5" />
             Resumo CSV
           </button>
           <button
-            className="inline-flex items-center justify-center gap-2 rounded border border-[#222] bg-[#111] px-3 py-2 text-[13px] font-medium text-[#F0F0F0] transition hover:bg-[#1A1A1A] disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-3 py-2 text-[13px] font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50"
             onClick={onReload} type="button"
           >
             <RefreshCcw className="h-3.5 w-3.5" />
             Atualizar
           </button>
           <button
-            className="inline-flex items-center justify-center gap-2 rounded border border-[#222] bg-[#111] px-3 py-2 text-[13px] font-medium text-[#F0F0F0] transition hover:bg-[#1A1A1A] disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-3 py-2 text-[13px] font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50"
             onClick={onExportExpenses} type="button"
           >
             <Download className="h-3.5 w-3.5" />
             Gastos CSV
           </button>
           <button
-            className="inline-flex items-center justify-center gap-2 rounded border border-[#222] bg-[#111] px-3 py-2 text-[13px] font-medium text-[#F0F0F0] transition hover:bg-[#1A1A1A] disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-3 py-2 text-[13px] font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50"
             onClick={onExportIncome} type="button"
           >
             <Download className="h-3.5 w-3.5" />
@@ -329,7 +329,7 @@ function FinanceFilterToolbar({
           </button>
         </div>
 
-        <p className="text-[11px] text-[#3A3A3A]">Aplicado a {monthLabel}.</p>
+        <p className="text-[11px] text-[var(--text-muted)]">Aplicado a {monthLabel}.</p>
       </div>
     </div>
   )
@@ -843,12 +843,12 @@ export function FinancePage() {
       {(feedback || actionError) && (
         <div className="grid gap-3 xl:grid-cols-2">
           {feedback ? (
-            <div className="rounded-[24px] border border-[#1f4a39] bg-[rgba(20,86,58,0.16)] px-4 py-3 text-sm text-[var(--text-primary)]">
+            <div className="rounded-md border border-[var(--color-success)]/30 bg-[var(--color-success)]/10 px-4 py-3 text-sm text-[var(--text-primary)]">
               {feedback}
             </div>
           ) : null}
           {actionError ? (
-            <div className="rounded-[24px] border border-[#4a1f2a] bg-[rgba(113,29,43,0.16)] px-4 py-3 text-sm text-[var(--text-primary)]">
+            <div className="rounded-md border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 px-4 py-3 text-sm text-[var(--text-primary)]">
               {actionError}
             </div>
           ) : null}
