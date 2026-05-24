@@ -225,7 +225,7 @@ export function ComparisonAreaChart({
           })}
         </svg>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-6">
+        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
           {data.map((item, index) => {
             const isActive = index === safeActiveIndex
 
@@ -288,7 +288,7 @@ export function DonutChart({ centerLabel, centerValue, segments }: DonutChartPro
 
   return (
     <div className="grid gap-6 lg:grid-cols-[220px,1fr] lg:items-center">
-      <div className="relative mx-auto h-[220px] w-[220px]">
+      <div className="relative mx-auto h-[200px] w-[200px] sm:h-[220px] sm:w-[220px]">
         <svg aria-hidden="true" className="h-full w-full -rotate-90" viewBox="0 0 120 120">
           <circle cx="60" cy="60" fill="none" r={radius} stroke="var(--chart-grid)" strokeWidth="11" />
           {segmentsWithOffsets.map((segment, index) => {
@@ -414,7 +414,7 @@ export function MiniBarChart({ data }: MiniBarChartProps) {
         </div>
       ) : null}
 
-      <div className="flex h-[240px] items-end gap-3">
+      <div className="flex h-[200px] items-end gap-2 overflow-x-auto sm:h-[240px] sm:gap-3">
         {data.map((item, index) => {
           const height = Math.max((item.value / maxValue) * 100, item.value > 0 ? 12 : 0)
           const isActive = index === safeActiveIndex

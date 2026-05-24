@@ -141,26 +141,28 @@ function PeriodSelectorPanel({
         </p>
       </div>
 
-      <div className="mt-4 flex items-center gap-2">
-        {sortedYears.slice(0, 7).map((year) => {
-          const isActive = year === selectedYear
-          return (
-            <button
-              key={year}
-              aria-pressed={isActive}
-              className={cx(
-                'rounded-md px-3 py-1.5 text-sm font-medium transition',
-                isActive
-                  ? 'bg-[var(--brand-soft)] text-[var(--brand)]'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
-              )}
-              onClick={() => onSelectYear(year)}
-              type="button"
-            >
-              {year}
-            </button>
-          )
-        })}
+      <div className="mt-4 overflow-x-auto">
+        <div className="flex items-center gap-2">
+          {sortedYears.slice(0, 7).map((year) => {
+            const isActive = year === selectedYear
+            return (
+              <button
+                key={year}
+                aria-pressed={isActive}
+                className={cx(
+                  'shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition',
+                  isActive
+                    ? 'bg-[var(--brand-soft)] text-[var(--brand)]'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
+                )}
+                onClick={() => onSelectYear(year)}
+                type="button"
+              >
+                {year}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       <div className="mt-4 grid grid-cols-4 gap-1">
@@ -173,7 +175,7 @@ function PeriodSelectorPanel({
               key={option.value}
               aria-pressed={isActive}
               className={cx(
-                'relative rounded-md px-3 py-2 text-center text-sm font-medium transition',
+                'relative rounded-md px-2 py-2 text-center text-sm font-medium transition sm:px-3',
                 isActive
                   ? 'bg-[var(--brand)] text-[var(--inverted-text)]'
                   : 'text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]',
@@ -269,7 +271,7 @@ function FinanceFilterToolbar({
 
           <div>
             <span className={labelStyle}>Estado do gasto</span>
-            <div className="mt-1.5 flex">
+            <div className="flex flex-wrap gap-1 sm:flex-nowrap">
               {FILTER_STATUS_OPTIONS.map((option, i) => {
                 const isActive = option.value === expenseStatusFilter
                 const isFirst = i === 0
@@ -279,7 +281,7 @@ function FinanceFilterToolbar({
                     key={option.value}
                     aria-pressed={isActive}
                     className={cx(
-                      'flex-1 h-[38px] text-sm font-medium transition border-y',
+                      'flex-1 h-[38px] text-xs font-medium transition border-y sm:text-sm',
                       isFirst && 'rounded-l border-l',
                       isLast && 'rounded-r border-r',
                       !isFirst && 'border-l-0',
@@ -298,34 +300,34 @@ function FinanceFilterToolbar({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <button
-            className="inline-flex items-center justify-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-3 py-2 text-[13px] font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-1.5 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-2 py-2 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50 sm:gap-2 sm:px-3 sm:text-[13px]"
             onClick={onExportSummary} type="button"
           >
-            <FileSpreadsheet className="h-3.5 w-3.5" />
-            Resumo CSV
+            <FileSpreadsheet className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Resumo CSV</span>
           </button>
           <button
-            className="inline-flex items-center justify-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-3 py-2 text-[13px] font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-1.5 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-2 py-2 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50 sm:gap-2 sm:px-3 sm:text-[13px]"
             onClick={onReload} type="button"
           >
-            <RefreshCcw className="h-3.5 w-3.5" />
-            Atualizar
+            <RefreshCcw className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Atualizar</span>
           </button>
           <button
-            className="inline-flex items-center justify-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-3 py-2 text-[13px] font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-1.5 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-2 py-2 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50 sm:gap-2 sm:px-3 sm:text-[13px]"
             onClick={onExportExpenses} type="button"
           >
-            <Download className="h-3.5 w-3.5" />
-            Gastos CSV
+            <Download className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Gastos CSV</span>
           </button>
           <button
-            className="inline-flex items-center justify-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-3 py-2 text-[13px] font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-1.5 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-2 py-2 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50 sm:gap-2 sm:px-3 sm:text-[13px]"
             onClick={onExportIncome} type="button"
           >
-            <Download className="h-3.5 w-3.5" />
-            Receitas CSV
+            <Download className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Receitas CSV</span>
           </button>
         </div>
 
@@ -1562,7 +1564,7 @@ export function FinancePage() {
           </article>
         </div>
 
-        <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {annualSummaryRows.map((row) => {
             const activityWidth = Math.max((row.activity / annualActivityMax) * 100, row.activity > 0 ? 8 : 0)
 

@@ -324,7 +324,7 @@ export function TimerPage() {
 
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <select
-          className={`${INPUT_BASE} min-w-[240px] xl:max-w-[280px]`}
+          className={`${INPUT_BASE} min-w-0 w-full xl:max-w-[280px]`}
           onChange={(event) => setMonthOffset(event.target.value)}
           value={monthOffset}
         >

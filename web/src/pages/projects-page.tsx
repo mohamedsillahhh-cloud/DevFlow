@@ -532,7 +532,7 @@ export function ProjectsPage() {
                       <span style={{ color: deadlineColor(project.prazo) }}>{formatDate(project.prazo)}</span>
                     </td>
                     <td className="rounded-r-[22px] border-y border-r border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4">
-                      <div className="flex min-w-[210px] flex-col gap-2">
+                      <div className="flex min-w-[170px] flex-col gap-2 lg:min-w-[210px]">
                         <select
                           className={`${INPUT_BASE} px-3 py-2 text-xs`}
                           disabled={deletingId === project.id || updatingStatusId === project.id}
