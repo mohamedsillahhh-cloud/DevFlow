@@ -16,7 +16,7 @@ const STATUS_STYLES: Record<
     icon: CheckCircle2,
   },
   em_andamento: {
-    className: 'bg-[rgba(108,99,255,0.12)] text-[var(--color-info)]',
+    className: 'bg-[rgba(255,255,255,0.08)] text-[var(--text-primary)]',
     icon: CircleDashed,
   },
   pago: {
@@ -24,7 +24,7 @@ const STATUS_STYLES: Record<
     icon: CheckCircle2,
   },
   pago_parcial: {
-    className: 'bg-[rgba(155,138,255,0.12)] text-[var(--color-violet)]',
+    className: 'bg-[rgba(255,255,255,0.08)] text-[var(--text-primary)]',
     icon: AlertTriangle,
   },
   pendente: {

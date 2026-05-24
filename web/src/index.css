@@ -8,66 +8,61 @@
 html[data-theme='dark'] {
   color-scheme: dark;
   font-family: 'Inter', system-ui, sans-serif;
-  background: #0A0A0F;
-  color: #F0F0F5;
-  --bg-canvas: #0A0A0F;
-  --bg-shell: rgba(10, 10, 15, 0.94);
-  --surface-1: #111118;
-  --surface-2: #1A1A24;
-  --surface-3: #22222E;
+  background: #000;
+  color: #F0F0F0;
+  --bg-canvas: #000;
+  --bg-shell: rgba(0, 0, 0, 0.94);
+  --surface-1: #0D0D0D;
+  --surface-2: #1A1A1A;
+  --surface-3: #262626;
   --surface-soft: rgba(255, 255, 255, 0.04);
-  --border-subtle: #2A2A3A;
-  --border-strong: #3A3A4E;
-  --text-primary: #F0F0F5;
-  --text-secondary: #8888A0;
-  --text-muted: #6B6B80;
-  --brand: #6C63FF;
-  --brand-strong: #7B73FF;
-  --brand-soft: rgba(108, 99, 255, 0.12);
-  --inverted-surface: #6C63FF;
-  --inverted-text: #FFFFFF;
-  --chart-grid: #2A2A3A;
-  --chart-guideline: #3A3A4E;
+  --border-subtle: #222;
+  --border-strong: #333;
+  --text-primary: #F0F0F0;
+  --text-secondary: #999;
+  --text-muted: #666;
+  --brand: #FFF;
+  --brand-strong: #F0F0F0;
+  --brand-soft: rgba(255, 255, 255, 0.08);
+  --inverted-surface: #FFF;
+  --inverted-text: #000;
+  --chart-grid: #222;
+  --chart-guideline: #333;
   --color-success: #00D4AA;
   --color-danger: #FF4757;
   --color-warning: #FFA500;
-  --color-info: #6C63FF;
-  --color-violet: #9B8AFF;
-  --color-pink: #FF6B9D;
-  --color-lime: #5EEAD4;
-  --shadow-panel: 0 0 0 1px #2A2A3A;
-  --shadow-soft: 0 0 0 1px #2A2A3A;
+  --color-info: #999;
+  --shadow-panel: 0 0 0 1px #222;
+  --shadow-soft: 0 0 0 1px #222;
 }
 
 html[data-theme='light'] {
   color-scheme: light;
-  background: #F5F5F8;
-  color: #1A1A24;
-  --bg-canvas: #F5F5F8;
-  --bg-shell: rgba(245, 245, 248, 0.94);
-  --surface-1: #FFFFFF;
-  --surface-2: #F0F0F4;
-  --surface-3: #E8E8EE;
-  --surface-soft: rgba(0, 0, 0, 0.035);
-  --border-subtle: #D4D4E0;
-  --border-strong: #B8B8CC;
-  --text-primary: #1A1A24;
-  --text-secondary: #5A5A70;
-  --text-muted: #8A8AA0;
-  --brand: #6C63FF;
-  --brand-strong: #5A52E0;
-  --brand-soft: rgba(108, 99, 255, 0.08);
-  --inverted-surface: #6C63FF;
-  --inverted-text: #FFFFFF;
-  --chart-grid: #D4D4E0;
-  --chart-guideline: #B8B8CC;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #FFF;
+  color: #111;
+  --bg-canvas: #FFF;
+  --bg-shell: rgba(255, 255, 255, 0.94);
+  --surface-1: #FFF;
+  --surface-2: #F5F5F5;
+  --surface-3: #EBEBEB;
+  --surface-soft: rgba(0, 0, 0, 0.03);
+  --border-subtle: #DDD;
+  --border-strong: #CCC;
+  --text-primary: #111;
+  --text-secondary: #555;
+  --text-muted: #888;
+  --brand: #000;
+  --brand-strong: #111;
+  --brand-soft: rgba(0, 0, 0, 0.06);
+  --inverted-surface: #000;
+  --inverted-text: #FFF;
+  --chart-grid: #DDD;
+  --chart-guideline: #CCC;
   --color-success: #00A37A;
   --color-danger: #E04050;
   --color-warning: #CC8400;
-  --color-info: #6C63FF;
-  --color-violet: #7B6AE0;
-  --color-pink: #D45A8A;
-  --color-lime: #3BC4B0;
+  --color-info: #555;
   --shadow-panel: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
   --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
@@ -117,7 +112,7 @@ a {
 }
 
 ::selection {
-  background: rgba(108, 99, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 ::-webkit-scrollbar {

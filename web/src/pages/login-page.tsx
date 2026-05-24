@@ -33,7 +33,7 @@ export function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-[var(--bg-canvas)] px-4">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(108,99,255,0.08),transparent_60%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.03),transparent_60%)]" />
 
       <div className="relative w-[420px] max-w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-8">
         <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--brand-soft)]">
