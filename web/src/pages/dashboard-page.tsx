@@ -445,9 +445,9 @@ export function DashboardPage() {
               secondary: groupedExpenses[index]?.total ?? 0,
             }))}
             formatValue={(value) => formatCurrency(value, currency)}
-            primaryColor="var(--color-info)"
+            primaryColor="var(--chart-2)"
             primaryLabel="Receitas"
-            secondaryColor="var(--color-warning)"
+            secondaryColor="var(--chart-4)"
             secondaryLabel="Gastos"
           />
 
