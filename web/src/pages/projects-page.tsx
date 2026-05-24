@@ -429,21 +429,25 @@ export function ProjectsPage() {
       {['overview', 'pipeline'].includes(section) ? (
         <div className="grid gap-4 xl:grid-cols-4">
         <StatCard
+          accent="#ef9f27"
           label="A receber"
           subtitle={`${filteredProjects.length} projetos filtrados`}
           value={formatCurrency(amountDue, currency)}
         />
         <StatCard
+          accent="#378add"
           label="Em andamento"
           subtitle="pipeline ativo"
           value={String(inProgress)}
         />
         <StatCard
+          accent="#e24b4a"
           label="Atrasados"
           subtitle="prazo vencido"
           value={String(overdue)}
         />
         <StatCard
+          accent="#1d9e75"
           label="Concluidos"
           subtitle={`${projetos.length} projetos na base`}
           value={String(paidProjects)}

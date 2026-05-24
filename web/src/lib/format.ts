@@ -116,7 +116,7 @@ export function formatInputDateValue(reference = new Date()) {
 
 export function deadlineColor(value: string | null | undefined) {
   if (!value) {
-    return 'var(--text-muted)'
+    return '#378add'
   }
 
   const today = new Date()
@@ -126,15 +126,15 @@ export function deadlineColor(value: string | null | undefined) {
   const diff = Math.floor((target.getTime() - today.getTime()) / 86400000)
 
   if (diff < 0) {
-    return 'var(--text-primary)'
+    return '#e24b4a'
   }
   if (diff <= 3) {
-    return 'var(--text-primary)'
+    return '#e94560'
   }
   if (diff <= 7) {
-    return 'var(--text-secondary)'
+    return '#ef9f27'
   }
-  return 'var(--text-muted)'
+  return '#1d9e75'
 }
 
 export function formatPercent(partial: number, total: number) {

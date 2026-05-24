@@ -60,14 +60,14 @@ const DEFAULT_EXPENSE_CATEGORIES = [
   'Servicos',
 ]
 const CHART_GRADIENTS = [
-  'linear-gradient(180deg,var(--chart-1),transparent)',
-  'linear-gradient(180deg,var(--chart-2),transparent)',
-  'linear-gradient(180deg,var(--chart-3),transparent)',
-  'linear-gradient(180deg,var(--chart-4),transparent)',
-  'linear-gradient(180deg,var(--chart-5),transparent)',
-  'linear-gradient(180deg,var(--chart-6),transparent)',
+  'linear-gradient(180deg,rgba(108,156,255,0.95),rgba(42,88,194,0.58))',
+  'linear-gradient(180deg,rgba(72,224,174,0.95),rgba(28,138,98,0.58))',
+  'linear-gradient(180deg,rgba(255,184,77,0.95),rgba(168,107,13,0.58))',
+  'linear-gradient(180deg,rgba(255,119,146,0.95),rgba(173,57,83,0.58))',
+  'linear-gradient(180deg,rgba(0,212,170,0.95),rgba(0,150,120,0.58))',
+  'linear-gradient(180deg,rgba(55,138,221,0.95),rgba(30,80,150,0.58))',
 ]
-const SOLID_COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)', 'var(--chart-6)']
+const SOLID_COLORS = ['#6c9cff', '#48e0ae', '#ffb84d', '#ff7792', '#00D4AA', '#378add']
 const MONTH_PICKER_FORMATTER = new Intl.DateTimeFormat('pt-PT', { month: 'short' })
 const MONTH_NAME_FORMATTER = new Intl.DateTimeFormat('pt-PT', { month: 'long' })
 const FILTER_STATUS_OPTIONS = [
@@ -888,26 +888,31 @@ export function FinancePage() {
       {section === 'overview' ? (
         <div className="grid gap-4 xl:grid-cols-5">
         <StatCard
+          accent="#1d9e75"
           label="Receitas do periodo"
           subtitle={`${receitasMes.length} entrada(s) em ${monthLabel}`}
           value={formatCurrency(receitasTotal, currency)}
         />
         <StatCard
+          accent="#e24b4a"
           label="Gastos do periodo"
           subtitle={`${gastosMes.length} saida(s) registadas`}
           value={formatCurrency(gastosTotal, currency)}
         />
         <StatCard
+          accent={saldo >= 0 ? '#1d9e75' : '#e24b4a'}
           label="Saldo operacional"
           subtitle={`${formatRatio(cashMargin)} de margem no periodo`}
           value={formatCurrency(saldo, currency)}
         />
         <StatCard
+          accent="#ef9f27"
           label="Pendencias"
           subtitle={`${pendentes.length} conta(s) em aberto`}
           value={formatCurrency(pendenteValor, currency)}
         />
         <StatCard
+          accent="#6c9cff"
           label="A receber"
           subtitle={`${formatCoverage(expenseCoverage)} de cobertura media`}
           value={formatCurrency(pendingReceivables, currency)}

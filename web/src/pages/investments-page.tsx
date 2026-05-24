@@ -440,10 +440,11 @@ export function InvestmentsPage() {
 
       {['overview', 'carteira'].includes(section) ? (
         <div className="grid gap-4 xl:grid-cols-4">
-<StatCard label="Total investido" value={formatCurrency(totalInvestido, currency)} />
-        <StatCard label="Aportado este mes" value={formatCurrency(aportadoMes, currency)} />
-        <StatCard label="Rendimento acumulado" value={formatCurrency(rendimentoTotal, currency)} />
+        <StatCard accent="#378add" label="Total investido" value={formatCurrency(totalInvestido, currency)} />
+        <StatCard accent="#1d9e75" label="Aportado este mes" value={formatCurrency(aportadoMes, currency)} />
+        <StatCard accent="#ef9f27" label="Rendimento acumulado" value={formatCurrency(rendimentoTotal, currency)} />
         <StatCard
+          accent="var(--brand)"
           label="Metas atingidas"
           value={`${metasAtingidas} / ${progressRows.length}`}
         />

@@ -40,46 +40,46 @@ import { fetchDashboardSnapshot } from '../lib/supabase-data'
 
 const STATUS_DEFINITIONS = [
   {
-    border: 'var(--border-strong)',
-    color: 'var(--chart-1)',
+    border: '#5a4722',
+    color: 'var(--color-warning)',
     key: 'pendente',
     label: 'Pending',
-    surface: 'var(--surface-1)',
+    surface: 'rgba(140,96,15,0.18)',
   },
   {
-    border: 'var(--border-subtle)',
-    color: 'var(--chart-2)',
+    border: '#234a73',
+    color: 'var(--color-info)',
     key: 'em_andamento',
     label: 'In progress',
-    surface: 'var(--surface-2)',
+    surface: 'rgba(26,72,133,0.2)',
   },
   {
-    border: 'var(--border-subtle)',
-    color: 'var(--chart-3)',
+    border: '#6a4a2a',
+    color: '#ff8c42',
     key: 'pago_parcial',
     label: 'Partial paid',
-    surface: 'var(--surface-2)',
+    surface: 'rgba(140,80,20,0.18)',
   },
   {
-    border: 'var(--border-subtle)',
-    color: 'var(--chart-4)',
+    border: '#1f4a39',
+    color: 'var(--color-success)',
     key: 'pago',
     label: 'Success',
-    surface: 'var(--surface-2)',
+    surface: 'rgba(20,86,58,0.18)',
   },
   {
-    border: 'var(--border-subtle)',
-    color: 'var(--chart-5)',
+    border: '#41506a',
+    color: '#8ea0bc',
     key: 'concluido',
     label: 'Closed',
-    surface: 'var(--surface-2)',
+    surface: 'rgba(92,109,140,0.18)',
   },
   {
-    border: 'var(--border-subtle)',
-    color: 'var(--chart-6)',
+    border: '#4a1f2a',
+    color: 'var(--color-danger)',
     key: 'cancelado',
     label: 'Failed',
-    surface: 'var(--surface-2)',
+    surface: 'rgba(113,29,43,0.18)',
   },
 ]
 
@@ -333,7 +333,7 @@ export function DashboardPage() {
 
       <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
         <div className="flex items-center gap-3 rounded-[28px] border border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-sm text-[var(--text-secondary)] shadow-[var(--shadow-soft)]">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-muted)]">
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#53371a] bg-[rgba(140,96,15,0.18)] text-[var(--color-warning)]">
             <AlertTriangle className="h-4 w-4" />
           </span>
           {alerts.length > 0 ? `${alerts.length} alerta(s) ativo(s)` : 'Nenhum alerta ativo no momento'}
@@ -399,26 +399,31 @@ export function DashboardPage() {
       {['overview', 'fluxo'].includes(section) ? (
         <div className="grid gap-4 xl:grid-cols-5">
           <StatCard
+            accent="var(--color-success)"
             label="Receitas"
             subtitle={`${receitasDoMes.length} entradas no mes`}
             value={formatCurrency(receitasMes, currency)}
           />
           <StatCard
+            accent="var(--color-danger)"
             label="Gastos"
             subtitle={`${categoriasMes} categorias monitoradas`}
             value={formatCurrency(gastosMes, currency)}
           />
           <StatCard
+            accent="var(--color-info)"
             label="Saldo"
             subtitle="resultado operacional apos aportes"
             value={formatCurrency(saldoMes, currency)}
           />
           <StatCard
+            accent="var(--color-warning)"
             label="A receber"
             subtitle={`${activeProjects} projeto(s) em aberto`}
             value={formatCurrency(pendingReceivables, currency)}
           />
           <StatCard
+            accent="#6c9cff"
             label="Ticket medio"
             subtitle="media por receita no mes"
             value={formatCurrency(averageTicket, currency)}
@@ -445,9 +450,9 @@ export function DashboardPage() {
               secondary: groupedExpenses[index]?.total ?? 0,
             }))}
             formatValue={(value) => formatCurrency(value, currency)}
-            primaryColor="var(--chart-2)"
+            primaryColor="var(--color-info)"
             primaryLabel="Receitas"
-            secondaryColor="var(--chart-4)"
+            secondaryColor="var(--color-warning)"
             secondaryLabel="Gastos"
           />
 

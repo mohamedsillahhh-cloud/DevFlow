@@ -34,8 +34,8 @@ interface MiniBarChartProps {
   }>
 }
 
-const DEFAULT_PRIMARY = 'var(--chart-2)'
-const DEFAULT_SECONDARY = 'var(--chart-4)'
+const DEFAULT_PRIMARY = 'var(--color-info)'
+const DEFAULT_SECONDARY = 'var(--color-warning)'
 
 function formatDefaultValue(value: number) {
   return value.toLocaleString('pt-PT')

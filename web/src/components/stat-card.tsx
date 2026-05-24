@@ -1,9 +1,11 @@
 export function StatCard({
+  accent,
   className,
   label,
   subtitle,
   value,
 }: {
+  accent: string
   className?: string
   label: string
   subtitle?: string
@@ -18,10 +20,10 @@ export function StatCard({
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[3px] bg-[var(--brand)] opacity-40" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
       <div>
         <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-secondary)]">{label}</p>
-        <p className="mt-3 font-mono text-[28px] font-semibold leading-none tracking-tight text-[var(--text-primary)]">
+        <p className="mt-3 font-mono text-[28px] font-semibold leading-none tracking-tight" style={{ color: accent }}>
           {value}
         </p>
         {subtitle ? <p className="mt-2 text-xs text-[var(--text-muted)]">{subtitle}</p> : null}
