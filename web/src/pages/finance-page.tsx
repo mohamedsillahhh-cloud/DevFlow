@@ -208,9 +208,8 @@ interface FinanceFilterToolbarProps {
   searchQuery: string
 }
 
-const filterLabel = 'text-[11px] font-medium uppercase tracking-[0.08em] text-[#555]'
-const filterInput = 'w-full rounded-md border border-[#2A2A2A] bg-[#111] px-4 py-2.5 text-sm text-[#F0F0F0] placeholder:text-[#555] transition focus:border-[#555] focus:ring-1 focus:ring-[#555] outline-none'
-const btnBase = 'inline-flex items-center justify-center gap-2 rounded-md border border-[#2A2A2A] bg-[#111] px-4 py-2.5 text-sm font-medium text-[#F0F0F0] transition hover:bg-[#1A1A1A] disabled:opacity-50'
+const labelStyle = 'text-[10px] font-medium uppercase tracking-[0.1em] text-[#444]'
+const inputBase = 'w-full rounded border border-[#222] bg-[#111] px-3 text-sm text-[#F0F0F0] placeholder:text-[#555] transition focus:border-[#444] focus:ring-1 focus:ring-[#444] outline-none'
 
 function FinanceFilterToolbar({
   categoryFilter,
@@ -227,19 +226,19 @@ function FinanceFilterToolbar({
   searchQuery,
 }: FinanceFilterToolbarProps) {
   return (
-    <div className="rounded-md border border-[#2A2A2A] bg-[#0A0A0A] p-5">
+    <div className="rounded border border-[#222] bg-[#0A0A0A] p-4">
       <div className="flex items-center justify-between gap-4">
-        <p className="text-[13px] font-medium text-[#F0F0F0]">Filtros operacionais</p>
-        <p className="text-xs text-[#555]">Pesquisa, refina e exporta o periodo</p>
+        <p className="text-sm font-medium text-[#F0F0F0]">Filtros operacionais</p>
+        <p className="text-[11px] text-[#555]">Pesquisa, refina e exporta</p>
       </div>
 
-      <div className="mt-5 space-y-4">
+      <div className="mt-4 space-y-3">
         <label className="block">
-          <span className={filterLabel}>Pesquisar</span>
-          <div className="relative mt-2">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#555]" />
+          <span className={labelStyle}>Pesquisar</span>
+          <div className="relative mt-1.5">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#555]" />
             <input
-              className={`${filterInput} pl-10`}
+              className={`${inputBase} h-[38px] pl-[34px]`}
               onChange={(event) => onSearchQueryChange(event.target.value)}
               placeholder="Descricao, origem, categoria ou metodo"
               type="text"
@@ -248,12 +247,12 @@ function FinanceFilterToolbar({
           </div>
         </label>
 
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="grid gap-3 xl:grid-cols-2">
           <label className="block">
-            <span className={filterLabel}>Categoria</span>
-            <div className="relative mt-2">
+            <span className={labelStyle}>Categoria</span>
+            <div className="relative mt-1.5">
               <select
-                className={`${filterInput} appearance-none pr-10`}
+                className={`${inputBase} h-[38px] appearance-none pr-9`}
                 onChange={(event) => onCategoryFilterChange(event.target.value)}
                 value={categoryFilter}
               >
@@ -264,24 +263,29 @@ function FinanceFilterToolbar({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#555]" />
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#555]" />
             </div>
           </label>
 
           <div>
-            <span className={filterLabel}>Estado do gasto</span>
-            <div className="mt-2 flex gap-2">
-              {FILTER_STATUS_OPTIONS.map((option) => {
+            <span className={labelStyle}>Estado do gasto</span>
+            <div className="mt-1.5 flex">
+              {FILTER_STATUS_OPTIONS.map((option, i) => {
                 const isActive = option.value === expenseStatusFilter
+                const isFirst = i === 0
+                const isLast = i === FILTER_STATUS_OPTIONS.length - 1
                 return (
                   <button
                     key={option.value}
                     aria-pressed={isActive}
                     className={cx(
-                      'rounded-md px-4 py-2 text-sm font-medium transition',
+                      'flex-1 h-[38px] text-sm font-medium transition border-y',
+                      isFirst && 'rounded-l border-l',
+                      isLast && 'rounded-r border-r',
+                      !isFirst && 'border-l-0',
                       isActive
-                        ? 'bg-white text-black'
-                        : 'border border-[#333] bg-transparent text-[#555] hover:border-[#555] hover:text-[#F0F0F0]',
+                        ? 'bg-white text-black border-white'
+                        : 'bg-transparent text-[#555] border-[#333] hover:text-[#F0F0F0] hover:border-[#555]',
                     )}
                     onClick={() => onExpenseStatusFilterChange(option.value)}
                     type="button"
@@ -295,25 +299,37 @@ function FinanceFilterToolbar({
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <button className={btnBase} onClick={onExportSummary} type="button">
+          <button
+            className="inline-flex items-center justify-center gap-2 rounded border border-[#222] bg-[#111] px-3 py-2 text-[13px] font-medium text-[#F0F0F0] transition hover:bg-[#1A1A1A] disabled:opacity-50"
+            onClick={onExportSummary} type="button"
+          >
             <FileSpreadsheet className="h-3.5 w-3.5" />
             Resumo CSV
           </button>
-          <button className={btnBase} onClick={onReload} type="button">
+          <button
+            className="inline-flex items-center justify-center gap-2 rounded border border-[#222] bg-[#111] px-3 py-2 text-[13px] font-medium text-[#F0F0F0] transition hover:bg-[#1A1A1A] disabled:opacity-50"
+            onClick={onReload} type="button"
+          >
             <RefreshCcw className="h-3.5 w-3.5" />
             Atualizar
           </button>
-          <button className={btnBase} onClick={onExportExpenses} type="button">
+          <button
+            className="inline-flex items-center justify-center gap-2 rounded border border-[#222] bg-[#111] px-3 py-2 text-[13px] font-medium text-[#F0F0F0] transition hover:bg-[#1A1A1A] disabled:opacity-50"
+            onClick={onExportExpenses} type="button"
+          >
             <Download className="h-3.5 w-3.5" />
             Gastos CSV
           </button>
-          <button className={btnBase} onClick={onExportIncome} type="button">
+          <button
+            className="inline-flex items-center justify-center gap-2 rounded border border-[#222] bg-[#111] px-3 py-2 text-[13px] font-medium text-[#F0F0F0] transition hover:bg-[#1A1A1A] disabled:opacity-50"
+            onClick={onExportIncome} type="button"
+          >
             <Download className="h-3.5 w-3.5" />
             Receitas CSV
           </button>
         </div>
 
-        <p className="text-xs text-[#555]">Aplicado a {monthLabel}.</p>
+        <p className="text-[11px] text-[#3A3A3A]">Aplicado a {monthLabel}.</p>
       </div>
     </div>
   )
