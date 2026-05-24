@@ -14,21 +14,19 @@ export function StatCard({
   return (
     <article
       className={[
-        'relative overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[linear-gradient(180deg,var(--surface-2),var(--surface-1))] p-5 shadow-[var(--shadow-soft)]',
+        'group relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-5 transition hover:border-[var(--brand)]/40',
         className,
       ]
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px]" style={{ backgroundColor: accent, opacity: 0.45 }} />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(126,165,255,0.08),transparent_28%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
       <div>
-        <div className="inline-flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-soft)] px-3 py-1.5">
-          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: accent }} />
-          <p className="text-xs font-medium text-[var(--text-muted)]">{label}</p>
-        </div>
-        <p className="mt-4 text-[1.9rem] font-semibold text-[var(--text-primary)]">{value}</p>
-        {subtitle ? <p className="mt-2 text-sm text-[var(--text-secondary)]">{subtitle}</p> : null}
+        <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-secondary)]">{label}</p>
+        <p className="mt-3 font-mono text-[28px] font-semibold leading-none tracking-tight" style={{ color: accent }}>
+          {value}
+        </p>
+        {subtitle ? <p className="mt-2 text-xs text-[var(--text-muted)]">{subtitle}</p> : null}
       </div>
     </article>
   )

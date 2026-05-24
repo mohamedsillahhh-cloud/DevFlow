@@ -32,15 +32,15 @@ export function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--bg-canvas)] px-4">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--brand-soft),transparent_60%)]" />
+    <div className="relative flex min-h-screen items-center justify-center bg-[var(--bg-canvas)] px-4">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(108,99,255,0.08),transparent_60%)]" />
 
-      <div className="relative w-[420px] max-w-full rounded-3xl border border-[var(--border-subtle)] bg-[var(--surface-1)]/80 p-8 shadow-2xl shadow-black/5 backdrop-blur-xl">
-        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--brand-soft)]">
-          <LockKeyhole className="h-7 w-7 text-[var(--brand)]" />
+      <div className="relative w-[420px] max-w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-8">
+        <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--brand-soft)]">
+          <LockKeyhole className="h-6 w-6 text-[var(--brand)]" />
         </div>
 
-        <h1 className="text-center text-2xl font-semibold text-[var(--text-primary)]">DevFlow</h1>
+        <h1 className="text-center text-2xl font-bold tracking-tight text-[var(--text-primary)]" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>DevFlow</h1>
         <p className="mt-1.5 text-center text-sm text-[var(--text-secondary)]">
           Acesso ao painel de gestao
         </p>
@@ -57,7 +57,7 @@ export function LoginPage() {
               <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
               <input
                 autoComplete="email"
-                className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-2)] py-3 pl-10 pr-4 text-sm text-[var(--text-primary)] transition placeholder:text-[var(--text-muted)] focus:border-[var(--brand)] focus:ring-4 focus:ring-[var(--brand-soft)]"
+                className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-canvas)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-primary)] transition placeholder:text-[var(--text-muted)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-soft)]"
                 id="email"
                 onChange={(event) => {
                   setEmail(event.target.value)
@@ -84,7 +84,7 @@ export function LoginPage() {
             <div className="relative">
               <input
                 autoComplete="current-password"
-                className="w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-2)] py-3 pl-10 pr-11 text-sm text-[var(--text-primary)] transition placeholder:text-[var(--text-muted)] focus:border-[var(--brand)] focus:ring-4 focus:ring-[var(--brand-soft)]"
+                className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-canvas)] py-2.5 pl-10 pr-11 text-sm text-[var(--text-primary)] transition placeholder:text-[var(--text-muted)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-soft)]"
                 id="password"
                 onChange={(event) => {
                   setPassword(event.target.value)
@@ -111,7 +111,7 @@ export function LoginPage() {
           </div>
 
           <button
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[var(--brand)]/25 transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--brand)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isSubmitting || configIssues.length > 0}
             type="submit"
           >
@@ -127,7 +127,7 @@ export function LoginPage() {
           </button>
 
           {visibleError ? (
-            <p className="rounded-xl border border-[var(--color-danger)]/20 bg-[var(--color-danger)]/10 px-4 py-3 text-center text-sm text-[var(--color-danger)]">
+            <p className="rounded-lg border border-[var(--color-danger)]/20 bg-[var(--color-danger)]/10 px-4 py-3 text-center text-sm text-[var(--color-danger)]">
               {visibleError}
             </p>
           ) : null}
