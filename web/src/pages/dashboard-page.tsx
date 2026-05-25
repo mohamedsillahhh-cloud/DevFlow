@@ -1,13 +1,11 @@
 import {
   AlertTriangle,
-  Download,
-  FileSpreadsheet,
   RefreshCcw,
   TrendingUp,
 } from 'lucide-react'
-import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { ComparisonAreaChart, DonutChart, MiniBarChart } from '../components/data-viz'
+import { ExportDropdown } from '../components/export-dropdown'
 import { FullScreenLoader } from '../components/full-screen-loader'
 import { PageSectionNav } from '../components/page-section-nav'
 import { Panel } from '../components/panel'
@@ -15,7 +13,6 @@ import { StatCard } from '../components/stat-card'
 import { StatusBadge } from '../components/status-badge'
 import { useAsyncData } from '../hooks/use-async-data'
 import { useRealtimeSync } from '../hooks/use-realtime-sync'
-import { downloadCsv } from '../lib/csv'
 import {
   BUTTON_SECONDARY,
   deadlineColor,
@@ -25,7 +22,6 @@ import {
   formatPercent,
   formatRatio,
   getClientName,
-  getRelationItem,
   getMonthBounds,
   groupByMonth,
   isOpenProject,
@@ -95,8 +91,6 @@ export function DashboardPage() {
   useRealtimeSync(['configuracoes', 'projetos', 'gastos', 'receitas', 'investimentos', 'aportes'], reload, {
     pollIntervalMs: 12000,
   })
-  const [notice, setNotice] = useState<string | null>(null)
-
   if (isLoading && !data) {
     return <FullScreenLoader label="A carregar o dashboard..." />
   }
@@ -247,69 +241,6 @@ export function DashboardPage() {
     { label: 'Operacoes', to: '/dashboard/operacoes' },
   ]
 
-  function handleExportSummary() {
-    downloadCsv(
-      `resumo-dashboard-${monthStamp()}`,
-      [
-        { label: 'Mes', value: (row) => row.label },
-        { label: 'Receitas', value: (row) => row.income.toFixed(2) },
-        { label: 'Gastos', value: (row) => row.expenses.toFixed(2) },
-        { label: 'Saldo', value: (row) => row.net.toFixed(2) },
-        { label: 'Margem', value: (row) => (row.margin * 100).toFixed(2) },
-      ],
-      monthlySummaryRows,
-    )
-    setNotice('Resumo mensal exportado para CSV.')
-  }
-
-  function handleExportReceitas() {
-    downloadCsv(
-      `receitas-${monthStamp()}`,
-      [
-        { label: 'Data', value: (row) => row.data },
-        { label: 'Descricao', value: (row) => row.descricao },
-        { label: 'Valor', value: (row) => row.valor.toFixed(2) },
-        { label: 'Origem', value: (row) => row.origem ?? '' },
-        { label: 'Projeto', value: (row) => getRelationItem(row.projetos)?.titulo ?? '' },
-      ],
-      receitas,
-    )
-    setNotice('Receitas exportadas para CSV.')
-  }
-
-  function handleExportGastos() {
-    downloadCsv(
-      `gastos-${monthStamp()}`,
-      [
-        { label: 'Data', value: (row) => row.data },
-        { label: 'Descricao', value: (row) => row.descricao },
-        { label: 'Categoria', value: (row) => row.categoria_nome ?? '' },
-        { label: 'Valor', value: (row) => row.valor.toFixed(2) },
-        { label: 'Metodo', value: (row) => row.metodo ?? '' },
-        { label: 'Pago', value: (row) => (row.pago === 1 ? 'Sim' : 'Nao') },
-      ],
-      gastos,
-    )
-    setNotice('Gastos exportados para CSV.')
-  }
-
-  function handleExportPipeline() {
-    downloadCsv(
-      `pipeline-projetos-${monthStamp()}`,
-      [
-        { label: 'Cliente', value: (row) => getClientName(row) },
-        { label: 'Projeto', value: (row) => row.titulo },
-        { label: 'Status', value: (row) => row.status ?? 'pendente' },
-        { label: 'Valor total', value: (row) => (row.valor_total ?? 0).toFixed(2) },
-        { label: 'Valor pago', value: (row) => (row.valor_pago ?? 0).toFixed(2) },
-        { label: 'Em aberto', value: (row) => projectDueAmount(row).toFixed(2) },
-        { label: 'Prazo', value: (row) => row.prazo ?? '' },
-      ],
-      projetos,
-    )
-    setNotice('Pipeline exportado para CSV.')
-  }
-
   return (
     <div className="space-y-6">
       <PageSectionNav
@@ -326,22 +257,15 @@ export function DashboardPage() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <button className={BUTTON_SECONDARY} onClick={handleExportSummary} type="button">
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Exportar resumo
-          </button>
+          <ExportDropdown data={receitas} type="receitas" filename={monthStamp()} label="Receitas" />
+          <ExportDropdown data={gastos} type="gastos" filename={monthStamp()} label="Gastos" />
+          <ExportDropdown data={projetos} type="projetos" filename={monthStamp()} label="Pipeline" />
           <button className={BUTTON_SECONDARY} onClick={() => void reload()} type="button">
             <RefreshCcw className="mr-2 h-4 w-4" />
             Atualizar
           </button>
         </div>
       </div>
-
-      {notice ? (
-        <div className="rounded-2xl border border-[var(--border-strong)] bg-[var(--surface-soft)] px-4 py-3 text-sm text-[var(--text-primary)]">
-          {notice}
-        </div>
-      ) : null}
 
       {['overview', 'pipeline'].includes(section) ? (
         <div className="flex flex-wrap gap-3">
@@ -506,18 +430,9 @@ export function DashboardPage() {
           </div>
 
           <div className="mt-5 grid gap-3 md:grid-cols-3">
-            <button className={BUTTON_SECONDARY} onClick={handleExportReceitas} type="button">
-              <Download className="mr-2 h-4 w-4" />
-              Receitas CSV
-            </button>
-            <button className={BUTTON_SECONDARY} onClick={handleExportGastos} type="button">
-              <Download className="mr-2 h-4 w-4" />
-              Gastos CSV
-            </button>
-            <button className={BUTTON_SECONDARY} onClick={handleExportPipeline} type="button">
-              <Download className="mr-2 h-4 w-4" />
-              Pipeline CSV
-            </button>
+            <ExportDropdown data={receitas} type="receitas" filename={monthStamp()} label="Receitas" />
+            <ExportDropdown data={gastos} type="gastos" filename={monthStamp()} label="Gastos" />
+            <ExportDropdown data={projetos} type="projetos" filename={monthStamp()} label="Pipeline" />
           </div>
         </Panel>
 

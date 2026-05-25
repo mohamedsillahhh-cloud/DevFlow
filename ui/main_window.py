@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from pathlib import Path
+from typing import Callable
 
 from PyQt6.QtCore import QEasingCurve, QPropertyAnimation, Qt, QTimer
 from PyQt6.QtGui import QCloseEvent, QMouseEvent
@@ -67,7 +68,14 @@ from ui.helpers import (
     sum_amount,
 )
 from ui.theme import APP_VERSION, CORES, DEFAULT_CONFIG, MOEDA_OPCOES
-from utils.exportacao import exportar_sessoes_para_excel
+from utils.exportacao import (
+    exportar_aportes_para_excel,
+    exportar_gastos_para_excel,
+    exportar_investimentos_para_excel,
+    exportar_projetos_para_excel,
+    exportar_receitas_para_excel,
+    exportar_sessoes_para_excel,
+)
 from utils.formatacao import cor_prazo, formatar_moeda, percentual
 
 
@@ -900,7 +908,17 @@ class MainWindow(QMainWindow):
         add_button = QPushButton("+ Novo projeto")
         add_button.setObjectName("secondaryButton")
         add_button.clicked.connect(self._new_project)
-        layout.addWidget(self._page_header("Projetos", add_button))
+        export_proj = QPushButton("📥 Exportar (.xlsx)")
+        export_proj.setObjectName("secondaryButton")
+        export_proj.clicked.connect(self._export_projetos)
+        header_widget = QWidget()
+        header_layout = QHBoxLayout(header_widget)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(8)
+        header_layout.addWidget(add_button)
+        header_layout.addWidget(export_proj)
+        header_layout.addStretch(1)
+        layout.addWidget(self._page_header("Projetos", header_widget))
         filters = QWidget()
         filters_layout = QHBoxLayout(filters)
         filters_layout.setContentsMargins(0, 0, 0, 0)
@@ -1016,9 +1034,17 @@ class MainWindow(QMainWindow):
         income_button = QPushButton("+ Nova receita")
         income_button.setObjectName("secondaryButton")
         income_button.clicked.connect(self._new_receita)
+        export_gastos = QPushButton("📥 Gastos (.xlsx)")
+        export_gastos.setObjectName("secondaryButton")
+        export_gastos.clicked.connect(self._export_gastos)
+        export_receitas = QPushButton("📥 Receitas (.xlsx)")
+        export_receitas.setObjectName("secondaryButton")
+        export_receitas.clicked.connect(self._export_receitas)
         actions_layout.addWidget(month)
         actions_layout.addWidget(new_button)
         actions_layout.addWidget(income_button)
+        actions_layout.addWidget(export_gastos)
+        actions_layout.addWidget(export_receitas)
         layout.addWidget(self._page_header("Financas", actions))
 
         gastos_mes = self._sum_amount(
@@ -1123,7 +1149,21 @@ class MainWindow(QMainWindow):
         action = QPushButton("+ Registrar aporte")
         action.setObjectName("secondaryButton")
         action.clicked.connect(self._new_aporte)
-        layout.addWidget(self._page_header("Investimentos", action))
+        export_inv = QPushButton("📥 Investimentos (.xlsx)")
+        export_inv.setObjectName("secondaryButton")
+        export_inv.clicked.connect(self._export_investimentos)
+        export_ap = QPushButton("📥 Aportes (.xlsx)")
+        export_ap.setObjectName("secondaryButton")
+        export_ap.clicked.connect(self._export_aportes)
+        header_widget = QWidget()
+        header_layout = QHBoxLayout(header_widget)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(8)
+        header_layout.addWidget(action)
+        header_layout.addWidget(export_inv)
+        header_layout.addWidget(export_ap)
+        header_layout.addStretch(1)
+        layout.addWidget(self._page_header("Investimentos", header_widget))
         investments = sorted(
             self.data.investimentos,
             key=lambda item: item.criado_em or datetime.min,
@@ -1606,6 +1646,79 @@ class MainWindow(QMainWindow):
             self._show_operation_error(exc, "Falha ao exportar")
             return
         QMessageBox.information(self, "Exportacao concluida", f"Arquivo criado em:\n{file_path}")
+
+    def _export_table(
+        self,
+        data: object,
+        export_func: Callable[..., Path],
+        default_name_prefix: str,
+        dialog_title: str,
+        msg_empty: str,
+    ) -> None:
+        if not data:
+            QMessageBox.information(self, "Sem dados", msg_empty)
+            return
+        default_dir = self.configuracoes.get("caminho_backup", str(Path.home()))
+        default_name = Path(default_dir) / f"{default_name_prefix}-{datetime.now():%Y%m%d-%H%M%S}.xlsx"
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            dialog_title,
+            str(default_name),
+            "Excel (*.xlsx)",
+        )
+        if not file_path:
+            return
+        try:
+            export_func(Path(file_path))
+        except Exception as exc:
+            self._show_operation_error(exc, "Falha ao exportar")
+            return
+        QMessageBox.information(self, "Exportacao concluida", f"Arquivo criado em:\n{file_path}")
+
+    def _export_projetos(self) -> None:
+        self._export_table(
+            self.data.projetos,
+            lambda path: exportar_projetos_para_excel(self.data.projetos, path),
+            "devflow-projetos",
+            "Exportar projetos",
+            "Nao ha projetos para exportar.",
+        )
+
+    def _export_gastos(self) -> None:
+        self._export_table(
+            self.data.gastos,
+            lambda path: exportar_gastos_para_excel(self.data.gastos, path),
+            "devflow-gastos",
+            "Exportar gastos",
+            "Nao ha gastos para exportar.",
+        )
+
+    def _export_receitas(self) -> None:
+        self._export_table(
+            self.data.receitas,
+            lambda path: exportar_receitas_para_excel(self.data.receitas, path),
+            "devflow-receitas",
+            "Exportar receitas",
+            "Nao ha receitas para exportar.",
+        )
+
+    def _export_investimentos(self) -> None:
+        self._export_table(
+            self.data.investimentos,
+            lambda path: exportar_investimentos_para_excel(self.data.investimentos, self.data.aportes, path),
+            "devflow-investimentos",
+            "Exportar investimentos",
+            "Nao ha investimentos para exportar.",
+        )
+
+    def _export_aportes(self) -> None:
+        self._export_table(
+            self.data.aportes,
+            lambda path: exportar_aportes_para_excel(self.data.aportes, path),
+            "devflow-aportes",
+            "Exportar aportes",
+            "Nao ha aportes para exportar.",
+        )
 
     def _send_chat_message(self) -> None:
         if self.chat_input is None:

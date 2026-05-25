@@ -20,6 +20,14 @@ export default defineConfig(({ mode }) => ({
   envDir: '..',
   envPrefix: 'VITE_',
   plugins: [react()],
+  optimizeDeps: {
+    include: ['exceljs'],
+  },
+  build: {
+    commonjsOptions: {
+      include: [/exceljs/, /node_modules/],
+    },
+  },
   server: {
     headers: mode === 'production' ? securityHeaders : {},
   },

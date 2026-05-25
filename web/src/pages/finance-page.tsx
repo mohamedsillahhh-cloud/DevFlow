@@ -1,7 +1,6 @@
 import {
   AlertTriangle,
   ChevronDown,
-  Download,
   FileSpreadsheet,
   PlusCircle,
   RefreshCcw,
@@ -11,6 +10,7 @@ import {
 import { useDeferredValue, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { ComparisonAreaChart, DonutChart, MiniBarChart } from '../components/data-viz'
+import { ExportDropdown } from '../components/export-dropdown'
 import { FullScreenLoader } from '../components/full-screen-loader'
 import { MonthYearPicker } from '../components/month-year-picker'
 import { PageSectionNav } from '../components/page-section-nav'
@@ -157,12 +157,12 @@ interface FinanceFilterToolbarProps {
   monthLabel: string
   onCategoryFilterChange: (value: string) => void
   onExpenseStatusFilterChange: (value: string) => void
-  onExportExpenses: () => void
-  onExportIncome: () => void
   onExportSummary: () => void
   onReload: () => void
   onSearchQueryChange: (value: string) => void
   searchQuery: string
+  expenses: Gasto[]
+  income: Receita[]
 }
 
 const labelStyle = 'text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]'
@@ -172,11 +172,11 @@ function FinanceFilterToolbar({
   categoryFilter,
   expenseFilterOptions,
   expenseStatusFilter,
+  expenses,
+  income,
   monthLabel,
   onCategoryFilterChange,
   onExpenseStatusFilterChange,
-  onExportExpenses,
-  onExportIncome,
   onExportSummary,
   onReload,
   onSearchQueryChange,
@@ -270,20 +270,8 @@ function FinanceFilterToolbar({
             <RefreshCcw className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">Atualizar</span>
           </button>
-          <button
-            className="inline-flex items-center justify-center gap-1.5 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-2 py-2 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50 sm:gap-2 sm:px-3 sm:text-[13px]"
-            onClick={onExportExpenses} type="button"
-          >
-            <Download className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">Gastos CSV</span>
-          </button>
-          <button
-            className="inline-flex items-center justify-center gap-1.5 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-2 py-2 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50 sm:gap-2 sm:px-3 sm:text-[13px]"
-            onClick={onExportIncome} type="button"
-          >
-            <Download className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">Receitas CSV</span>
-          </button>
+          <ExportDropdown data={expenses} type="gastos" filename="gastos" label="Gastos" />
+          <ExportDropdown data={income} type="receitas" filename="receitas" label="Receitas" />
         </div>
 
         <p className="text-[11px] text-[var(--text-muted)]">Aplicado a {monthLabel}.</p>
@@ -625,39 +613,6 @@ export function FinancePage() {
     setActionError(null)
   }
 
-  function handleExportExpenses() {
-    downloadCsv(
-      `gastos-${monthStamp(reference)}`,
-      [
-        { label: 'Data', value: (row) => row.data },
-        { label: 'Descricao', value: (row) => row.descricao },
-        { label: 'Categoria', value: (row) => getExpenseCategoryLabel(row) },
-        { label: 'Valor', value: (row) => row.valor.toFixed(2) },
-        { label: 'Metodo', value: (row) => row.metodo ?? '' },
-        { label: 'Pago', value: (row) => (row.pago === 1 ? 'Sim' : 'Nao') },
-      ],
-      visibleExpenses,
-    )
-    setFeedback('CSV de gastos exportado com os filtros atuais.')
-    setActionError(null)
-  }
-
-  function handleExportIncome() {
-    downloadCsv(
-      `receitas-${monthStamp(reference)}`,
-      [
-        { label: 'Data', value: (row) => row.data },
-        { label: 'Descricao', value: (row) => row.descricao },
-        { label: 'Valor', value: (row) => row.valor.toFixed(2) },
-        { label: 'Origem', value: (row) => row.origem ?? '' },
-        { label: 'Projeto', value: (row) => getRelationItem(row.projetos)?.titulo ?? '' },
-      ],
-      visibleIncome,
-    )
-    setFeedback('CSV de receitas exportado com os filtros atuais.')
-    setActionError(null)
-  }
-
   async function handleCreateExpense() {
     setFeedback(null)
     setActionError(null)
@@ -830,11 +785,11 @@ export function FinancePage() {
           categoryFilter={categoryFilter}
           expenseFilterOptions={expenseFilterOptions}
           expenseStatusFilter={expenseStatusFilter}
+          expenses={visibleExpenses}
+          income={visibleIncome}
           monthLabel={monthLabel}
           onCategoryFilterChange={setCategoryFilter}
           onExpenseStatusFilterChange={setExpenseStatusFilter}
-          onExportExpenses={handleExportExpenses}
-          onExportIncome={handleExportIncome}
           onExportSummary={handleExportSummary}
           onReload={() => void reload()}
           onSearchQueryChange={setSearchQuery}

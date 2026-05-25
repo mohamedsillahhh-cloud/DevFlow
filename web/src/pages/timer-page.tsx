@@ -1,7 +1,9 @@
 import { Download, PlayCircle, RefreshCcw, Save, Square } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { ExportDropdown } from '../components/export-dropdown'
 import { FullScreenLoader } from '../components/full-screen-loader'
+import { downloadCsv } from '../lib/csv'
 import { PageSectionNav } from '../components/page-section-nav'
 import { Panel } from '../components/panel'
 import { StatCard } from '../components/stat-card'
@@ -32,10 +34,7 @@ function parsePositiveNumber(value: string | undefined) {
 }
 
 function parseProjectRates(rawValue: string | undefined): ProjectRatesMap {
-  if (!rawValue) {
-    return {}
-  }
-
+  if (!rawValue) return {}
   try {
     const parsed = JSON.parse(rawValue) as Record<string, unknown>
     return Object.entries(parsed).reduce<ProjectRatesMap>((accumulator, [key, value]) => {
@@ -52,27 +51,6 @@ function parseProjectRates(rawValue: string | undefined): ProjectRatesMap {
 
 function formatDecimalHours(totalMinutes: number) {
   return `${(totalMinutes / 60).toFixed(2)}h`
-}
-
-function toCsvValue(value: string | number) {
-  const serialized = String(value)
-  if (serialized.includes('"') || serialized.includes(',') || serialized.includes('\n')) {
-    return `"${serialized.replaceAll('"', '""')}"`
-  }
-  return serialized
-}
-
-function downloadCsv(filename: string, rows: string[][]) {
-  const csvContent = rows.map((row) => row.map(toCsvValue).join(',')).join('\n')
-  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
 }
 
 export function TimerPage() {
@@ -156,10 +134,12 @@ export function TimerPage() {
   }
 
   const activeSession = data.sessoes.find((item) => !item.fim) ?? null
+  const sessoes = data.sessoes
   const referenceMonth = shiftMonth(
     new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     -Number(monthOffset),
   )
+  const periodLabel = `${referenceMonth.getFullYear()}-${String(referenceMonth.getMonth() + 1).padStart(2, '0')}`
   const { end, start } = getMonthBounds(referenceMonth)
   const monthSessions = data.sessoes.filter((item) => isWithinDateRange(item.inicio, start, end))
   const totalMonthMinutes = monthSessions.reduce((accumulator, item) => {
@@ -298,19 +278,17 @@ export function TimerPage() {
   }
 
   function handleExportBillingCsv() {
-    const periodLabel = `${referenceMonth.getFullYear()}-${String(referenceMonth.getMonth() + 1).padStart(2, '0')}`
-    const rows = [
-      ['Projeto', 'Sessoes', 'Horas', 'Valor/Hora', 'Total Faturavel'],
-      ...groupedByProject.map((item) => [
-        item.projectName,
-        String(item.count),
-        (item.minutes / 60).toFixed(2),
-        item.rate.toFixed(2),
-        item.estimatedAmount.toFixed(2),
-      ]),
-    ]
-
-    downloadCsv(`faturacao-timer-${periodLabel}.csv`, rows)
+    downloadCsv(
+      `faturacao-timer-${periodLabel}`,
+      [
+        { label: 'Projeto', value: (item: typeof groupedByProject[number]) => item.projectName },
+        { label: 'Sessoes', value: (item: typeof groupedByProject[number]) => String(item.count) },
+        { label: 'Horas', value: (item: typeof groupedByProject[number]) => (item.minutes / 60).toFixed(2) },
+        { label: 'Valor/Hora', value: (item: typeof groupedByProject[number]) => item.rate.toFixed(2) },
+        { label: 'Total Faturavel', value: (item: typeof groupedByProject[number]) => item.estimatedAmount.toFixed(2) },
+      ],
+      groupedByProject,
+    )
     setFeedback('CSV de faturacao exportado com sucesso.')
     setActionError(null)
   }
@@ -338,8 +316,9 @@ export function TimerPage() {
         <div className="flex flex-wrap justify-end gap-3">
           <button className={BUTTON_SECONDARY} onClick={handleExportBillingCsv} type="button">
             <Download className="mr-2 h-4 w-4" />
-            Exportar CSV
+            Faturação CSV
           </button>
+          <ExportDropdown data={sessoes} type="sessoes" filename={periodLabel} label="Sessões" />
           <button className={BUTTON_SECONDARY} onClick={() => void reload()} type="button">
             <RefreshCcw className="mr-2 h-4 w-4" />
             Atualizar
