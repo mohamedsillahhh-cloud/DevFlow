@@ -12,11 +12,13 @@ import { useDeferredValue, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { ComparisonAreaChart, DonutChart, MiniBarChart } from '../components/data-viz'
 import { FullScreenLoader } from '../components/full-screen-loader'
+import { MonthYearPicker } from '../components/month-year-picker'
 import { PageSectionNav } from '../components/page-section-nav'
 import { Panel } from '../components/panel'
 import { StatCard } from '../components/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
 import { useRealtimeSync } from '../hooks/use-realtime-sync'
+import { cx } from '../lib/cn'
 import { downloadCsv } from '../lib/csv'
 import {
   BUTTON_PRIMARY,
@@ -81,10 +83,6 @@ type MonthOption = {
   value: number
 }
 
-function cx(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(' ')
-}
-
 interface PeriodSelectorPanelProps {
   expenseCount: number
   incomeCount: number
@@ -110,10 +108,6 @@ function PeriodSelectorPanel({
   selectedYear,
   yearOptions,
 }: PeriodSelectorPanelProps) {
-  const today = new Date()
-  const isCurrentMonth = (m: number) => today.getMonth() === m && today.getFullYear() === selectedYear
-  const sortedYears = [...yearOptions].sort((a, b) => a - b)
-
   return (
     <Panel
       actions={
@@ -141,55 +135,16 @@ function PeriodSelectorPanel({
         </p>
       </div>
 
-      <div className="mt-4 overflow-x-auto">
-        <div className="flex items-center gap-2">
-          {sortedYears.slice(0, 7).map((year) => {
-            const isActive = year === selectedYear
-            return (
-              <button
-                key={year}
-                aria-pressed={isActive}
-                className={cx(
-                  'shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition',
-                  isActive
-                    ? 'bg-[var(--brand-soft)] text-[var(--brand)]'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
-                )}
-                onClick={() => onSelectYear(year)}
-                type="button"
-              >
-                {year}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-4 gap-1">
-        {monthOptions.map((option) => {
-          const isActive = option.value === selectedMonth
-          const isCurrent = isCurrentMonth(option.value)
-
-          return (
-            <button
-              key={option.value}
-              aria-pressed={isActive}
-              className={cx(
-                'relative rounded-md px-2 py-2 text-center text-sm font-medium transition sm:px-3',
-                isActive
-                  ? 'bg-[var(--brand)] text-[var(--inverted-text)]'
-                  : 'text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]',
-              )}
-              onClick={() => onSelectMonth(option.value)}
-              type="button"
-            >
-              {option.label}
-              {isCurrent && !isActive ? (
-                <span className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[var(--brand)]" />
-              ) : null}
-            </button>
-          )
-        })}
+      <div className="mt-3">
+        <MonthYearPicker
+          monthLabel={monthLabel}
+          monthOptions={monthOptions}
+          onSelectMonth={onSelectMonth}
+          onSelectYear={onSelectYear}
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
+          yearOptions={yearOptions}
+        />
       </div>
     </Panel>
   )

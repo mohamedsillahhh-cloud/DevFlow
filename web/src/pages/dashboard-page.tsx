@@ -19,9 +19,11 @@ import { downloadCsv } from '../lib/csv'
 import {
   BUTTON_SECONDARY,
   deadlineColor,
+  formatCoverage,
   formatCurrency,
   formatDate,
   formatPercent,
+  formatRatio,
   getClientName,
   getRelationItem,
   getMonthBounds,
@@ -82,22 +84,6 @@ const STATUS_DEFINITIONS = [
     surface: 'rgba(113,29,43,0.18)',
   },
 ]
-
-function formatRatio(value: number) {
-  if (!Number.isFinite(value) || value <= 0) {
-    return '0%'
-  }
-
-  return `${Math.round(value * 100)}%`
-}
-
-function formatCoverage(value: number) {
-  if (!Number.isFinite(value) || value <= 0) {
-    return '0,0 meses'
-  }
-
-  return `${value.toFixed(1).replace('.', ',')} meses`
-}
 
 function monthStamp(reference = new Date()) {
   return `${reference.getFullYear()}-${String(reference.getMonth() + 1).padStart(2, '0')}`

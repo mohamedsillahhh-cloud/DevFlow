@@ -101,7 +101,7 @@ export function parseDateValue(value: string | Date | null | undefined) {
 
   if (DATE_ONLY_PATTERN.test(value)) {
     const [year, month, day] = value.split('-').map(Number)
-    return new Date(year, month - 1, day, 12)
+    return new Date(year!, month! - 1, day!, 12)
   }
 
   return new Date(value)
@@ -112,6 +112,20 @@ export function formatInputDateValue(reference = new Date()) {
   const month = String(reference.getMonth() + 1).padStart(2, '0')
   const day = String(reference.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+
+export function formatRatio(value: number) {
+  if (!Number.isFinite(value) || value <= 0) {
+    return '0%'
+  }
+  return `${Math.round(value * 100)}%`
+}
+
+export function formatCoverage(value: number) {
+  if (!Number.isFinite(value) || value <= 0) {
+    return '0,0 meses'
+  }
+  return `${value.toFixed(1).replace('.', ',')} meses`
 }
 
 export function deadlineColor(value: string | null | undefined) {

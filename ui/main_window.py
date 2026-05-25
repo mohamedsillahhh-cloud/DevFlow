@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from pathlib import Path
 
 from PyQt6.QtCore import QEasingCurve, QPropertyAnimation, Qt, QTimer
@@ -42,6 +42,29 @@ from ui.forms import (
     ProjectDialog,
     StartSessionDialog,
     StopSessionDialog,
+)
+from ui.helpers import (
+    count_items,
+    current_alerts,
+    display_date,
+    display_datetime,
+    display_status,
+    duration_hms,
+    duration_text,
+    in_date_range,
+    in_datetime_range,
+    investment_total,
+    is_open_project,
+    month_bounds,
+    monthly_category_totals,
+    project_due,
+    shift_month,
+    sorted_aportes,
+    sorted_gastos,
+    sorted_projects,
+    sorted_projects_by_deadline,
+    sorted_receitas,
+    sum_amount,
 )
 from ui.theme import APP_VERSION, CORES, DEFAULT_CONFIG, MOEDA_OPCOES
 from utils.exportacao import exportar_sessoes_para_excel
@@ -454,7 +477,7 @@ class MainWindow(QMainWindow):
             "Cancelado": (CORES["bg3"], CORES["text2"], CORES["border"]),
             "Pausado": ("#151515", CORES["text2"], CORES["border"]),
         }
-        visible_status = self._display_status(status)
+        visible_status = display_status(status)
         bg, fg, border = palette.get(
             visible_status, (CORES["bg3"], CORES["text2"], CORES["border"])
         )
@@ -546,51 +569,31 @@ class MainWindow(QMainWindow):
         return formatar_moeda(value, self.configuracoes.get("moeda", "CVE"))
 
     def _month_bounds(self, reference: date | None = None) -> tuple[date, date]:
-        current = reference or date.today()
-        month_start = current.replace(day=1)
-        if month_start.month == 12:
-            next_month = date(month_start.year + 1, 1, 1)
-        else:
-            next_month = date(month_start.year, month_start.month + 1, 1)
-        return month_start, next_month
+        return month_bounds(reference)
 
     def _shift_month(self, reference: date, offset: int) -> date:
-        month_index = (reference.year * 12 + reference.month - 1) + offset
-        year = month_index // 12
-        month = month_index % 12 + 1
-        return date(year, month, 1)
+        return shift_month(reference, offset)
 
     def _sum_amount(self, items: list[object], attribute: str, predicate=None) -> float:
-        total = 0.0
-        for item in items:
-            if predicate is not None and not predicate(item):
-                continue
-            total += float(getattr(item, attribute, 0) or 0)
-        return total
+        return sum_amount(items, attribute, predicate)
 
     def _count_items(self, items: list[object], predicate=None) -> int:
-        if predicate is None:
-            return len(items)
-        return sum(1 for item in items if predicate(item))
+        return count_items(items, predicate)
 
     def _project_due(self, project: Projeto) -> float:
-        return max(float(project.valor_total or 0) - float(project.valor_pago or 0), 0.0)
+        return project_due(project)
 
     def _is_open_project(self, project: Projeto) -> bool:
-        return project.status not in {"concluido", "cancelado", "pago"}
+        return is_open_project(project)
 
     def _in_date_range(self, value: date | None, start: date, end: date) -> bool:
-        return value is not None and start <= value < end
+        return in_date_range(value, start, end)
 
     def _in_datetime_range(self, value: datetime | None, start: datetime, end: datetime) -> bool:
-        return value is not None and start <= value < end
+        return in_datetime_range(value, start, end)
 
     def _sorted_projects(self) -> list[Projeto]:
-        return sorted(
-            self.data.projetos,
-            key=lambda item: item.criado_em or datetime.min,
-            reverse=True,
-        )
+        return sorted_projects(self.data.projetos)
 
     def _filtered_projects(self) -> list[Projeto]:
         search_term = self.project_search_term.strip().lower()
@@ -600,108 +603,43 @@ class MainWindow(QMainWindow):
             client_name = project.cliente.nome.lower() if project.cliente else ""
             if search_term and search_term not in project.titulo.lower() and search_term not in client_name:
                 continue
-            if status_filter != "Todos os status" and self._display_status(project.status) != status_filter:
+            if status_filter != "Todos os status" and display_status(project.status) != status_filter:
                 continue
             filtered.append(project)
         return filtered
 
     def _sorted_projects_by_deadline(self) -> list[Projeto]:
-        return sorted(
-            self.data.projetos,
-            key=lambda item: (item.prazo is None, item.prazo or date.max),
-        )
+        return sorted_projects_by_deadline(self.data.projetos)
 
     def _sorted_gastos(self, recurring_only: bool = False) -> list[Gasto]:
-        items = self.data.gastos
-        if recurring_only:
-            items = [item for item in items if item.recorrente > 0]
-        return sorted(
-            items,
-            key=lambda item: (item.data, item.valor, item.criado_em or datetime.min),
-            reverse=True,
-        )
+        return sorted_gastos(self.data.gastos, recurring_only)
 
     def _sorted_receitas(self) -> list[Receita]:
-        return sorted(
-            self.data.receitas,
-            key=lambda item: (item.data, item.valor, item.criado_em or datetime.min),
-            reverse=True,
-        )
+        return sorted_receitas(self.data.receitas)
 
     def _sorted_aportes(self) -> list[Aporte]:
-        return sorted(
-            self.data.aportes,
-            key=lambda item: (item.data, item.criado_em or datetime.min),
-            reverse=True,
-        )
+        return sorted_aportes(self.data.aportes)
 
     def _investment_total(self, investment_id: int) -> float:
-        total = 0.0
-        for item in self.data.aportes:
-            if item.investimento_id != investment_id:
-                continue
-            if item.tipo == "resgate":
-                total -= float(item.valor or 0)
-            else:
-                total += float(item.valor or 0)
-        return total
+        return investment_total(investment_id, self.data.aportes)
 
     def _monthly_category_totals(self, start: date, end: date) -> list[tuple[str, str, float]]:
-        aggregates: dict[str, dict[str, object]] = {}
-        for item in self.data.gastos:
-            if not self._in_date_range(item.data, start, end):
-                continue
-            category_name = item.categoria_nome or "Sem categoria"
-            current = aggregates.setdefault(
-                category_name,
-                {
-                    "color": item.categoria.cor if item.categoria and item.categoria.cor else CORES["text2"],
-                    "value": 0.0,
-                },
-            )
-            current["value"] = float(current["value"]) + float(item.valor or 0)
-        rows = [
-            (name, str(data["color"]), float(data["value"]))
-            for name, data in aggregates.items()
-        ]
-        return sorted(rows, key=lambda item: item[2], reverse=True)
+        return monthly_category_totals(self.data.gastos, start, end)
 
     def _display_status(self, raw_status: str | None) -> str:
-        mapping = {
-            "pendente": "Pendente",
-            "em_andamento": "Andamento",
-            "pago_parcial": "Parcial",
-            "pago": "Pago",
-            "concluido": "Concluido",
-            "cancelado": "Cancelado",
-            "pausado": "Pausado",
-        }
-        if not raw_status:
-            return "-"
-        return mapping.get(raw_status, raw_status.replace("_", " ").title())
+        return display_status(raw_status)
 
     def _display_date(self, raw_date: date | None) -> str:
-        if raw_date is None:
-            return "-"
-        return raw_date.strftime("%d/%m")
+        return display_date(raw_date)
 
     def _display_datetime(self, raw_datetime: datetime | None) -> str:
-        if raw_datetime is None:
-            return "-"
-        return raw_datetime.strftime("%d/%m/%Y %H:%M")
+        return display_datetime(raw_datetime)
 
     def _duration_text(self, total_minutes: int) -> str:
-        hours, minutes = divmod(max(total_minutes, 0), 60)
-        if hours == 0:
-            return f"{minutes}min"
-        return f"{hours}h {minutes:02d}min"
+        return duration_text(total_minutes)
 
     def _duration_hms(self, start: datetime, end: datetime | None = None) -> str:
-        final = end or datetime.now()
-        total_seconds = max(int((final - start).total_seconds()), 0)
-        hours, remainder = divmod(total_seconds, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+        return duration_hms(start, end)
 
     def _empty_card(self, title: str, message: str) -> QFrame:
         card, layout = self._section_card(title)
@@ -712,64 +650,12 @@ class MainWindow(QMainWindow):
         return card
 
     def _current_alerts(self) -> list[tuple[str, bool]]:
-        alerts: list[tuple[str, bool]] = []
-        today = date.today()
-        prazo_days = int(self.configuracoes.get("alerta_prazo_dias", "7"))
-        conta_days = int(self.configuracoes.get("alerta_conta_dias", "3"))
-
-        upcoming_projects = [
-            project
-            for project in self._sorted_projects_by_deadline()
-            if project.prazo is not None
-            and today <= project.prazo <= today + timedelta(days=prazo_days)
-            and self._is_open_project(project)
-        ]
-        for project in upcoming_projects:
-            client_name = project.cliente.nome if project.cliente else "Cliente"
-            missing = self._project_due(project)
-            days_left = max((project.prazo - today).days if project.prazo else 0, 0)
-            alerts.append(
-                (
-                    f"{project.titulo} ({client_name}): {self._money(missing)} pendente, prazo em {days_left} dias",
-                    False,
-                )
-            )
-
-        overdue_projects = [
-            project
-            for project in self._sorted_projects_by_deadline()
-            if project.prazo is not None
-            and project.prazo < today
-            and self._project_due(project) > 0
-            and self._is_open_project(project)
-        ]
-        for project in overdue_projects:
-            client_name = project.cliente.nome if project.cliente else "Cliente"
-            missing = self._project_due(project)
-            alerts.append(
-                (
-                    f"{project.titulo} ({client_name}): {self._money(missing)} em atraso desde {self._display_date(project.prazo)}",
-                    True,
-                )
-            )
-
-        pending_bills = sorted(
-            [
-                bill
-                for bill in self.data.gastos
-                if bill.pago == 0 and bill.data <= today + timedelta(days=conta_days)
-            ],
-            key=lambda item: item.data,
+        return current_alerts(
+            self.data.projetos,
+            self.data.gastos,
+            self.configuracoes,
+            self.configuracoes.get("moeda", "CVE"),
         )
-        for bill in pending_bills:
-            alerts.append(
-                (
-                    f"{bill.descricao}: {self._money(bill.valor)} pendente para {self._display_date(bill.data)}",
-                    False,
-                )
-            )
-
-        return alerts
 
     def _active_session(self) -> TempoProjeto | None:
         active_sessions = [item for item in self.data.tempo_projeto if item.fim is None]
@@ -802,7 +688,7 @@ class MainWindow(QMainWindow):
         project_name = active_session.projeto.titulo if active_session.projeto else "Projeto"
         self.status_pulse.set_active(True)
         self.status_timer_label.setText(
-            f"{project_name} — {self._duration_hms(active_session.inicio, active_session.fim)}"
+            f"{project_name} — {duration_hms(active_session.inicio, active_session.fim)}"
         )
         self.status_timer_label.setStyleSheet(
             f"color: {CORES['green']}; font-size: 11px;"
@@ -811,7 +697,7 @@ class MainWindow(QMainWindow):
         if self.timer_project_label is not None:
             self.timer_project_label.setText(project_name)
         if self.timer_display_label is not None:
-            self.timer_display_label.setText(self._duration_hms(active_session.inicio, active_session.fim))
+            self.timer_display_label.setText(duration_hms(active_session.inicio, active_session.fim))
         if self.timer_pause_button is not None:
             self.timer_pause_button.setEnabled(True)
         if self.timer_stop_button is not None:

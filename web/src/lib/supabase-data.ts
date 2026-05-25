@@ -12,6 +12,8 @@ import type {
   TempoProjeto,
 } from './types'
 
+const DEFAULT_PAGE_SIZE = 50
+
 const AUTH_ERROR_PATTERNS = [
   'auth session missing',
   'invalid claim',
@@ -92,6 +94,27 @@ async function normalizeSupabaseError(message: string, fallbackMessage: string) 
   }
 
   return message || fallbackMessage
+}
+
+export interface PaginatedResult<T> {
+  data: T[]
+  hasMore: boolean
+  page: number
+}
+
+async function getRowsPaginated<T>(
+  queryBuilder: (from: number, to: number) => PromiseLike<unknown>,
+  page: number,
+  pageSize = DEFAULT_PAGE_SIZE,
+): Promise<PaginatedResult<T>> {
+  const from = page * pageSize
+  const to = from + pageSize - 1
+  const data = await getRows<T>(queryBuilder(from, to), 'Nao foi possivel carregar os dados.')
+  return {
+    data,
+    hasMore: data.length === pageSize,
+    page,
+  }
 }
 
 async function getRows<T>(
@@ -245,8 +268,39 @@ export async function fetchProjetos() {
       .select(
         'id,cliente_id,titulo,descricao,tipo,valor_total,valor_pago,status,prazo,repo_url,staging_url,notas,criado_em,atualizado_em,clientes(id,nome,email,empresa)',
       )
-      .order('prazo', { ascending: true, nullsFirst: false }),
+      .order('prazo', { ascending: true, nullsFirst: false })
+      .limit(DEFAULT_PAGE_SIZE * 4),
     'Nao foi possivel carregar os projetos.',
+  )
+}
+
+export async function fetchProjetosPaginated(page = 0, pageSize = DEFAULT_PAGE_SIZE) {
+  return getRowsPaginated<Projeto>(
+    (from, to) =>
+      supabase
+        .from('projetos')
+        .select(
+          'id,cliente_id,titulo,descricao,tipo,valor_total,valor_pago,status,prazo,repo_url,staging_url,notas,criado_em,atualizado_em,clientes(id,nome,email,empresa)',
+        )
+        .order('prazo', { ascending: true, nullsFirst: false })
+        .range(from, to),
+    page,
+    pageSize,
+  )
+}
+
+export async function fetchGastosPaginated(page = 0, pageSize = DEFAULT_PAGE_SIZE) {
+  return getRowsPaginated<Gasto>(
+    (from, to) =>
+      supabase
+        .from('gastos')
+        .select(
+          'id,descricao,valor,data,categoria_nome:categoria,recorrente,dia_vencimento,metodo,pago,notas,criado_em',
+        )
+        .order('data', { ascending: false })
+        .range(from, to),
+    page,
+    pageSize,
   )
 }
 
@@ -280,6 +334,19 @@ export async function fetchGastos() {
   }
 }
 
+export async function fetchReceitasPaginated(page = 0, pageSize = DEFAULT_PAGE_SIZE) {
+  return getRowsPaginated<Receita>(
+    (from, to) =>
+      supabase
+        .from('receitas')
+        .select('id,projeto_id,descricao,valor,data,origem,criado_em,projetos(id,titulo)')
+        .order('data', { ascending: false })
+        .range(from, to),
+    page,
+    pageSize,
+  )
+}
+
 export async function fetchReceitas() {
   return getRows<Receita>(
     supabase
@@ -287,6 +354,19 @@ export async function fetchReceitas() {
       .select('id,projeto_id,descricao,valor,data,origem,criado_em,projetos(id,titulo)')
       .order('data', { ascending: false }),
     'Nao foi possivel carregar as receitas.',
+  )
+}
+
+export async function fetchInvestimentosPaginated(page = 0, pageSize = DEFAULT_PAGE_SIZE) {
+  return getRowsPaginated<Investimento>(
+    (from, to) =>
+      supabase
+        .from('investimentos')
+        .select('id,nome,tipo,meta_valor,meta_data,notas,ativo,criado_em')
+        .order('criado_em', { ascending: false })
+        .range(from, to),
+    page,
+    pageSize,
   )
 }
 
