@@ -7,10 +7,6 @@ describe('formatCurrency', () => {
     expect(formatCurrency(1500.5, 'CVE')).toBe('CVE 1.500,50')
   })
 
-  it('formats BRL currency', () => {
-    expect(formatCurrency(2500, 'BRL')).toBe('R$ 2.500,00')
-  })
-
   it('formats USD currency', () => {
     expect(formatCurrency(99.99, 'USD')).toBe('$ 99,99')
   })

@@ -73,7 +73,7 @@ export function AppLayout() {
   const location = useLocation()
   const { signOut, user } = useAuth()
   const { data: configuracoes } = useAsyncData(fetchConfiguracoes)
-  const [theme, setThemeState] = useState<ThemeMode>(() => {
+  const [storedTheme] = useState<ThemeMode>(() => {
     if (typeof window === 'undefined') {
       return 'light'
     }
@@ -81,17 +81,14 @@ export function AppLayout() {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
     return stored === 'dark' ? 'dark' : 'light'
   })
-
-  // Sincronizar tema com configuracoes quando carrega
-  useEffect(() => {
-    if (configuracoes?.tema === 'dark' || configuracoes?.tema === 'light') {
-      setThemeState(configuracoes.tema)
-    }
-  }, [configuracoes?.tema])
+  const [themeOverride, setThemeOverride] = useState<ThemeMode | null>(null)
+  const configTheme =
+    configuracoes?.tema === 'dark' || configuracoes?.tema === 'light' ? configuracoes.tema : null
+  const theme = themeOverride ?? configTheme ?? storedTheme
 
   // Função para mudar tema e salvar na config
   const handleThemeChange = async (newTheme: ThemeMode) => {
-    setThemeState(newTheme)
+    setThemeOverride(newTheme)
     document.documentElement.setAttribute('data-theme', newTheme)
     window.localStorage.setItem(THEME_STORAGE_KEY, newTheme)
     
@@ -118,7 +115,11 @@ export function AppLayout() {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
 
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileMenuState, setMobileMenuState] = useState({
+    open: false,
+    pathname: location.pathname,
+  })
+  const mobileMenuOpen = mobileMenuState.open && mobileMenuState.pathname === location.pathname
 
   const initials = displayName
     .split(' ')
@@ -126,11 +127,26 @@ export function AppLayout() {
     .slice(0, 2)
     .join('')
 
-  const closeMobile = () => setMobileMenuOpen(false)
+  const closeMobile = () => setMobileMenuState({ open: false, pathname: location.pathname })
 
   useEffect(() => {
-    closeMobile()
-  }, [location.pathname])
+    if (!mobileMenuOpen) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuState({ open: false, pathname: location.pathname })
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [mobileMenuOpen, location.pathname])
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[var(--bg-canvas)] text-[var(--text-primary)]">
@@ -146,8 +162,11 @@ export function AppLayout() {
             </span>
           </div>
           <button
+            aria-controls="app-sidebar"
+            aria-expanded={mobileMenuOpen}
+            aria-label={mobileMenuOpen ? 'Fechar menu de navegacao' : 'Abrir menu de navegacao'}
             className="flex h-10 w-10 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]"
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            onClick={() => setMobileMenuState({ open: !mobileMenuOpen, pathname: location.pathname })}
             type="button"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -164,9 +183,10 @@ export function AppLayout() {
 
         {/* Sidebar drawer */}
         <aside
+          id="app-sidebar"
           className={[
-            'fixed inset-y-0 left-0 z-50 flex w-[75vw] max-w-[280px] flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-canvas)] px-4 py-6 shadow-2xl transition-transform duration-300 ease-out lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:w-[220px] lg:translate-x-0 lg:overflow-y-auto lg:border-r lg:border-[var(--border-subtle)] lg:px-4 lg:py-6 lg:shadow-none',
-            mobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
+            'fixed inset-y-0 left-0 z-50 flex w-[75vw] max-w-[280px] flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-canvas)] px-4 py-6 shadow-2xl transition-[transform,visibility] duration-300 ease-out lg:visible lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:w-[220px] lg:translate-x-0 lg:overflow-y-auto lg:border-r lg:border-[var(--border-subtle)] lg:px-4 lg:py-6 lg:shadow-none',
+            mobileMenuOpen ? 'visible translate-x-0' : 'invisible -translate-x-full',
           ].join(' ')}
         >
           {/* Logo + close on mobile */}
@@ -180,6 +200,7 @@ export function AppLayout() {
               </span>
             </div>
             <button
+              aria-label="Fechar menu de navegacao"
               className="flex h-10 w-10 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] lg:hidden"
               onClick={closeMobile}
               type="button"
@@ -198,7 +219,7 @@ export function AppLayout() {
             </div>
           </div>
 
-          <nav className="mt-6 flex-1 space-y-1">
+          <nav aria-label="Navegacao principal" className="mt-6 flex-1 space-y-1">
             {NAV_ITEMS.map(({ icon: Icon, label, path }) => (
               <NavLink
                 key={path}
@@ -220,6 +241,7 @@ export function AppLayout() {
           </nav>
 
           <button
+            aria-label="Terminar sessao"
             className="mt-4 flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-[var(--text-muted)] transition hover:text-[var(--text-primary)]"
             onClick={() => void signOut()}
             type="button"
@@ -230,7 +252,7 @@ export function AppLayout() {
         </aside>
 
         <div className="flex min-h-screen flex-1 flex-col">
-          <header className="sticky top-0 z-20 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/90 px-4 py-2 backdrop-blur-md md:px-6 md:py-3 lg:top-0 lg:px-8">
+          <header className="sticky top-16 z-20 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/90 px-4 py-2 backdrop-blur-md md:px-6 md:py-3 lg:top-0 lg:px-8">
             <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between">
               <div className="min-w-0">
                 <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)] md:text-[11px]">{heading.eyebrow}</p>

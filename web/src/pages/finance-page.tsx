@@ -84,8 +84,11 @@ type MonthOption = {
 }
 
 interface PeriodSelectorPanelProps {
+  currency: string
   expenseCount: number
+  expenseTotal: number
   incomeCount: number
+  incomeTotal: number
   isLive: boolean
   monthLabel: string
   monthOptions: MonthOption[]
@@ -97,8 +100,11 @@ interface PeriodSelectorPanelProps {
 }
 
 function PeriodSelectorPanel({
+  currency,
   expenseCount,
+  expenseTotal,
   incomeCount,
+  incomeTotal,
   isLive,
   monthLabel,
   monthOptions,
@@ -108,43 +114,63 @@ function PeriodSelectorPanel({
   selectedYear,
   yearOptions,
 }: PeriodSelectorPanelProps) {
+  const totalTransactions = incomeCount + expenseCount
+
   return (
-    <Panel
-      actions={
+    <Panel title="Análise Financeira">
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Período selecionado</p>
+          <h3 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-[var(--text-primary)]">
+            {monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1).toLowerCase()}
+          </h3>
+        </div>
         <div
           className={cx(
-            'inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] uppercase tracking-[0.1em]',
+            'inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] uppercase tracking-[0.1em]',
             isLive
               ? 'border-[var(--color-success)]/30 bg-[var(--color-success)]/10 text-[var(--color-success)]'
               : 'border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-muted)]',
           )}
         >
           <span className={cx('h-2 w-2 rounded-full', isLive ? 'bg-[var(--color-success)]' : 'bg-[var(--text-muted)]')} />
-          {isLive ? 'Tempo real' : 'Sync ativa'}
+          {isLive ? 'Tempo real' : 'Offline'}
         </div>
-      }
-      description="Seleciona ano e mes para concentrar a leitura financeira."
-      title="Periodo de analise"
-    >
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-secondary)]">
-          {monthLabel}
-        </p>
-        <p className="text-xs text-[var(--text-muted)]">
-          {incomeCount} receita(s) | {expenseCount} gasto(s)
-        </p>
       </div>
 
-      <div className="mt-3">
-        <MonthYearPicker
-          monthLabel={monthLabel}
-          monthOptions={monthOptions}
-          onSelectMonth={onSelectMonth}
-          onSelectYear={onSelectYear}
-          selectedMonth={selectedMonth}
-          selectedYear={selectedYear}
-          yearOptions={yearOptions}
-        />
+      <div className="mb-6 grid grid-cols-2 gap-3">
+        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[linear-gradient(135deg,rgba(0,212,170,0.08),transparent_60%)] p-5">
+          <p className="text-xs font-medium text-[var(--text-muted)]">Receitas</p>
+          <p className="mt-2 text-xl font-semibold tracking-[-0.03em] text-[var(--color-success)]">
+            {formatCurrency(incomeTotal, currency)}
+          </p>
+          <p className="mt-1.5 text-[11px] text-[var(--text-muted)]">{incomeCount} entrada(s)</p>
+        </div>
+        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[linear-gradient(135deg,rgba(255,71,87,0.08),transparent_60%)] p-5">
+          <p className="text-xs font-medium text-[var(--text-muted)]">Gastos</p>
+          <p className="mt-2 text-xl font-semibold tracking-[-0.03em] text-[var(--color-danger)]">
+            {formatCurrency(expenseTotal, currency)}
+          </p>
+          <p className="mt-1.5 text-[11px] text-[var(--text-muted)]">{expenseCount} saída(s)</p>
+        </div>
+      </div>
+
+      <MonthYearPicker
+        monthOptions={monthOptions}
+        onSelectMonth={onSelectMonth}
+        onSelectYear={onSelectYear}
+        selectedMonth={selectedMonth}
+        selectedYear={selectedYear}
+        yearOptions={yearOptions}
+      />
+
+      <div className="mt-6 rounded-2xl border border-dashed border-[var(--border-subtle)] bg-[var(--surface-2)] p-6 text-center transition hover:border-[var(--border-strong)]">
+        <p className="text-sm font-medium text-[var(--text-muted)]">Receitas vs Gastos</p>
+        <p className="mt-2 text-xs text-[var(--text-muted)]">
+          {totalTransactions > 0
+            ? `${totalTransactions} movimentação(ões) no período`
+            : 'Nenhuma movimentação encontrada'}
+        </p>
       </div>
     </Panel>
   )
@@ -152,15 +178,20 @@ function PeriodSelectorPanel({
 
 interface FinanceFilterToolbarProps {
   categoryFilter: string
+  currency: string
   expenseFilterOptions: string[]
   expenseStatusFilter: string
+  expenseTotal: number
+  incomeTotal: number
   monthLabel: string
   onCategoryFilterChange: (value: string) => void
   onExpenseStatusFilterChange: (value: string) => void
   onExportSummary: () => void
   onReload: () => void
   onSearchQueryChange: (value: string) => void
+  saldo: number
   searchQuery: string
+  totalTransactions: number
   expenses: Gasto[]
   income: Receita[]
 }
@@ -170,46 +201,48 @@ const inputBase = 'w-full rounded border border-[var(--border-subtle)] bg-[var(-
 
 function FinanceFilterToolbar({
   categoryFilter,
+  currency,
   expenseFilterOptions,
   expenseStatusFilter,
-  expenses,
-  income,
+  expenseTotal,
+  incomeTotal,
   monthLabel,
   onCategoryFilterChange,
   onExpenseStatusFilterChange,
   onExportSummary,
   onReload,
   onSearchQueryChange,
+  saldo,
   searchQuery,
+  totalTransactions,
+  expenses,
+  income,
 }: FinanceFilterToolbarProps) {
   return (
-    <div className="rounded border border-[var(--border-subtle)] bg-[var(--bg-canvas)] p-4">
-      <div className="flex items-center justify-between gap-4">
+    <div className="rounded border border-[var(--border-subtle)] bg-[var(--bg-canvas)]">
+      <div className="border-b border-[var(--border-subtle)] px-4 py-3">
         <p className="text-sm font-medium text-[var(--text-primary)]">Filtros operacionais</p>
-        <p className="text-[11px] text-[var(--text-muted)]">Pesquisa, refina e exporta</p>
+        <p className="mt-0.5 text-[11px] text-[var(--text-muted)]">Gerencia e exporta as movimentacoes financeiras</p>
       </div>
 
-      <div className="mt-4 space-y-3">
-        <label className="block">
-          <span className={labelStyle}>Pesquisar</span>
-          <div className="relative mt-1.5">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-muted)]" />
-            <input
-              className={`${inputBase} h-[38px] pl-[34px]`}
-              onChange={(event) => onSearchQueryChange(event.target.value)}
-              placeholder="Descricao, origem, categoria ou metodo"
-              type="text"
-              value={searchQuery}
-            />
-          </div>
-        </label>
+      <div className="space-y-3 px-4 py-3">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-muted)]" />
+          <input
+            className={`${inputBase} h-9 pl-9 text-xs`}
+            onChange={(event) => onSearchQueryChange(event.target.value)}
+            placeholder="Pesquisar transacoes..."
+            type="text"
+            value={searchQuery}
+          />
+        </div>
 
-        <div className="grid gap-3 xl:grid-cols-2">
-          <label className="block">
+        <div className="flex items-end gap-3">
+          <div className="min-w-0 flex-1">
             <span className={labelStyle}>Categoria</span>
-            <div className="relative mt-1.5">
+            <div className="relative mt-1">
               <select
-                className={`${inputBase} h-[38px] appearance-none pr-9`}
+                className={`${inputBase} h-9 appearance-none pr-8 text-xs`}
                 onChange={(event) => onCategoryFilterChange(event.target.value)}
                 value={categoryFilter}
               >
@@ -220,29 +253,24 @@ function FinanceFilterToolbar({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-muted)]" />
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-[var(--text-muted)]" />
             </div>
-          </label>
+          </div>
 
-          <div>
-            <span className={labelStyle}>Estado do gasto</span>
-            <div className="flex flex-wrap gap-1 sm:flex-nowrap">
-              {FILTER_STATUS_OPTIONS.map((option, i) => {
+          <div className="min-w-0 flex-1">
+            <span className={labelStyle}>Estado</span>
+            <div className="mt-1 flex rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] p-0.5">
+              {FILTER_STATUS_OPTIONS.map((option) => {
                 const isActive = option.value === expenseStatusFilter
-                const isFirst = i === 0
-                const isLast = i === FILTER_STATUS_OPTIONS.length - 1
                 return (
                   <button
                     key={option.value}
                     aria-pressed={isActive}
                     className={cx(
-                      'flex-1 h-[38px] text-xs font-medium transition border-y sm:text-sm',
-                      isFirst && 'rounded-l border-l',
-                      isLast && 'rounded-r border-r',
-                      !isFirst && 'border-l-0',
+                      'flex-1 rounded-md px-1.5 py-1.5 text-[10px] font-medium transition',
                       isActive
-                        ? 'bg-[var(--inverted-surface)] text-[var(--inverted-text)] border-[var(--inverted-surface)]'
-                        : 'bg-transparent text-[var(--text-muted)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)]',
+                        ? 'bg-[var(--inverted-surface)] text-[var(--inverted-text)] shadow-sm'
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
                     )}
                     onClick={() => onExpenseStatusFilterChange(option.value)}
                     type="button"
@@ -255,26 +283,51 @@ function FinanceFilterToolbar({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="flex items-center gap-2">
           <button
-            className="inline-flex items-center justify-center gap-1.5 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-2 py-2 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50 sm:gap-2 sm:px-3 sm:text-[13px]"
+            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] px-2.5 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)]"
             onClick={onExportSummary} type="button"
           >
             <FileSpreadsheet className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">Resumo CSV</span>
+            <span>CSV</span>
           </button>
           <button
-            className="inline-flex items-center justify-center gap-1.5 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] px-2 py-2 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)] disabled:opacity-50 sm:gap-2 sm:px-3 sm:text-[13px]"
+            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] px-2.5 text-xs font-medium text-[var(--text-primary)] transition hover:bg-[var(--surface-2)]"
             onClick={onReload} type="button"
           >
             <RefreshCcw className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">Atualizar</span>
           </button>
           <ExportDropdown data={expenses} type="gastos" filename="gastos" label="Gastos" />
           <ExportDropdown data={income} type="receitas" filename="receitas" label="Receitas" />
         </div>
+      </div>
 
-        <p className="text-[11px] text-[var(--text-muted)]">Aplicado a {monthLabel}.</p>
+      <div className="border-t border-[var(--border-subtle)] px-4 py-3">
+        <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-muted)]">{monthLabel}</p>
+        <div className="mt-2 grid grid-cols-4 gap-3">
+          <div>
+            <p className="text-[10px] text-[var(--text-muted)]">Receitas</p>
+            <p className="mt-0.5 text-sm font-semibold text-[var(--color-success)]">
+              {formatCurrency(incomeTotal, currency)}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] text-[var(--text-muted)]">Gastos</p>
+            <p className="mt-0.5 text-sm font-semibold text-[var(--color-danger)]">
+              {formatCurrency(expenseTotal, currency)}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] text-[var(--text-muted)]">Saldo</p>
+            <p className={cx('mt-0.5 text-sm font-semibold', saldo >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]')}>
+              {formatCurrency(saldo, currency)}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] text-[var(--text-muted)]">Registos</p>
+            <p className="mt-0.5 text-sm font-semibold text-[var(--text-primary)]">{totalTransactions}</p>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -456,11 +509,8 @@ export function FinancePage() {
   const currentMonthView = selectedYear === today.getFullYear() && selectedMonth === today.getMonth()
   const currency = configuracoes.moeda ?? 'CVE'
   const monthLabel = formatMonthLabel(reference)
-  const datedYears = [...gastos, ...receitas]
-    .map((item) => parseDateValue(item.data).getFullYear())
-    .filter((value) => Number.isFinite(value))
-  const minYear = datedYears.length > 0 ? Math.min(...datedYears, today.getFullYear() - 2) : today.getFullYear() - 2
-  const maxYear = datedYears.length > 0 ? Math.max(...datedYears, today.getFullYear() + 2) : today.getFullYear() + 2
+  const minYear = today.getFullYear()
+  const maxYear = 2035
   const yearOptions = Array.from({ length: maxYear - minYear + 1 }, (_, index) => maxYear - index)
   const monthOptions = Array.from({ length: 12 }, (_, month) => ({
     label: getMonthChipLabel(month),
@@ -769,8 +819,11 @@ export function FinancePage() {
 
       <div className="grid gap-6 2xl:grid-cols-[1.15fr,0.85fr]">
         <PeriodSelectorPanel
+          currency={currency}
           expenseCount={gastosMes.length}
+          expenseTotal={gastosTotal}
           incomeCount={receitasMes.length}
+          incomeTotal={receitasTotal}
           isLive={isLive}
           monthLabel={monthLabel}
           monthOptions={monthOptions}
@@ -783,34 +836,27 @@ export function FinancePage() {
 
         <FinanceFilterToolbar
           categoryFilter={categoryFilter}
+          currency={currency}
           expenseFilterOptions={expenseFilterOptions}
           expenseStatusFilter={expenseStatusFilter}
-          expenses={visibleExpenses}
-          income={visibleIncome}
+          expenseTotal={gastosTotal}
+          incomeTotal={receitasTotal}
           monthLabel={monthLabel}
           onCategoryFilterChange={setCategoryFilter}
           onExpenseStatusFilterChange={setExpenseStatusFilter}
           onExportSummary={handleExportSummary}
           onReload={() => void reload()}
           onSearchQueryChange={setSearchQuery}
+          saldo={saldo}
           searchQuery={searchQuery}
+          totalTransactions={receitasMes.length + gastosMes.length}
+          expenses={visibleExpenses}
+          income={visibleIncome}
         />
       </div>
 
       {section === 'overview' ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <StatCard
-          accent="#1d9e75"
-          label="Receitas do periodo"
-          subtitle={`${receitasMes.length} entrada(s) em ${monthLabel}`}
-          value={formatCurrency(receitasTotal, currency)}
-        />
-        <StatCard
-          accent="#e24b4a"
-          label="Gastos do periodo"
-          subtitle={`${gastosMes.length} saida(s) registadas`}
-          value={formatCurrency(gastosTotal, currency)}
-        />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <StatCard
           accent={saldo >= 0 ? '#1d9e75' : '#e24b4a'}
           label="Saldo operacional"
@@ -828,6 +874,12 @@ export function FinancePage() {
           label="A receber"
           subtitle={`${formatCoverage(expenseCoverage)} de cobertura media`}
           value={formatCurrency(pendingReceivables, currency)}
+        />
+        <StatCard
+          accent="#378add"
+          label="Margem"
+          subtitle="receita vs gasto"
+          value={formatRatio(cashMargin)}
         />
         </div>
       ) : null}
@@ -858,23 +910,23 @@ export function FinancePage() {
           />
 
           <div className="mt-5 grid gap-3 md:grid-cols-3">
-            <div className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-4">
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
               <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Run-rate</p>
-              <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+              <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
                 {formatCurrency(trailingIncome, currency)}
               </p>
               <p className="mt-2 text-sm text-[var(--text-secondary)]">Media de entradas dos ultimos tres ciclos.</p>
             </div>
-            <div className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-4">
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
               <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Burn-rate</p>
-              <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+              <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
                 {formatCurrency(trailingExpenses, currency)}
               </p>
               <p className="mt-2 text-sm text-[var(--text-secondary)]">Media recente de saida de caixa.</p>
             </div>
-            <div className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-4">
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
               <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Projecao</p>
-              <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+              <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
                 {formatCurrency(projectedNet, currency)}
               </p>
               <p className="mt-2 text-sm text-[var(--text-secondary)]">Saldo estimado do proximo ciclo medio.</p>
@@ -884,39 +936,39 @@ export function FinancePage() {
 
         <Panel description="Leituras rapidas para decidir sem sair da operacao financeira." title="Desk do periodo">
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-            <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
               <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Receita ligada a projeto</p>
-              <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+              <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
                 {formatCurrency(linkedProjectIncome, currency)}
               </p>
               <p className="mt-2 text-sm text-[var(--text-secondary)]">
                 {formatRatio(receitasTotal > 0 ? linkedProjectIncome / receitasTotal : 0)} do caixa do periodo.
               </p>
-            </article>
+            </div>
 
-            <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
               <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Compromisso recorrente</p>
-              <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+              <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
                 {formatCurrency(recurringCommitment, currency)}
               </p>
               <p className="mt-2 text-sm text-[var(--text-secondary)]">
                 {recorrentes.length} despesa(s) recorrente(s) catalogada(s).
               </p>
-            </article>
+            </div>
 
-            <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
               <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Ticket medio</p>
-              <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+              <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
                 {formatCurrency(averageIncome, currency)}
               </p>
               <p className="mt-2 text-sm text-[var(--text-secondary)]">
                 Gasto medio: {formatCurrency(averageExpense, currency)}.
               </p>
-            </article>
+            </div>
 
-            <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
               <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Maior gasto</p>
-              <p className="mt-3 text-lg font-semibold tracking-[-0.04em] text-[var(--text-primary)]">
+              <p className="mt-4 text-lg font-semibold tracking-[-0.04em] text-[var(--text-primary)]">
                 {largestExpense ? largestExpense.descricao : 'Sem lancamentos'}
               </p>
               <p className="mt-2 text-sm text-[var(--text-secondary)]">
@@ -924,7 +976,7 @@ export function FinancePage() {
                   ? `${formatCurrency(largestExpense.valor, currency)} em ${formatDate(largestExpense.data)}`
                   : 'Sem gasto registado neste periodo.'}
               </p>
-            </article>
+            </div>
           </div>
 
           <div className="mt-5 rounded-md border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-4">
@@ -1008,7 +1060,7 @@ export function FinancePage() {
                 paymentMethodRows.slice(0, 5).map(([label, value]) => (
                   <div
                     key={label}
-                    className="flex items-center justify-between rounded-[22px] border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 text-sm"
+                    className="flex items-center justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 text-sm transition hover:border-[var(--border-strong)]"
                   >
                     <span className="text-[var(--text-primary)]">{label}</span>
                     <span className="font-mono text-[var(--text-secondary)]">
@@ -1269,45 +1321,45 @@ export function FinancePage() {
           <div className="space-y-3">
             {visibleExpenses.length > 0 ? (
               visibleExpenses.slice(0, 12).map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-[26px] border border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4"
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-medium text-[var(--text-primary)]">{item.descricao}</p>
-                        <span
-                          className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.22em] ${
-                            item.pago === 1
-                              ? 'border-[var(--color-success)]/30 bg-[var(--color-success)]/10 text-[var(--color-success)]'
-                              : 'border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]'
-                          }`}
-                        >
-                          {item.pago === 1 ? 'Pago' : 'Pendente'}
-                        </span>
+                  <div
+                    key={item.id}
+                    className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4 transition hover:border-[var(--border-strong)]"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-medium text-[var(--text-primary)]">{item.descricao}</p>
+                          <span
+                            className={`rounded-md border px-2 py-0.5 text-[10px] uppercase tracking-[0.22em] ${
+                              item.pago === 1
+                                ? 'border-[var(--color-success)]/30 bg-[var(--color-success)]/10 text-[var(--color-success)]'
+                                : 'border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]'
+                            }`}
+                          >
+                            {item.pago === 1 ? 'Pago' : 'Pendente'}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs text-[var(--text-muted)]">
+                          {getExpenseCategoryLabel(item)} | {formatDate(item.data)}
+                          {item.metodo ? ` | ${item.metodo}` : ''}
+                        </p>
+                        {item.notas ? <p className="mt-2 text-sm text-[var(--text-secondary)]">{item.notas}</p> : null}
                       </div>
-                      <p className="mt-2 text-xs text-[var(--text-muted)]">
-                        {getExpenseCategoryLabel(item)} | {formatDate(item.data)}
-                        {item.metodo ? ` | ${item.metodo}` : ''}
-                      </p>
-                      {item.notas ? <p className="mt-2 text-sm text-[var(--text-secondary)]">{item.notas}</p> : null}
-                    </div>
 
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-sm text-[var(--color-danger)]">-{formatCurrency(item.valor, currency)}</span>
-                      <button
-                        className={`${BUTTON_SECONDARY} px-3 py-2 text-xs`}
-                        disabled={deletingExpenseId === item.id}
-                        onClick={() => void handleDeleteExpense(item.id, item.descricao)}
-                        type="button"
-                      >
-                        <Trash2 className="mr-2 h-3.5 w-3.5" />
-                        Remover
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-sm text-[var(--color-danger)]">-{formatCurrency(item.valor, currency)}</span>
+                        <button
+                          className={`${BUTTON_SECONDARY} px-3 py-2 text-xs`}
+                          disabled={deletingExpenseId === item.id}
+                          onClick={() => void handleDeleteExpense(item.id, item.descricao)}
+                          type="button"
+                        >
+                          <Trash2 className="mr-2 h-3.5 w-3.5" />
+                          Remover
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
               ))
             ) : (
               <p className="text-sm text-[var(--text-secondary)]">Nenhum gasto encontrado com os filtros atuais.</p>
@@ -1315,7 +1367,7 @@ export function FinancePage() {
           </div>
         </Panel>
 
-        <div className="space-y-6">
+    <div className="space-y-5">
           <Panel
             description={`Mostrando ${visibleIncome.length} de ${receitasMes.length} receita(s) em ${monthLabel}.`}
             title="Receitas do periodo"
@@ -1325,7 +1377,7 @@ export function FinancePage() {
                 visibleIncome.slice(0, 10).map((item) => (
                   <div
                     key={item.id}
-                    className="rounded-[26px] border border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4"
+                    className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4 transition hover:border-[var(--border-strong)]"
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
@@ -1365,7 +1417,7 @@ export function FinancePage() {
                     pendingBills.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center justify-between rounded-[22px] border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3"
+                        className="flex items-center justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 transition hover:border-[var(--border-strong)]"
                       >
                         <div>
                           <p className="text-sm font-medium text-[var(--text-primary)]">{item.descricao}</p>
@@ -1391,7 +1443,7 @@ export function FinancePage() {
                     recurringRows.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center justify-between rounded-[22px] border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3"
+                        className="flex items-center justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 transition hover:border-[var(--border-strong)]"
                       >
                         <div>
                           <p className="text-sm font-medium text-[var(--text-primary)]">{item.descricao}</p>
@@ -1400,7 +1452,7 @@ export function FinancePage() {
                           </p>
                         </div>
                         <span
-                          className={`rounded-full border px-2.5 py-1 text-[11px] uppercase tracking-[0.22em] ${
+                          className={`rounded-md border px-2 py-0.5 text-[10px] uppercase tracking-[0.22em] ${
                             item.pago === 1
                               ? 'border-[var(--color-success)]/30 bg-[var(--color-success)]/10 text-[var(--color-success)]'
                               : 'border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]'
@@ -1433,45 +1485,45 @@ export function FinancePage() {
         title="Resumo anual"
       >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
             <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">YTD ate {monthLabel}</p>
-            <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+            <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
               {formatCurrency(yearToDateNet, currency)}
             </p>
             <p className="mt-2 text-sm text-[var(--text-secondary)]">
               {formatCurrency(yearToDateIncome, currency)} em entradas vs {formatCurrency(yearToDateExpenses, currency)} em saidas.
             </p>
-          </article>
+          </div>
 
-          <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
             <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Fluxo anual</p>
-            <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+            <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
               {formatCurrency(annualIncome - annualExpenses, currency)}
             </p>
             <p className="mt-2 text-sm text-[var(--text-secondary)]">
               {formatCurrency(annualIncome, currency)} recebidos e {formatCurrency(annualExpenses, currency)} gastos no ano.
             </p>
-          </article>
+          </div>
 
-          <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
             <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Melhor saldo</p>
-            <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+            <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
               {bestMonth ? formatCurrency(bestMonth.net, currency) : formatCurrency(0, currency)}
             </p>
             <p className="mt-2 text-sm text-[var(--text-secondary)]">
               {bestMonth ? `${bestMonth.label} foi o melhor fecho do ano.` : 'Ainda sem dados no ano selecionado.'}
             </p>
-          </article>
+          </div>
 
-          <article className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4">
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
             <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Pico operacional</p>
-            <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+            <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
               {mostActiveMonth ? formatCurrency(mostActiveMonth.activity, currency) : formatCurrency(0, currency)}
             </p>
             <p className="mt-2 text-sm text-[var(--text-secondary)]">
               {mostActiveMonth ? `${mostActiveMonth.label} concentrou o maior volume do ano.` : 'Sem volume registado ainda.'}
             </p>
-          </article>
+          </div>
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
@@ -1482,9 +1534,9 @@ export function FinancePage() {
               <button
                 key={row.month}
                 className={[
-                  'rounded-[26px] border p-4 text-left transition',
+                  'relative rounded-2xl border p-5 text-left transition',
                   row.isActive
-                    ? 'border-[var(--brand)]/20 bg-[var(--surface-1)] shadow-[0_0_0_1px_var(--brand)]/10'
+                    ? 'border-[var(--border-strong)] bg-[var(--surface-2)]'
                     : 'border-[var(--border-subtle)] bg-[var(--surface-1)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)]',
                 ].join(' ')}
                 onClick={() => setSelectedMonth(row.month)}
@@ -1492,7 +1544,7 @@ export function FinancePage() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <span className="inline-flex rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-2.5 py-1 text-[10px] uppercase tracking-[0.24em] text-[var(--text-muted)]">
+                    <span className="inline-flex rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] px-2.5 py-1 text-[10px] uppercase tracking-[0.24em] text-[var(--text-muted)]">
                       {row.monthChip}
                     </span>
                     <p className="mt-3 text-lg font-semibold capitalize tracking-[-0.04em] text-[var(--text-primary)]">
@@ -1501,7 +1553,7 @@ export function FinancePage() {
                   </div>
                   <span
                     className={[
-                      'rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.24em]',
+                      'rounded-md border px-2.5 py-1 text-[10px] uppercase tracking-[0.24em]',
                       row.net >= 0
                         ? 'border-[var(--color-success)]/30 bg-[var(--color-success)]/10 text-[var(--color-success)]'
                         : 'border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 text-[var(--color-danger)]',
@@ -1511,7 +1563,7 @@ export function FinancePage() {
                   </span>
                 </div>
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div className="mt-4 grid grid-cols-3 gap-3 border-t border-[var(--border-subtle)] pt-4">
                   <div>
                     <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Receitas</p>
                     <p className="mt-2 font-mono text-sm text-[var(--color-success)]">{formatCurrency(row.income, currency)}</p>
@@ -1528,12 +1580,12 @@ export function FinancePage() {
 
                 <div className="mt-4">
                   <div className="flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
-                    <span>Volume do mes</span>
+                    <span>Volume</span>
                     <span>{formatCurrency(row.activity, currency)}</span>
                   </div>
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]">
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--surface-soft)]">
                     <div
-                      className="h-full rounded-full bg-[var(--brand)]"
+                      className="h-full rounded-full bg-[var(--brand)]/60"
                       style={{ width: `${activityWidth}%` }}
                     />
                   </div>

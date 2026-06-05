@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { FullScreenLoader } from '../components/full-screen-loader'
 import { Panel } from '../components/panel'
 import { useAuth } from '../hooks/use-auth'
@@ -37,11 +37,9 @@ export function ConfigPage() {
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
 
-  useEffect(() => {
-    if (!data) {
-      return
-    }
-
+  const [prevConfigData, setPrevConfigData] = useState(data)
+  if (data && data !== prevConfigData) {
+    setPrevConfigData(data)
     setForm({
       alerta_conta_dias: data.alerta_conta_dias ?? '3',
       alerta_prazo_dias: data.alerta_prazo_dias ?? '7',
@@ -51,7 +49,7 @@ export function ConfigPage() {
       tema: data.tema ?? 'light',
       ultimo_backup: data.ultimo_backup ?? 'nunca',
     })
-  }, [data])
+  }
 
   if (isLoading && !data) {
     return <FullScreenLoader label="A carregar as configuracoes..." />

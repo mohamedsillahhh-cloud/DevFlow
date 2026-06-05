@@ -1,5 +1,5 @@
 import { PlusCircle, RefreshCcw, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { FullScreenLoader } from '../components/full-screen-loader'
 import { PageSectionNav } from '../components/page-section-nav'
@@ -61,13 +61,11 @@ export function InvestmentsPage() {
     { label: 'Novo', to: '/investimentos/novo' },
   ]
 
-  useEffect(() => {
-    if (!data || movementForm.investmentId || data.investimentos.length === 0) {
-      return
-    }
-
+  const [prevInvestData, setPrevInvestData] = useState(data)
+  if (data && data !== prevInvestData && !movementForm.investmentId && data.investimentos.length > 0) {
+    setPrevInvestData(data)
     setMovementForm((current) => ({ ...current, investmentId: String(data.investimentos[0].id) }))
-  }, [data, movementForm.investmentId])
+  }
 
   if (isLoading && !data) {
     return <FullScreenLoader label="A carregar os investimentos..." />

@@ -74,6 +74,8 @@ from utils.exportacao import (
     exportar_investimentos_para_excel,
     exportar_projetos_para_excel,
     exportar_receitas_para_excel,
+    exportar_relatorio_completo,
+    exportar_relatorio_pdf,
     exportar_sessoes_para_excel,
 )
 from utils.formatacao import cor_prazo, formatar_moeda, percentual
@@ -783,6 +785,19 @@ class MainWindow(QMainWindow):
                 layout.addWidget(self._alert(message, danger))
         else:
             layout.addWidget(self._empty_card("Alertas", "Nenhum alerta ativo no momento."))
+
+        export_row = QHBoxLayout()
+        export_row.setSpacing(8)
+        btn_completo = QPushButton("📊 Relatório completo (.xlsx)")
+        btn_completo.setObjectName("secondaryButton")
+        btn_completo.clicked.connect(self._export_relatorio_completo)
+        btn_pdf = QPushButton("📄 Relatório PDF")
+        btn_pdf.setObjectName("secondaryButton")
+        btn_pdf.clicked.connect(self._export_relatorio_pdf)
+        export_row.addWidget(btn_completo)
+        export_row.addWidget(btn_pdf)
+        export_row.addStretch(1)
+        layout.addLayout(export_row)
 
         month_start, next_month = self._month_bounds()
         receitas_mes = self._sum_amount(
@@ -1719,6 +1734,58 @@ class MainWindow(QMainWindow):
             "Exportar aportes",
             "Nao ha aportes para exportar.",
         )
+
+    def _export_relatorio_completo(self) -> None:
+        default_dir = self.configuracoes.get("caminho_backup", str(Path.home()))
+        default_name = Path(default_dir) / f"devflow-completo-{datetime.now():%Y%m%d-%H%M%S}.xlsx"
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Exportar relatório completo",
+            str(default_name),
+            "Excel (*.xlsx)",
+        )
+        if not file_path:
+            return
+        try:
+            exportar_relatorio_completo(
+                self.data.projetos,
+                self.data.gastos,
+                self.data.receitas,
+                self.data.investimentos,
+                self.data.aportes,
+                self.data.tempo_projeto,
+                Path(file_path),
+            )
+        except Exception as exc:
+            self._show_operation_error(exc, "Falha ao exportar")
+            return
+        QMessageBox.information(self, "Exportação concluída", f"Relatório criado em:\n{file_path}")
+
+    def _export_relatorio_pdf(self) -> None:
+        default_dir = self.configuracoes.get("caminho_backup", str(Path.home()))
+        default_name = Path(default_dir) / f"devflow-relatorio-{datetime.now():%Y%m%d-%H%M%S}.pdf"
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Exportar relatório PDF",
+            str(default_name),
+            "PDF (*.pdf)",
+        )
+        if not file_path:
+            return
+        try:
+            exportar_relatorio_pdf(
+                self.data.projetos,
+                self.data.gastos,
+                self.data.receitas,
+                self.data.investimentos,
+                self.data.aportes,
+                self.data.tempo_projeto,
+                Path(file_path),
+            )
+        except Exception as exc:
+            self._show_operation_error(exc, "Falha ao exportar")
+            return
+        QMessageBox.information(self, "Exportação concluída", f"PDF criado em:\n{file_path}")
 
     def _send_chat_message(self) -> None:
         if self.chat_input is None:

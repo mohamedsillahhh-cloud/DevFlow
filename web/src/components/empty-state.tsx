@@ -11,7 +11,7 @@ interface EmptyStateProps {
 
 export function EmptyState({ action, description, icon: Icon, tags = [], title }: EmptyStateProps) {
   return (
-    <div className="rounded-[28px] border border-dashed border-[var(--border-subtle)] bg-[linear-gradient(180deg,rgba(10,10,10,0.98),rgba(4,4,4,0.98))] px-6 py-10 text-center">
+    <div className="rounded-2xl border border-dashed border-[var(--border-subtle)] bg-[linear-gradient(180deg,rgba(10,10,10,0.98),rgba(4,4,4,0.98))] px-6 py-10 text-center">
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl border border-[var(--border-strong)] bg-[rgba(255,255,255,0.06)] text-[var(--brand)]">
         <Icon className="h-7 w-7" />
       </div>

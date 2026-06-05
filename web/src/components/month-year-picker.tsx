@@ -1,8 +1,8 @@
-import { useMemo } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { cx } from '../lib/cn'
 
 interface MonthYearPickerProps {
-  monthLabel: string
   monthOptions: Array<{ label: string; value: number }>
   onSelectMonth: (month: number) => void
   onSelectYear: (year: number) => void
@@ -11,8 +11,9 @@ interface MonthYearPickerProps {
   yearOptions: number[]
 }
 
+const VISIBLE_COUNT = 5
+
 export function MonthYearPicker({
-  monthLabel,
   monthOptions,
   onSelectMonth,
   onSelectYear,
@@ -21,32 +22,61 @@ export function MonthYearPicker({
   yearOptions,
 }: MonthYearPickerProps) {
   const today = new Date()
-  const isCurrentMonth = (m: number) => today.getMonth() === m && today.getFullYear() === selectedYear
   const sortedYears = useMemo(() => [...yearOptions].sort((a, b) => a - b), [yearOptions])
+  const maxStart = Math.max(0, sortedYears.length - VISIBLE_COUNT)
+  const selectedIndex = sortedYears.indexOf(selectedYear)
+  const [startIndex, setStartIndex] = useState(() =>
+    selectedIndex >= 0 ? Math.min(selectedIndex, maxStart) : 0,
+  )
+
+  const visibleYears = sortedYears.slice(startIndex, startIndex + VISIBLE_COUNT)
+  const canGoPrev = sortedYears.includes(selectedYear - 1)
+  const canGoNext = sortedYears.includes(selectedYear + 1)
+
+  const isCurrentMonth = (m: number) => today.getMonth() === m && today.getFullYear() === selectedYear
+
+  function goToYear(year: number) {
+    onSelectYear(year)
+    const idx = sortedYears.indexOf(year)
+    if (idx < startIndex) {
+      setStartIndex(idx)
+    } else if (idx >= startIndex + VISIBLE_COUNT) {
+      setStartIndex(Math.min(idx - VISIBLE_COUNT + 1, maxStart))
+    }
+  }
 
   return (
-    <div>
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-secondary)]">
-          {monthLabel}
-        </p>
-      </div>
+    <div className="space-y-4">
+      <div className="flex items-center gap-1">
+        <button
+          aria-label="Ano anterior"
+          className={cx(
+            'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-muted)] transition',
+            canGoPrev
+              ? 'hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]'
+              : 'cursor-default opacity-30',
+          )}
+          disabled={!canGoPrev}
+          onClick={() => goToYear(selectedYear - 1)}
+          type="button"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
 
-      <div className="mt-4 overflow-x-auto">
-        <div className="flex items-center gap-2">
-          {sortedYears.slice(0, 7).map((year) => {
+        <div className="flex flex-1 gap-1">
+          {visibleYears.map((year) => {
             const isActive = year === selectedYear
             return (
               <button
                 key={year}
                 aria-pressed={isActive}
                 className={cx(
-                  'shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition',
+                  'flex-1 rounded-lg px-3 py-2 text-center text-sm font-medium transition',
                   isActive
-                    ? 'bg-[var(--brand-soft)] text-[var(--brand)]'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
+                    ? 'bg-[var(--brand)] text-[var(--inverted-text)] shadow-sm'
+                    : 'text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]',
                 )}
-                onClick={() => onSelectYear(year)}
+                onClick={() => goToYear(year)}
                 type="button"
               >
                 {year}
@@ -54,9 +84,24 @@ export function MonthYearPicker({
             )
           })}
         </div>
+
+        <button
+          aria-label="Proximo ano"
+          className={cx(
+            'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-muted)] transition',
+            canGoNext
+              ? 'hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]'
+              : 'cursor-default opacity-30',
+          )}
+          disabled={!canGoNext}
+          onClick={() => goToYear(selectedYear + 1)}
+          type="button"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
       </div>
 
-      <div className="mt-4 grid grid-cols-4 gap-1">
+      <div className="grid grid-cols-4 gap-1.5">
         {monthOptions.map((option) => {
           const isActive = option.value === selectedMonth
           const isCurrent = isCurrentMonth(option.value)
@@ -66,17 +111,22 @@ export function MonthYearPicker({
               key={option.value}
               aria-pressed={isActive}
               className={cx(
-                'relative rounded-md px-2 py-2 text-center text-sm font-medium transition sm:px-3',
+                'relative rounded-xl px-2 py-3 text-center text-sm font-medium transition',
                 isActive
-                  ? 'bg-[var(--brand)] text-[var(--inverted-text)]'
-                  : 'text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]',
+                  ? 'bg-[var(--brand)] text-[var(--inverted-text)] shadow-sm'
+                  : 'border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]',
               )}
               onClick={() => onSelectMonth(option.value)}
               type="button"
             >
               {option.label}
               {isCurrent && !isActive ? (
-                <span className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[var(--brand)]" />
+                <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-[var(--surface-1)] bg-[var(--brand)]" />
+              ) : null}
+              {isActive ? (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--brand-strong)] text-[9px] text-[var(--inverted-text)]">
+                  ✓
+                </span>
               ) : null}
             </button>
           )

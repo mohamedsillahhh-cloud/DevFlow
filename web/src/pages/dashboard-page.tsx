@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { ComparisonAreaChart, DonutChart, MiniBarChart } from '../components/data-viz'
-import { ExportDropdown } from '../components/export-dropdown'
+import { ExportCompleto, ExportDropdown } from '../components/export-dropdown'
 import { FullScreenLoader } from '../components/full-screen-loader'
 import { PageSectionNav } from '../components/page-section-nav'
 import { Panel } from '../components/panel'
@@ -88,7 +88,7 @@ function monthStamp(reference = new Date()) {
 export function DashboardPage() {
   const location = useLocation()
   const { data, error, isLoading, reload } = useAsyncData(fetchDashboardSnapshot)
-  useRealtimeSync(['configuracoes', 'projetos', 'gastos', 'receitas', 'investimentos', 'aportes'], reload, {
+  useRealtimeSync(['configuracoes', 'projetos', 'gastos', 'receitas', 'investimentos', 'aportes', 'tempo_projeto'], reload, {
     pollIntervalMs: 12000,
   })
   if (isLoading && !data) {
@@ -113,7 +113,7 @@ export function DashboardPage() {
     )
   }
 
-  const { aportes, configuracoes, gastos, projetos, receitas } = data
+  const { aportes, configuracoes, gastos, projetos, receitas, sessoes } = data
   const currency = configuracoes.moeda ?? 'CVE'
   const { end, start } = getMonthBounds()
   const receitasDoMes = receitas.filter((item) => isWithinDateRange(item.data, start, end))
@@ -248,18 +248,25 @@ export function DashboardPage() {
         items={sectionNavItems}
       />
 
-      <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
-        <div className="flex items-center gap-3 rounded-[28px] border border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-sm text-[var(--text-secondary)] shadow-[var(--shadow-soft)]">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#53371a] bg-[rgba(140,96,15,0.18)] text-[var(--color-warning)]">
-            <AlertTriangle className="h-4 w-4" />
-          </span>
-          {alerts.length > 0 ? `${alerts.length} alerta(s) ativo(s)` : 'Nenhum alerta ativo no momento'}
-        </div>
+        <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
+          <div className="flex items-center gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] px-5 py-3 text-sm text-[var(--text-secondary)]">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#53371a] bg-[rgba(140,96,15,0.18)] text-[var(--color-warning)]">
+              <AlertTriangle className="h-4 w-4" />
+            </span>
+            <span>{alerts.length > 0 ? `${alerts.length} alerta(s) ativo(s)` : 'Nenhum alerta ativo no momento'}</span>
+          </div>
 
         <div className="flex flex-wrap gap-3">
           <ExportDropdown data={receitas} type="receitas" filename={monthStamp()} label="Receitas" />
           <ExportDropdown data={gastos} type="gastos" filename={monthStamp()} label="Gastos" />
           <ExportDropdown data={projetos} type="projetos" filename={monthStamp()} label="Pipeline" />
+          <ExportCompleto
+            projetos={projetos}
+            gastos={gastos}
+            receitas={receitas}
+            sessoes={sessoes}
+            label="Relatório"
+          />
           <button className={BUTTON_SECONDARY} onClick={() => void reload()} type="button">
             <RefreshCcw className="mr-2 h-4 w-4" />
             Atualizar
@@ -294,7 +301,7 @@ export function DashboardPage() {
           {alerts.slice(0, 3).map((alert) => (
             <div
               key={alert.message}
-              className={`rounded-[24px] border px-4 py-4 text-sm ${
+              className={`rounded-2xl border px-5 py-4 text-sm transition hover:border-opacity-80 ${
                 alert.danger
                   ? 'border-[#4a1f2a] bg-[rgba(113,29,43,0.16)] text-[var(--text-primary)]'
                   : 'border-[#5a4722] bg-[rgba(140,96,15,0.16)] text-[var(--text-primary)]'
@@ -367,23 +374,23 @@ export function DashboardPage() {
           />
 
           <div className="mt-5 grid gap-3 md:grid-cols-3">
-            <div className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-4">
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
               <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Run-rate</p>
-              <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+              <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
                 {formatCurrency(trailingIncome, currency)}
               </p>
               <p className="mt-2 text-sm text-[var(--text-secondary)]">Media recente de faturamento.</p>
             </div>
-            <div className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-4">
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
               <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Burn-rate</p>
-              <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+              <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
                 {formatCurrency(trailingExpenses, currency)}
               </p>
               <p className="mt-2 text-sm text-[var(--text-secondary)]">Media recente de saida de caixa.</p>
             </div>
-            <div className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-4">
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]">
               <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Projecao</p>
-              <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+              <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
                 {formatCurrency(nextMonthProjection, currency)}
               </p>
               <p className="mt-2 text-sm text-[var(--text-secondary)]">Estimativa liquida do proximo ciclo.</p>
@@ -417,10 +424,10 @@ export function DashboardPage() {
             {excelCards.map((card) => (
               <article
                 key={card.label}
-                className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4"
+                className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5 transition hover:border-[var(--border-strong)]"
               >
                 <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">{card.label}</p>
-                <p className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
+                <p className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--text-primary)]">
                   {card.value}
                 </p>
                 <p className="mt-2 font-mono text-xs text-[var(--text-muted)]">{card.formula}</p>
@@ -491,7 +498,7 @@ export function DashboardPage() {
                 const progressValue = total > 0 ? Math.min((paid / total) * 100, 100) : 0
 
                 return (
-                  <div key={project.id} className="rounded-[26px] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4">
+                  <div key={project.id} className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4 transition hover:border-[var(--border-strong)]">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <p className="text-sm font-medium text-[var(--text-primary)]">{project.titulo}</p>
@@ -536,7 +543,7 @@ export function DashboardPage() {
               pendingBills.map((bill) => (
                 <div
                   key={bill.id}
-                  className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3"
+                  className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 transition hover:border-[var(--border-strong)]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -576,7 +583,7 @@ export function DashboardPage() {
               <tbody>
                 {monthlySummaryRows.map((row) => (
                   <tr key={row.label} className="text-sm">
-                    <td className="rounded-l-[22px] border-y border-l border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-primary)]">
+                    <td className="rounded-l-2xl border-y border-l border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-primary)]">
                       {row.label}
                     </td>
                     <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--color-success)]">
@@ -588,7 +595,7 @@ export function DashboardPage() {
                     <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-primary)]">
                       {formatCurrency(row.net, currency)}
                     </td>
-                    <td className="rounded-r-[22px] border-y border-r border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-secondary)]">
+                    <td className="rounded-r-2xl border-y border-r border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 text-[var(--text-secondary)]">
                       {formatRatio(row.margin)}
                     </td>
                   </tr>
@@ -604,7 +611,7 @@ export function DashboardPage() {
               {upcomingProjects.map((project) => (
                 <div
                   key={project.id}
-                  className="rounded-[24px] border border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4"
+                  className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4 transition hover:border-[var(--border-strong)]"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>

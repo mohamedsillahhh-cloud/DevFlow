@@ -17,7 +17,6 @@ export const DEFAULT_CONFIG: ConfigMap = {
 
 export const CURRENCY_OPTIONS = [
   { code: 'CVE', label: 'Escudo cabo-verdiano (CVE)' },
-  { code: 'BRL', label: 'Real brasileiro (BRL)' },
   { code: 'USD', label: 'Dólar americano (USD)' },
   { code: 'EUR', label: 'Euro (EUR)' },
 ]
@@ -55,7 +54,6 @@ export function getClientName(project: Projeto) {
 
 export function formatCurrency(value: number, currency = 'CVE') {
   const symbols: Record<string, string> = {
-    BRL: 'R$',
     CVE: 'CVE',
     EUR: 'EUR',
     USD: '$',

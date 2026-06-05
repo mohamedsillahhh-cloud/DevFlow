@@ -3,11 +3,10 @@ from __future__ import annotations
 from datetime import date
 
 
-def formatar_moeda(valor: float, moeda: str = "BRL") -> str:
+def formatar_moeda(valor: float, moeda: str = "CVE") -> str:
     """Formata valores monetarios no padrao visual esperado."""
 
     simbolos = {
-        "BRL": "R$",
         "CVE": "CVE",
         "USD": "$",
         "EUR": "EUR",

@@ -401,16 +401,17 @@ export async function fetchTempoProjeto() {
 }
 
 export async function fetchDashboardSnapshot() {
-  const [configuracoes, projetos, gastos, receitas, investimentos, aportes] = await Promise.all([
+  const [configuracoes, projetos, gastos, receitas, investimentos, aportes, sessoes] = await Promise.all([
     fetchConfiguracoes(),
     fetchProjetos(),
     fetchGastos(),
     fetchReceitas(),
     fetchInvestimentos(),
     fetchAportes(),
+    fetchTempoProjeto(),
   ])
 
-  return { aportes, configuracoes, gastos, investimentos, projetos, receitas }
+  return { aportes, configuracoes, gastos, investimentos, projetos, receitas, sessoes }
 }
 
 export async function fetchProjectsSnapshot() {

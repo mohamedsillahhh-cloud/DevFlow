@@ -75,21 +75,12 @@ export function TimerPage() {
     { label: 'Historico', to: '/timer/historico' },
   ]
 
-  useEffect(() => {
-    if (!data || selectedProjectId) {
-      return
+  const [prevTimerData, setPrevTimerData] = useState(data)
+  if (data && data !== prevTimerData) {
+    setPrevTimerData(data)
+    if (!selectedProjectId && data.projetos.length > 0) {
+      setSelectedProjectId(String(data.projetos[0].id))
     }
-    const firstProject = data.projetos[0]
-    if (firstProject) {
-      setSelectedProjectId(String(firstProject.id))
-    }
-  }, [data, selectedProjectId])
-
-  useEffect(() => {
-    if (!data) {
-      return
-    }
-
     setDefaultRate(data.configuracoes.valor_hora_padrao ?? '0')
     setProjectRates(
       Object.fromEntries(
@@ -99,7 +90,7 @@ export function TimerPage() {
         ]),
       ),
     )
-  }, [data])
+  }
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000)

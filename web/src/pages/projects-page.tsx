@@ -378,11 +378,11 @@ export function ProjectsPage() {
           description="Pesquisa rapida, leitura do pipeline e filtros para encontrar gargalos."
           title="Explorar pipeline"
         >
-          <div className="grid gap-3 xl:grid-cols-[1.2fr,260px]">
+          <div className="grid gap-3 md:grid-cols-[1fr,220px]">
             <label className="relative block">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5e5e66]" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-muted)]" />
               <input
-                className={`${INPUT_BASE} pl-11`}
+                className={`${INPUT_BASE} h-9 pl-9 text-xs`}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar cliente ou projeto..."
                 type="search"
@@ -391,9 +391,9 @@ export function ProjectsPage() {
             </label>
 
             <div className="relative">
-              <Filter className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5e5e66]" />
+              <Filter className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-muted)]" />
               <select
-                className={`${INPUT_BASE} appearance-none pl-11`}
+                className={`${INPUT_BASE} h-9 appearance-none pl-9 text-xs`}
                 onChange={(event) => setStatus(event.target.value)}
                 value={status}
               >
@@ -406,17 +406,17 @@ export function ProjectsPage() {
             </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <div className="rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-2 text-xs uppercase tracking-[0.22em] text-[var(--text-muted)]">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] px-2.5 py-1 text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
               {filteredProjects.length} resultado(s)
             </div>
-            <div className="rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-2 text-xs uppercase tracking-[0.22em] text-[var(--text-muted)]">
+            <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] px-2.5 py-1 text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
               Base total: {projetos.length}
             </div>
             {activeFilters.map((item) => (
               <div
                 key={item}
-                className="rounded-full border border-[var(--border-strong)] bg-[var(--surface-soft)] px-4 py-2 text-xs uppercase tracking-[0.2em] text-[var(--brand)]"
+                className="rounded-md border border-[var(--border-strong)] bg-[var(--surface-soft)] px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-[var(--brand)]"
               >
                 {item}
               </div>
@@ -479,7 +479,7 @@ export function ProjectsPage() {
               <tbody>
                 {filteredProjects.map((project) => (
                   <tr key={project.id} className="text-sm text-[var(--text-primary)]">
-                    <td className="rounded-l-[22px] border-y border-l border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4 text-[var(--text-secondary)]">
+                    <td className="rounded-l-2xl border-y border-l border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4 text-[var(--text-secondary)]">
                       {getClientName(project)}
                     </td>
                     <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4">
@@ -531,7 +531,7 @@ export function ProjectsPage() {
                     <td className="border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4">
                       <span style={{ color: deadlineColor(project.prazo) }}>{formatDate(project.prazo)}</span>
                     </td>
-                    <td className="rounded-r-[22px] border-y border-r border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4">
+                    <td className="rounded-r-2xl border-y border-r border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4">
                       <div className="flex min-w-[170px] flex-col gap-2 lg:min-w-[210px]">
                         <select
                           className={`${INPUT_BASE} px-3 py-2 text-xs`}

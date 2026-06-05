@@ -37,7 +37,7 @@ export const EXPORT_PRESETS = {
       { key: 'categoria', label: 'Categoria', value: (r: Gasto) => getExpenseCategoryLabel(r) },
       { key: 'valor', label: 'Valor', value: (r: Gasto) => r.valor.toFixed(2) },
       { key: 'metodo', label: 'Metodo', value: (r: Gasto) => r.metodo ?? '' },
-      { key: 'pago', label: 'Pago', value: (r: Gasto) => (r.pago === 1 ? 'Sim' : 'Nao') },
+      { key: 'pago', label: 'Pago', value: (r: Gasto) => (r.pago === 1 ? 'Sim' : 'Não') },
     ],
     filename: (suffix?: string) => `gastos${suffix ? `-${suffix}` : ''}`,
   } satisfies ExportPreset<Gasto>,

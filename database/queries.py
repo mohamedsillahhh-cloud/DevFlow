@@ -584,6 +584,56 @@ class SupabaseRepository:
     def delete_tempo_sessao(self, sessao_id: int) -> None:
         self.client.table("tempo_projeto").delete().eq("id", sessao_id).execute()
 
+    def reset_database(self, confirm: bool = False) -> None:
+        if not confirm:
+            raise RuntimeError("Chame reset_database(confirm=True) para confirmar a operacao.")
+
+        # Ordem importa: deletar tabelas dependentes antes das independentes
+        ordem = [
+            "pagamentos",      # Depende de projetos
+            "receitas",        # Depende de projetos
+            "tempo_projeto",   # Depende de projetos
+            "aportes",         # Depende de investimentos
+            "projetos",        # Depende de clientes
+            "investimentos",   # Independente
+            "gastos",          # Independente
+            "clientes",        # Independente (pai)
+        ]
+        
+        for tabela in ordem:
+            try:
+                # Tentar usar is_null para garantir que deleta tudo
+                response = self.client.table(tabela).delete().gt("id", 0).execute()
+                count = len(response.data) if response.data else 0
+                # print(f"  {tabela}: {count} registos deletados")
+            except Exception as e:
+                # Se gt("id", 0) falhar, tentar com neq("id", 0)
+                try:
+                    response = self.client.table(tabela).delete().neq("id", 0).execute()
+                    count = len(response.data) if response.data else 0
+                    # print(f"  {tabela}: {count} registos deletados (via neq)")
+                except Exception as e2:
+                    raise RuntimeError(f"Erro ao deletar {tabela}: {e2}")
+        
+        # Limpar chat history
+        try:
+            self.set_configuracao(self.CHAT_KEY, "[]")
+        except Exception:
+            pass
+
+    def reset_database_sql(self) -> str:
+        return """
+TRUNCATE TABLE pagamentos RESTART IDENTITY CASCADE;
+TRUNCATE TABLE receitas RESTART IDENTITY CASCADE;
+TRUNCATE TABLE tempo_projeto RESTART IDENTITY CASCADE;
+TRUNCATE TABLE aportes RESTART IDENTITY CASCADE;
+TRUNCATE TABLE projetos RESTART IDENTITY CASCADE;
+TRUNCATE TABLE investimentos RESTART IDENTITY CASCADE;
+TRUNCATE TABLE gastos RESTART IDENTITY CASCADE;
+TRUNCATE TABLE clientes RESTART IDENTITY CASCADE;
+DELETE FROM configuracoes WHERE chave = 'chat_history';
+"""
+
     def load_snapshot(self) -> AppSnapshot:
         clientes = self._fetch_clientes()
         clientes_by_id = {item.id: item for item in clientes}

@@ -11,7 +11,7 @@ export function AlertBanner({ danger, message, onClose }: AlertBannerProps) {
   return (
     <div
       className={cx(
-        'flex items-center justify-between rounded-[24px] border px-4 py-4 text-sm',
+        'flex items-center justify-between rounded-2xl border px-4 py-4 text-sm',
         danger
           ? 'border-[#4a1f2a] bg-[rgba(113,29,43,0.16)] text-[var(--text-primary)]'
           : 'border-[#5a4722] bg-[rgba(140,96,15,0.16)] text-[var(--text-primary)]',

@@ -20,8 +20,14 @@ export default defineConfig(({ mode }) => ({
   envDir: '..',
   envPrefix: 'VITE_',
   plugins: [react()],
+  resolve: {
+    alias: {
+      lodash: 'lodash-es',
+    },
+  },
   optimizeDeps: {
-    include: ['exceljs'],
+    include: ['exceljs', 'lodash-es'],
+    exclude: [],
   },
   build: {
     commonjsOptions: {

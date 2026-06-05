@@ -25,7 +25,7 @@ export function LoginPage() {
 
     try {
       await signIn(email, password)
-    } catch (caughtError) {
+    } catch {
       setError('E-mail ou senha incorretos. Tente novamente.')
       setIsSubmitting(false)
     }

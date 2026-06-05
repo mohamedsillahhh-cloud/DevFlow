@@ -1,4 +1,18 @@
-import { useEffect, useId, useState } from 'react'
+import { useId, useState } from 'react'
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
 
 interface ComparisonAreaChartProps {
   data: Array<{
@@ -41,24 +55,65 @@ function formatDefaultValue(value: number) {
   return value.toLocaleString('pt-PT')
 }
 
-function buildLinePath(points: Array<{ x: number; y: number }>) {
-  if (points.length === 0) {
-    return ''
-  }
-
-  return points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
+interface CustomAreaTooltipProps {
+  active?: boolean
+  payload?: Array<{ color: string; name: string; value: number }>
+  label?: string
+  formatValue?: ((value: number) => string) | undefined
 }
 
-function buildAreaPath(points: Array<{ x: number; y: number }>, baseline: number) {
-  if (points.length === 0) {
-    return ''
+const CustomAreaTooltip = ({ active, payload, label, formatValue }: CustomAreaTooltipProps) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] p-3 shadow-lg backdrop-blur">
+        <p className="text-xs font-semibold text-[var(--text-primary)]">{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} style={{ color: entry.color }} className="text-xs font-medium">
+            {entry.name}: {formatValue ? formatValue(entry.value) : formatDefaultValue(entry.value)}
+          </p>
+        ))}
+      </div>
+    )
   }
+  return null
+}
 
-  const linePath = buildLinePath(points)
-  const lastPoint = points[points.length - 1]
-  const firstPoint = points[0]
+interface CustomPieTooltipProps {
+  active?: boolean
+  payload?: Array<{ payload: { name: string; value: number } }>
+  total: number
+}
 
-  return `${linePath} L ${lastPoint.x} ${baseline} L ${firstPoint.x} ${baseline} Z`
+const CustomPieTooltip = ({ active, payload, total }: CustomPieTooltipProps) => {
+  if (active && payload && payload.length > 0) {
+    const data = payload[0].payload
+    return (
+      <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] p-3 shadow-lg">
+        <p className="text-xs font-semibold text-[var(--text-primary)]">{data.name}</p>
+        <p className="text-xs text-[var(--text-secondary)]">{Math.round((data.value / total) * 100)}%</p>
+      </div>
+    )
+  }
+  return null
+}
+
+interface CustomBarTooltipProps {
+  active?: boolean
+  payload?: Array<{ payload: { label: string; value: number } }>
+  maxValue: number
+}
+
+const CustomBarTooltip = ({ active, payload, maxValue }: CustomBarTooltipProps) => {
+  if (active && payload && payload.length > 0) {
+    const item = payload[0].payload
+    return (
+      <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] p-3 shadow-lg">
+        <p className="text-xs font-semibold text-[var(--text-primary)]">{item.label}</p>
+        <p className="text-xs text-[var(--text-secondary)]">{Math.round((item.value / maxValue) * 100)}% do máximo</p>
+      </div>
+    )
+  }
+  return null
 }
 
 export function ComparisonAreaChart({
@@ -69,29 +124,14 @@ export function ComparisonAreaChart({
   secondaryColor = DEFAULT_SECONDARY,
   secondaryLabel = 'Gastos',
 }: ComparisonAreaChartProps) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const chartId = useId().replaceAll(':', '')
-  const [activeIndex, setActiveIndex] = useState(data.length > 0 ? data.length - 1 : 0)
-  const width = 100
-  const height = 58
-  const paddingX = 6
-  const paddingY = 6
-  const baseline = height - paddingY
-  const maxValue = Math.max(1, ...data.flatMap((item) => [item.primary, item.secondary]))
-  const stepX = data.length > 1 ? (width - paddingX * 2) / (data.length - 1) : 0
-  const safeActiveIndex = data.length > 0 ? Math.min(activeIndex, data.length - 1) : 0
 
-  const primaryPoints = data.map((item, index) => ({
-    x: paddingX + stepX * index,
-    y: baseline - (item.primary / maxValue) * (height - paddingY * 2),
+  const chartData = data.map((item) => ({
+    ...item,
+    [primaryLabel]: item.primary,
+    [secondaryLabel]: item.secondary,
   }))
-  const secondaryPoints = data.map((item, index) => ({
-    x: paddingX + stepX * index,
-    y: baseline - (item.secondary / maxValue) * (height - paddingY * 2),
-  }))
-
-  const activeEntry = data[safeActiveIndex]
-  const activePrimaryPoint = primaryPoints[safeActiveIndex]
-  const activeSecondaryPoint = secondaryPoints[safeActiveIndex]
 
   return (
     <div className="space-y-4">
@@ -106,146 +146,74 @@ export function ComparisonAreaChart({
             {secondaryLabel}
           </div>
         </div>
-
-        {activeEntry ? (
-          <div className="inline-flex items-center gap-3 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-2 text-xs text-[var(--text-secondary)]">
-            <span className="uppercase tracking-[0.24em] text-[var(--text-muted)]">{activeEntry.label}</span>
-            <span className="font-mono text-[var(--text-primary)]">{formatValue(activeEntry.primary)}</span>
-            <span className="font-mono text-[var(--text-primary)]">{formatValue(activeEntry.secondary)}</span>
-          </div>
-        ) : null}
       </div>
 
-      <div className="relative overflow-hidden rounded-[28px] border border-[var(--border-subtle)] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_36%),var(--surface-1)] p-4">
-        {activeEntry && activePrimaryPoint && activeSecondaryPoint ? (
-          <div className="pointer-events-none absolute right-4 top-4 z-10 hidden min-w-[220px] rounded-[20px] border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur md:block">
-            <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--text-muted)]">{activeEntry.label}</p>
-            <div className="mt-3 grid gap-2">
-              <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="inline-flex items-center gap-2 text-[var(--text-secondary)]">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: primaryColor }} />
-                  {primaryLabel}
-                </span>
-                <span className="font-mono text-[var(--text-primary)]">{formatValue(activeEntry.primary)}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="inline-flex items-center gap-2 text-[var(--text-secondary)]">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: secondaryColor }} />
-                  {secondaryLabel}
-                </span>
-                <span className="font-mono text-[var(--text-primary)]">{formatValue(activeEntry.secondary)}</span>
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        <svg aria-hidden="true" className="h-[280px] w-full" preserveAspectRatio="none" viewBox={`0 0 ${width} ${height}`}>
-          <defs>
-            <linearGradient id={`${chartId}-primary`} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor={primaryColor} stopOpacity="0.36" />
-              <stop offset="100%" stopColor={primaryColor} stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id={`${chartId}-secondary`} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor={secondaryColor} stopOpacity="0.22" />
-              <stop offset="100%" stopColor={secondaryColor} stopOpacity="0" />
-            </linearGradient>
-          </defs>
-
-          {[0, 1, 2, 3].map((line) => {
-            const y = paddingY + ((height - paddingY * 2) / 3) * line
-            return (
-              <line
-                key={line}
-                stroke="var(--chart-grid)"
-                strokeDasharray="1.5 3"
-                strokeWidth="0.3"
-                x1={paddingX}
-                x2={width - paddingX}
-                y1={y}
-                y2={y}
-              />
-            )
-          })}
-
-          {activePrimaryPoint ? (
-            <line
-              stroke="var(--chart-guideline)"
-              strokeDasharray="1.5 2.2"
-              strokeWidth="0.32"
-              x1={activePrimaryPoint.x}
-              x2={activePrimaryPoint.x}
-              y1={paddingY}
-              y2={baseline}
+      <div className="relative overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_36%),var(--surface-1)] p-4">
+        <ResponsiveContainer height={320} width="100%">
+          <AreaChart
+            data={chartData}
+            margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
+            onMouseMove={(state) => {
+              if (state.isTooltipActive && typeof state.activeTooltipIndex === 'number') {
+                setActiveIndex(state.activeTooltipIndex)
+              }
+            }}
+            onMouseLeave={() => setActiveIndex(null)}
+          >
+            <defs>
+              <linearGradient id={`${chartId}-primary`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={primaryColor} stopOpacity={0.4} />
+                <stop offset="95%" stopColor={primaryColor} stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id={`${chartId}-secondary`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={secondaryColor} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={secondaryColor} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" horizontal={true} vertical={false} />
+            <XAxis dataKey="label" stroke="var(--text-muted)" style={{ fontSize: '11px' }} tick={{ fill: 'var(--text-muted)' }} />
+            <YAxis stroke="var(--text-muted)" style={{ fontSize: '11px' }} tick={{ fill: 'var(--text-muted)' }} />
+            <Tooltip content={<CustomAreaTooltip formatValue={formatValue} />} />
+            <Area
+              type="monotone"
+              dataKey={primaryLabel}
+              stroke={primaryColor}
+              strokeWidth={2.5}
+              fillOpacity={1}
+              fill={`url(#${chartId}-primary)`}
+              isAnimationActive={true}
+              animationDuration={800}
+              dot={{ fill: primaryColor, r: activeIndex !== null ? 5 : 3, strokeWidth: 2, stroke: 'var(--surface-1)' }}
+              activeDot={{ r: 6, fill: primaryColor, stroke: 'var(--surface-1)', strokeWidth: 3 }}
             />
-          ) : null}
+            <Area
+              type="monotone"
+              dataKey={secondaryLabel}
+              stroke={secondaryColor}
+              strokeWidth={2.5}
+              fillOpacity={1}
+              fill={`url(#${chartId}-secondary)`}
+              isAnimationActive={true}
+              animationDuration={800}
+              dot={{ fill: secondaryColor, r: activeIndex !== null ? 4 : 2.5, strokeWidth: 2, stroke: 'var(--surface-1)' }}
+              activeDot={{ r: 6, fill: secondaryColor, stroke: 'var(--surface-1)', strokeWidth: 3 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
 
-          <path d={buildAreaPath(secondaryPoints, baseline)} fill={`url(#${chartId}-secondary)`} />
-          <path d={buildAreaPath(primaryPoints, baseline)} fill={`url(#${chartId}-primary)`} />
-          <path d={buildLinePath(secondaryPoints)} fill="none" stroke={secondaryColor} strokeWidth="0.78" />
-          <path d={buildLinePath(primaryPoints)} fill="none" stroke={primaryColor} strokeWidth="0.86" />
-
-          {primaryPoints.map((point, index) => {
-            const isActive = index === safeActiveIndex
-
-            return (
-              <g key={`primary-${data[index]?.label ?? index}`}>
-                {isActive ? <circle cx={point.x} cy={point.y} fill={primaryColor} opacity="0.18" r="3.2" /> : null}
-                <circle cx={point.x} cy={point.y} fill={primaryColor} r={isActive ? '1.35' : '0.95'} />
-              </g>
-            )
-          })}
-          {secondaryPoints.map((point, index) => {
-            const isActive = index === safeActiveIndex
-
-            return (
-              <g key={`secondary-${data[index]?.label ?? index}`}>
-                {isActive ? <circle cx={point.x} cy={point.y} fill={secondaryColor} opacity="0.18" r="3" /> : null}
-                <circle cx={point.x} cy={point.y} fill={secondaryColor} r={isActive ? '1.2' : '0.8'} />
-              </g>
-            )
-          })}
-
-          {data.map((item, index) => {
-            const point = primaryPoints[index]
-            const leftBoundary = index === 0 ? paddingX : point.x - stepX / 2
-            const rightBoundary = index === data.length - 1 ? width - paddingX : point.x + stepX / 2
-            const zoneWidth = data.length > 1 ? Math.max(rightBoundary - leftBoundary, 6) : width - paddingX * 2
-
-            return (
-              <rect
-                key={`zone-${item.label}`}
-                fill="transparent"
-                height={height}
-                onMouseEnter={() => setActiveIndex(index)}
-                width={zoneWidth}
-                x={leftBoundary}
-                y={0}
-              />
-            )
-          })}
-        </svg>
-
-        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
-          {data.map((item, index) => {
-            const isActive = index === safeActiveIndex
-
-            return (
-              <button
-                key={item.label}
-                className={[
-                  'rounded-[18px] border px-3 py-2 text-left text-[10px] uppercase tracking-[0.22em] transition',
-                  isActive
-                    ? 'border-[var(--border-strong)] bg-[var(--surface-2)] text-[var(--text-primary)]'
-                    : 'border-transparent bg-transparent text-[var(--text-muted)] hover:border-[var(--border-subtle)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]',
-                ].join(' ')}
-                onMouseEnter={() => setActiveIndex(index)}
-                onFocus={() => setActiveIndex(index)}
-                type="button"
-              >
-                <span className="block truncate">{item.label}</span>
-              </button>
-            )
-          })}
+        <div className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-6">
+          {data.map((item, index) => (
+            <button
+              key={item.label}
+              className={['rounded-lg border px-3 py-2 text-left text-[10px] uppercase tracking-[0.22em] transition', activeIndex === index ? 'border-[var(--border-strong)] bg-[var(--surface-2)] text-[var(--text-primary)]' : 'border-transparent bg-transparent text-[var(--text-muted)] hover:border-[var(--border-subtle)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]'].join(' ')}
+              onMouseEnter={() => setActiveIndex(index)}
+              onFocus={() => setActiveIndex(index)}
+              onMouseLeave={() => setActiveIndex(null)}
+              type="button"
+            >
+              <span className="block truncate">{item.label}</span>
+            </button>
+          ))}
         </div>
       </div>
     </div>
@@ -254,133 +222,65 @@ export function ComparisonAreaChart({
 
 export function DonutChart({ centerLabel, centerValue, segments }: DonutChartProps) {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [mounted, setMounted] = useState(false)
-  const total = Math.max(
-    1,
-    segments.reduce((accumulator, segment) => accumulator + segment.value, 0),
-  )
-  const radius = 42
-  const circumference = 2 * Math.PI * radius
-  const safeActiveIndex = segments.length > 0 ? Math.min(activeIndex, segments.length - 1) : 0
-  const gap = 1.5
 
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 80)
-    return () => clearTimeout(timer)
-  }, [])
+  const pieData = segments.map((seg) => ({
+    name: seg.label,
+    value: seg.value,
+    color: seg.color,
+    helper: seg.helper,
+    displayValue: seg.displayValue,
+  }))
 
-  const segmentsWithOffsets = segments.map((segment, index) => {
-    const rawDash = circumference * (segment.value / total)
-    const previousDash = segments
-      .slice(0, index)
-      .reduce((accumulator, currentSegment) => accumulator + circumference * (currentSegment.value / total), 0)
-
-    return {
-      dash: Math.max(rawDash - gap, 0),
-      offset: previousDash,
-      rawDash,
-      ratio: segment.value / total,
-      ...segment,
-    }
-  })
-
-  const activeSegment = segmentsWithOffsets[safeActiveIndex]
+  const total = segments.reduce((sum, seg) => sum + seg.value, 0)
+  const activeSegment = segments[activeIndex]
 
   return (
     <div className="grid gap-6 lg:grid-cols-[220px,1fr] lg:items-center">
-      <div className="relative mx-auto h-[200px] w-[200px] sm:h-[220px] sm:w-[220px]">
-        <svg aria-hidden="true" className="h-full w-full -rotate-90" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" fill="none" r={radius} stroke="var(--chart-grid)" strokeWidth="11" />
-          {segmentsWithOffsets.map((segment, index) => {
-            const isActive = index === safeActiveIndex
-            const hidden = -(segment.offset + segment.rawDash + gap)
-            const visible = -(segment.offset + gap)
-            const delay = index * 120
+      <div className="relative mx-auto">
+        <ResponsiveContainer height={240} width="100%">
+          <PieChart>
+            <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={3} dataKey="value" onMouseEnter={(_, index) => setActiveIndex(index)}>
+              {pieData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} opacity={activeIndex === index ? 1 : 0.65} style={{ transition: 'opacity 0.3s ease' }} />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomPieTooltip total={total} />} />
+          </PieChart>
+        </ResponsiveContainer>
 
-            return (
-              <circle
-                key={segment.label}
-                cx="60"
-                cy="60"
-                fill="none"
-                onMouseEnter={() => setActiveIndex(index)}
-                r={radius}
-                stroke={segment.color}
-                strokeDasharray={`${segment.dash} ${circumference - segment.dash}`}
-                strokeDashoffset={mounted ? visible : hidden}
-                strokeLinecap="round"
-                strokeOpacity={isActive ? 1 : 0.55}
-                strokeWidth={isActive ? '12' : '10.5'}
-                style={{
-                  transition: `stroke-dashoffset 0.9s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, stroke-width 0.3s ease, stroke-opacity 0.3s ease`,
-                  cursor: 'pointer',
-                }}
-              />
-            )
-          })}
-        </svg>
-
-        <div
-          className="absolute inset-0 flex flex-col items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[radial-gradient(circle,var(--surface-2),var(--surface-1))] px-5 text-center"
-          style={{ animation: 'fade-in-up 0.5s ease both' }}
-        >
-          <span className="text-[11px] uppercase tracking-[0.24em] text-[var(--text-muted)]">{centerLabel}</span>
-          <strong
-            key={centerValue}
-            className="mt-2 text-4xl font-semibold tracking-[-0.06em] text-[var(--text-primary)]"
-            style={{ animation: 'fade-in-up 0.4s ease both' }}
-          >
-            {centerValue}
-          </strong>
-          {activeSegment ? (
-            <div key={`${activeSegment.label}-${safeActiveIndex}`} style={{ animation: 'fade-in-up 0.35s ease both' }}>
-              <span className="mt-3 block text-[11px] uppercase tracking-[0.24em]" style={{ color: activeSegment.color }}>
+        <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[radial-gradient(circle,var(--surface-2),var(--surface-1))] px-5 text-center" style={{ width: '160px', height: '160px', margin: 'auto', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+          <span className="text-[10px] uppercase tracking-[0.24em] text-[var(--text-muted)]">{centerLabel}</span>
+          <strong className="mt-2 text-3xl font-semibold tracking-[-0.06em] text-[var(--text-primary)]">{centerValue}</strong>
+          {activeSegment && (
+            <div className="mt-3">
+              <span className="block text-[10px] uppercase tracking-[0.24em]" style={{ color: activeSegment.color }}>
                 {activeSegment.label}
               </span>
-              <span className="mt-1 block font-mono text-sm text-[var(--text-secondary)]">
-                {Math.round(activeSegment.ratio * 100)}%
-              </span>
+              <span className="mt-1 block font-mono text-xs text-[var(--text-secondary)]">{Math.round((activeSegment.value / total) * 100)}%</span>
             </div>
-          ) : null}
+          )}
         </div>
       </div>
 
       <div className="space-y-2">
         {segments.map((segment, index) => {
-          const isActive = index === safeActiveIndex
-          const delay = 120 + index * 80
-
+          const isActive = activeIndex === index
           return (
             <button
               key={segment.label}
-              className={[
-                'flex w-full items-center justify-between rounded-[14px] border px-4 py-3 text-left transition-all duration-200',
-                isActive
-                  ? 'border-[var(--border-strong)] bg-[var(--surface-1)]'
-                  : 'border-[var(--border-subtle)] bg-[var(--surface-2)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-1)]',
-              ].join(' ')}
+              className={['flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-all duration-200', isActive ? 'border-[var(--border-strong)] bg-[var(--surface-1)]' : 'border-[var(--border-subtle)] bg-[var(--surface-2)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-1)]'].join(' ')}
               onFocus={() => setActiveIndex(index)}
               onMouseEnter={() => setActiveIndex(index)}
               type="button"
-              style={{ animation: `fade-in-up 0.4s ease ${delay}ms both` }}
             >
               <div className="flex min-w-0 items-center gap-3">
-                <span
-                  className="h-3 w-3 rounded-full transition-transform duration-200"
-                  style={{
-                    backgroundColor: segment.color,
-                    transform: isActive ? 'scale(1.25)' : 'scale(1)',
-                  }}
-                />
+                <span className="h-3 w-3 rounded-full transition-transform duration-200" style={{ backgroundColor: segment.color, transform: isActive ? 'scale(1.25)' : 'scale(1)' }} />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-[var(--text-primary)]">{segment.label}</p>
                   {segment.helper ? <p className="mt-0.5 text-xs text-[var(--text-secondary)]">{segment.helper}</p> : null}
                 </div>
               </div>
-
-              <span className="font-mono text-sm text-[var(--text-primary)]">
-                {segment.displayValue ?? formatDefaultValue(segment.value)}
-              </span>
+              <span className="font-mono text-sm text-[var(--text-primary)]">{segment.displayValue ?? formatDefaultValue(segment.value)}</span>
             </button>
           )
         })}
@@ -391,82 +291,50 @@ export function DonutChart({ centerLabel, centerValue, segments }: DonutChartPro
 
 export function MiniBarChart({ data }: MiniBarChartProps) {
   const [activeIndex, setActiveIndex] = useState(data.length > 0 ? data.length - 1 : 0)
+
+  const chartData = data.map((item, idx) => ({
+    ...item,
+    idx,
+  }))
+
+  const activeItem = data[activeIndex]
   const maxValue = Math.max(1, ...data.map((item) => item.value))
-  const safeActiveIndex = data.length > 0 ? Math.min(activeIndex, data.length - 1) : 0
-  const activeItem = data[safeActiveIndex]
 
   return (
     <div className="space-y-4">
       {activeItem ? (
-        <div className="rounded-[22px] border border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Barra em foco</p>
+        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-4">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)]">Categoria em foco</p>
           <div className="mt-3 flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-[var(--text-primary)]">{activeItem.label}</p>
-              <p className="mt-1 text-xs text-[var(--text-secondary)]">
-                {Math.round((activeItem.value / maxValue) * 100)}% da maior barra do conjunto.
-              </p>
+              <p className="mt-1 text-xs text-[var(--text-secondary)]">{Math.round((activeItem.value / maxValue) * 100)}% da maior categoria</p>
             </div>
-            <span className="font-mono text-sm text-[var(--text-primary)]">
-              {activeItem.displayValue ?? formatDefaultValue(activeItem.value)}
-            </span>
+            <span className="font-mono text-sm text-[var(--text-primary)]">{activeItem.displayValue ?? formatDefaultValue(activeItem.value)}</span>
           </div>
         </div>
       ) : null}
 
-      <div className="flex h-[200px] items-end gap-2 overflow-x-auto sm:h-[240px] sm:gap-3">
-        {data.map((item, index) => {
-          const height = Math.max((item.value / maxValue) * 100, item.value > 0 ? 12 : 0)
-          const isActive = index === safeActiveIndex
-
-          return (
-            <button
-              key={item.label}
-              className="flex min-w-0 flex-1 flex-col items-center gap-3 bg-transparent p-0 text-left"
-              onFocus={() => setActiveIndex(index)}
-              onMouseEnter={() => setActiveIndex(index)}
-              type="button"
-            >
-              <span
-                className={[
-                  'text-[10px] font-medium uppercase tracking-[0.2em] transition',
-                  isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]',
-                ].join(' ')}
-              >
-                {item.displayValue ?? formatDefaultValue(item.value)}
-              </span>
-              <div
-                className={[
-                  'flex h-full w-full items-end rounded-[24px] border p-2 transition',
-                  isActive
-                    ? 'border-[var(--border-strong)] bg-[var(--surface-1)]'
-                    : 'border-[var(--border-subtle)] bg-[var(--surface-2)]',
-                ].join(' ')}
-              >
-                <div
-                  className={[
-                    'w-full rounded-[18px] shadow-[0_18px_38px_rgba(52,104,255,0.22)] transition',
-                    isActive ? 'scale-y-100 opacity-100' : 'opacity-78',
-                  ].join(' ')}
-                  style={{
-                    background: item.color ?? 'linear-gradient(180deg,rgba(108,156,255,0.95),rgba(42,88,194,0.58))',
-                    height: `${height}%`,
-                    transform: isActive ? 'scale(1)' : 'scale(0.96)',
-                    transformOrigin: 'bottom',
-                  }}
-                />
-              </div>
-              <span
-                className={[
-                  'max-w-full truncate text-[10px] uppercase tracking-[0.2em] transition',
-                  isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]',
-                ].join(' ')}
-              >
-                {item.label}
-              </span>
-            </button>
-          )
-        })}
+      <div className="rounded-2xl border border-[var(--border-subtle)] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_36%),var(--surface-1)] p-4">
+        <ResponsiveContainer height={240} width="100%">
+          <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 30 }} onMouseMove={(state) => { if (state.isTooltipActive && typeof state.activeTooltipIndex === 'number') { setActiveIndex(state.activeTooltipIndex) } }} onMouseLeave={() => setActiveIndex(Math.max(0, data.length - 1))}>
+            <defs>
+              <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-info)" stopOpacity={1} />
+                <stop offset="95%" stopColor="var(--color-info)" stopOpacity={0.6} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
+            <XAxis dataKey="label" stroke="var(--text-muted)" style={{ fontSize: '11px' }} tick={{ fill: 'var(--text-muted)' }} />
+            <YAxis stroke="var(--text-muted)" style={{ fontSize: '11px' }} tick={{ fill: 'var(--text-muted)' }} />
+            <Tooltip content={<CustomBarTooltip maxValue={maxValue} />} />
+            <Bar dataKey="value" fill="url(#barGradient)" radius={[12, 12, 0, 0]} isAnimationActive={true} animationDuration={600} onMouseEnter={(_, index) => setActiveIndex(index)}>
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color || 'url(#barGradient)'} opacity={activeIndex === index ? 1 : 0.65} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   )

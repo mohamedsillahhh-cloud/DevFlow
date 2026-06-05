@@ -19,7 +19,6 @@ CORES = {
 }
 MOEDA_OPCOES = (
     ("Escudo cabo-verdiano (CVE)", "CVE"),
-    ("Real brasileiro (BRL)", "BRL"),
     ("Dolar americano (USD)", "USD"),
     ("Euro (EUR)", "EUR"),
 )
