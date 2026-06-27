@@ -108,12 +108,12 @@ export class DevFlowDB extends Dexie {
 
   constructor() {
     super('DevFlowDB')
-    this.version(1).stores({
+    this.version(2).stores({
       clientes: '++id, nome',
       projetos: '++id, cliente_id, status, prazo',
       gastos: '++id, data, categoria_nome, pago',
       receitas: '++id, data, projeto_id',
-      investimentos: '++id, nome, tipo',
+      investimentos: '++id, nome, tipo, criado_em',
       aportes: '++id, investimento_id, data, tipo',
       tempo_projeto: '++id, projeto_id, inicio',
       configuracoes: 'chave',
