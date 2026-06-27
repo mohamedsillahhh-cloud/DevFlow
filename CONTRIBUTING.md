@@ -1,6 +1,14 @@
-# Contributing to DevFlow
+# Contributing
 
-Thank you for your interest in contributing! This document provides guidelines and instructions for contributing to the DevFlow project.
+Thank you for your interest in contributing! This document provides guidelines and instructions for contributing to the project.
+
+## Documentation
+
+Before contributing, please read the relevant documentation in [`docs/`](docs/):
+- [Architecture](docs/architecture.md) — Understand the component design
+- [Database](docs/database.md) — Schema and relationships
+- [Deployment](docs/deployment.md) — Setup and CI/CD
+- [FAQ](docs/faq.md) — Common questions
 
 ## Project Structure
 
