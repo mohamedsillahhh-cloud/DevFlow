@@ -291,6 +291,7 @@ export function DonutChart({ centerLabel, centerValue, segments }: DonutChartPro
 
 export function MiniBarChart({ data }: MiniBarChartProps) {
   const [activeIndex, setActiveIndex] = useState(data.length > 0 ? data.length - 1 : 0)
+  const barGradientId = useId().replaceAll(':', '')
 
   const chartData = data.map((item, idx) => ({
     ...item,
@@ -319,7 +320,7 @@ export function MiniBarChart({ data }: MiniBarChartProps) {
         <ResponsiveContainer height={240} width="100%">
           <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 30 }} onMouseMove={(state) => { if (state.isTooltipActive && typeof state.activeTooltipIndex === 'number') { setActiveIndex(state.activeTooltipIndex) } }} onMouseLeave={() => setActiveIndex(Math.max(0, data.length - 1))}>
             <defs>
-              <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id={`${barGradientId}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="var(--color-info)" stopOpacity={1} />
                 <stop offset="95%" stopColor="var(--color-info)" stopOpacity={0.6} />
               </linearGradient>
@@ -328,9 +329,9 @@ export function MiniBarChart({ data }: MiniBarChartProps) {
             <XAxis dataKey="label" stroke="var(--text-muted)" style={{ fontSize: '11px' }} tick={{ fill: 'var(--text-muted)' }} />
             <YAxis stroke="var(--text-muted)" style={{ fontSize: '11px' }} tick={{ fill: 'var(--text-muted)' }} />
             <Tooltip content={<CustomBarTooltip maxValue={maxValue} />} />
-            <Bar dataKey="value" fill="url(#barGradient)" radius={[12, 12, 0, 0]} isAnimationActive={true} animationDuration={600} onMouseEnter={(_, index) => setActiveIndex(index)}>
+            <Bar dataKey="value" fill={`url(#${barGradientId})`} radius={[12, 12, 0, 0]} isAnimationActive={true} animationDuration={600} onMouseEnter={(_, index) => setActiveIndex(index)}>
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color || 'url(#barGradient)'} opacity={activeIndex === index ? 1 : 0.65} />
+                <Cell key={`cell-${index}`} fill={entry.color || `url(#${barGradientId})`} opacity={activeIndex === index ? 1 : 0.65} />
               ))}
             </Bar>
           </BarChart>

@@ -3,7 +3,6 @@ import {
   BriefcaseBusiness,
   Clock3,
   Landmark,
-  LogOut,
   Menu,
   Moon,
   Settings2,
@@ -13,10 +12,9 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { useAuth } from '../hooks/use-auth'
-import { useAsyncData } from '../hooks/use-async-data'
-import { getUserDisplayName } from '../lib/format'
-import { fetchConfiguracoes, saveConfiguracoes } from '../lib/supabase-data'
+import { useAsyncData } from '../../hooks/use-async-data'
+import { useNavigationShortcuts } from '../../hooks/use-keyboard-shortcuts'
+import { fetchConfiguracoes, saveConfiguracoes } from '../../lib/supabase/supabase-data'
 
 const NAV_ITEMS = [
   { icon: BarChart3, label: 'Dashboard', path: '/dashboard' },
@@ -71,8 +69,8 @@ const THEME_STORAGE_KEY = 'devflow-theme-mode'
 
 export function AppLayout() {
   const location = useLocation()
-  const { signOut, user } = useAuth()
   const { data: configuracoes } = useAsyncData(fetchConfiguracoes)
+  useNavigationShortcuts()
   const [storedTheme] = useState<ThemeMode>(() => {
     if (typeof window === 'undefined') {
       return 'light'
@@ -107,7 +105,7 @@ export function AppLayout() {
   const heading =
     PAGE_TITLES.find((item) => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)) ??
     PAGE_TITLES[1]
-  const displayName = getUserDisplayName(configuracoes ?? { nome_usuario: '' }, user?.email)
+  const displayName = configuracoes?.nome_usuario?.trim() || 'DevFlow'
   const isDark = theme === 'dark'
 
   // Aplicar tema ao documento quando theme muda
@@ -215,7 +213,6 @@ export function AppLayout() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-[var(--text-primary)]">{displayName}</p>
-              <p className="truncate text-[11px] text-[var(--text-muted)]">{user?.email}</p>
             </div>
           </div>
 
@@ -240,15 +237,7 @@ export function AppLayout() {
             ))}
           </nav>
 
-          <button
-            aria-label="Terminar sessao"
-            className="mt-4 flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-[var(--text-muted)] transition hover:text-[var(--text-primary)]"
-            onClick={() => void signOut()}
-            type="button"
-          >
-            <LogOut className="h-4 w-4" />
-            Terminar sessao
-          </button>
+
         </aside>
 
         <div className="flex min-h-screen flex-1 flex-col">
@@ -270,9 +259,6 @@ export function AppLayout() {
                 >
                   {isDark ? <SunMedium className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </button>
-                <span className="hidden rounded-md bg-[var(--brand-soft)] px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-[var(--brand)] md:inline">
-                  Protected
-                </span>
                 <span className="hidden truncate text-xs text-[var(--text-muted)] sm:inline max-w-[100px] md:max-w-[160px]">{displayName}</span>
               </div>
             </div>

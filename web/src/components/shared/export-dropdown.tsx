@@ -1,10 +1,10 @@
 import { Download, FileSpreadsheet, FileText, LoaderCircle, PieChart } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { EXPORT_PRESETS, exportToCsv, type ExportType } from '../lib/export'
-import { exportToXlsx, exportToXlsxCompleto } from '../lib/excel'
-import { exportToPdfCompleto } from '../lib/pdf'
-import { cx } from '../lib/cn'
-import type { Gasto, Projeto, Receita, TempoProjeto } from '../lib/types'
+import { EXPORT_PRESETS, exportToCsv, type ExportType } from '../../lib/export/export'
+import { exportToXlsx, exportToXlsxCompleto } from '../../lib/export/excel'
+import { exportToPdfCompleto } from '../../lib/export/pdf'
+import { cx } from '../../lib/cn'
+import type { Gasto, Projeto, Receita, TempoProjeto } from '../../lib/types'
 
 interface ExportDropdownProps<Row> {
   data: Row[]

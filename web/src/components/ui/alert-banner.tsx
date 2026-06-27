@@ -13,8 +13,8 @@ export function AlertBanner({ danger, message, onClose }: AlertBannerProps) {
       className={cx(
         'flex items-center justify-between rounded-2xl border px-4 py-4 text-sm',
         danger
-          ? 'border-[#4a1f2a] bg-[rgba(113,29,43,0.16)] text-[var(--text-primary)]'
-          : 'border-[#5a4722] bg-[rgba(140,96,15,0.16)] text-[var(--text-primary)]',
+          ? 'border-[var(--alert-danger-border)] bg-[var(--alert-danger-bg)] text-[var(--text-primary)]'
+          : 'border-[var(--alert-warning-border)] bg-[var(--alert-warning-bg)] text-[var(--text-primary)]',
       )}
     >
       <span>{message}</span>
