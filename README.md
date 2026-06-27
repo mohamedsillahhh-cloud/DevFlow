@@ -415,12 +415,4 @@ Distribuído sob a licença MIT. Consulta o ficheiro `LICENSE` para mais informa
 
 <div align="center">
   <p>Feito com dedicação por <a href="https://github.com/sillah">Mohamed Sillah</a></p>
-  <p>
-    <a href="https://github.com/sillah">
-      <img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" />
-    </a>
-    <a href="mailto:sillahmohamed800@gmail.com">
-      <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white" />
-    </a>
-  </p>
 </div>
