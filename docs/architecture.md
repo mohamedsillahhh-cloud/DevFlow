@@ -2,7 +2,7 @@
 
 ## Overview
 
-DevFlow is a single-page application (SPA) built with React 19, TypeScript, and Vite. It uses Supabase as its backend-as-a-service, providing PostgreSQL, realtime subscriptions, and storage.
+DevFlow is a single-page application (SPA) built with React 19, TypeScript, and Vite. It uses Dexie.js (IndexedDB) as its local-first database, requiring no external backend or server.
 
 ## Component Architecture
 
@@ -51,33 +51,32 @@ components/
 
 ```
 hooks/
-├── use-async-data.ts      Generic data fetching with AbortController
-└── use-realtime-sync.ts   Realtime subscriptions + polling fallback
+└── use-data.ts       useAsyncData (fetch + reload) + useLiveQuery (reactive subscriptions)
 
 lib/
-├── supabase/
-│   ├── client.ts          Supabase client initialization
-│   └── data.ts            CRUD operations
-├── format/                Formatting utilities
+├── data/
+│   ├── db.ts          Dexie database class with 9 tables
+│   └── index.ts       CRUD operations, snapshot queries, relation resolvers
+├── format/            Formatting utilities
 │   ├── currency.ts
 │   ├── date.ts
 │   └── project.ts
-├── export/                Export generators
+├── export/            Export generators
 │   ├── csv.ts
 │   ├── excel.ts
 │   └── pdf.ts
-├── types.ts               Shared TypeScript interfaces
-├── schemas.ts             Zod validation schemas
-├── cn.ts                  Class name utility
-└── navigation.ts          Route helpers
+├── types.ts           Shared TypeScript interfaces
+├── schemas.ts         Zod validation schemas
+├── cn.ts              Class name utility
+└── navigation.ts      Route helpers
 ```
 
 ## Data Flow
 
-1. Pages use `useAsyncData` to fetch initial data on mount
-2. `useRealtimeSync` subscribes to Supabase channel changes + polling
-3. User actions call CRUD functions in `lib/supabase/data.ts`
-4. After mutations, `reload()` is called to refresh the snapshot
+1. Pages use `useAsyncData` to fetch initial data on mount (wraps Dexie queries)
+2. `useLiveQuery` provides reactive subscriptions — UI updates automatically when IndexedDB data changes
+3. User actions call CRUD functions in `lib/data/index.ts`
+4. After mutations, `reload()` can be called to refresh a snapshot, or `useLiveQuery` handles it automatically
 5. Charts and derived data are computed client-side from snapshots
 
 ## Routing
@@ -91,5 +90,5 @@ lib/
 
 - CSS custom properties in `index.css` for all colors
 - `data-theme` attribute on `<html>` toggles between `dark` and `light`
-- Theme preference stored in both Supabase config and localStorage
+- Theme preference stored in both IndexedDB (config) and localStorage
 - Smooth transitions via `transition` on CSS variables

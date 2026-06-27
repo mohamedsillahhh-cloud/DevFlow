@@ -9,21 +9,27 @@ DevFlow is an open-source operations cockpit for freelancers and small teams. It
 Solo freelancers, independent professionals, and small teams who need a simple but complete system to manage their day-to-day operations.
 
 ### Is it free?
-Yes, DevFlow is open source under the MIT License. You only pay for your Supabase hosting (free tier available).
+Yes, DevFlow is open source under the MIT License. It runs entirely in your browser with no backend required.
 
 ## Technical
 
 ### Do I need a server?
-No. DevFlow uses Supabase as its backend, so you only need a Supabase account (free tier works) and a way to host the frontend (Vercel free tier recommended).
+No. DevFlow uses Dexie.js (IndexedDB) to store all data locally in your browser. There is no backend, no database server, and no API.
 
 ### Can I use my own database?
-DevFlow is designed for Supabase/PostgreSQL. While you could adapt the data layer, it would require significant changes to the codebase.
+DevFlow is designed for local-first IndexedDB storage. An adapter pattern is used in `lib/data/` so a future remote backend (e.g., Supabase, REST API) can be added without changing page code.
 
 ### Does it work offline?
-Not currently. Offline mode with IndexedDB is on the roadmap.
+Yes, completely. All data is stored in your browser's IndexedDB. The app requires no network connection after the initial page load.
 
 ### Can I self-host?
-Yes. Deploy the frontend to any static host (Vercel, Netlify, Cloudflare Pages) and connect it to your Supabase project.
+Yes. Deploy the frontend to any static host (Vercel, Netlify, Cloudflare Pages) — no server or database needed.
+
+### What happens if I clear my browser data?
+Clearing browsing data (IndexedDB) will erase all app data. You can export your data via the export buttons on each page before clearing.
+
+### Can I sync data between devices?
+Not yet. Sync support across devices is on the roadmap.
 
 ## Features
 
@@ -40,13 +46,12 @@ Use the export buttons on each page. Available formats: CSV, Excel (.xlsx), and 
 
 ### The app shows "Failed to load"
 Check that:
-1. Your Supabase project is accessible
-2. The environment variables are correctly set
-3. The database tables have been created
-4. The RLS policies have been applied
+1. Your browser supports IndexedDB (all modern browsers do)
+2. No browser extensions are blocking IndexedDB access
+3. You're not in private/incognito mode with storage restrictions
 
 ### Charts are not rendering
 Make sure your browser supports SVG (all modern browsers do). Try clearing your cache.
 
-### Data is not updating in real-time
-The app uses polling as fallback. If realtime is not working, data will refresh every 8-15 seconds.
+### Data is not updating
+Data updates immediately on mutations since all operations are local. If the UI doesn't reflect changes, try refreshing the page.

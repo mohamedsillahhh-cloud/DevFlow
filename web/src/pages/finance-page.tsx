@@ -17,7 +17,6 @@ import { PageSectionNav } from '../components/layout/page-section-nav'
 import { Panel } from '../components/ui/panel'
 import { StatCard } from '../components/ui/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
-import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import { cx } from '../lib/cn'
 import { downloadCsv } from '../lib/export/export'
 import {
@@ -45,7 +44,7 @@ import {
   deleteGasto,
   deleteReceita,
   fetchFinanceSnapshot,
-} from '../lib/supabase/supabase-data'
+} from '../lib/data'
 import type { Gasto, Receita } from '../lib/types'
 
 const CUSTOM_CATEGORY_VALUE = '__custom__'
@@ -89,7 +88,6 @@ interface PeriodSelectorPanelProps {
   expenseTotal: number
   incomeCount: number
   incomeTotal: number
-  isLive: boolean
   monthLabel: string
   monthOptions: MonthOption[]
   onSelectMonth: (month: number) => void
@@ -105,7 +103,6 @@ function PeriodSelectorPanel({
   expenseTotal,
   incomeCount,
   incomeTotal,
-  isLive,
   monthLabel,
   monthOptions,
   onSelectMonth,
@@ -125,16 +122,9 @@ function PeriodSelectorPanel({
             {monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1).toLowerCase()}
           </h3>
         </div>
-        <div
-          className={cx(
-            'inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] uppercase tracking-[0.1em]',
-            isLive
-              ? 'border-[var(--color-success)]/30 bg-[var(--color-success)]/10 text-[var(--color-success)]'
-              : 'border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-muted)]',
-          )}
-        >
-          <span className={cx('h-2 w-2 rounded-full', isLive ? 'bg-[var(--color-success)]' : 'bg-[var(--text-muted)]')} />
-          {isLive ? 'Tempo real' : 'Offline'}
+        <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[var(--color-success)]/30 bg-[var(--color-success)]/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.1em] text-[var(--color-success)]">
+          <span className="h-2 w-2 rounded-full bg-[var(--color-success)]" />
+          Local
         </div>
       </div>
 
@@ -445,9 +435,6 @@ function getIncomeSourceLabel(item: Receita) {
 export function FinancePage() {
   const location = useLocation()
   const { data, error, isLoading, reload } = useAsyncData(fetchFinanceSnapshot)
-  const { isLive } = useRealtimeSync(['configuracoes', 'gastos', 'projetos', 'receitas'], reload, {
-    pollIntervalMs: 12000,
-  })
   const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(() => new Date().getMonth())
   const [searchQuery, setSearchQuery] = useState('')
@@ -824,7 +811,6 @@ export function FinancePage() {
           expenseTotal={gastosTotal}
           incomeCount={receitasMes.length}
           incomeTotal={receitasTotal}
-          isLive={isLive}
           monthLabel={monthLabel}
           monthOptions={monthOptions}
           onSelectMonth={setSelectedMonth}

@@ -8,7 +8,6 @@ import { Panel } from '../components/ui/panel'
 import { StatCard } from '../components/ui/stat-card'
 import { StatusBadge } from '../components/ui/status-badge'
 import { useAsyncData } from '../hooks/use-async-data'
-import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
@@ -23,7 +22,7 @@ import {
   projectDueAmount,
 } from '../lib/format'
 import { getWorkspaceSection } from '../lib/navigation'
-import { createProjeto, deleteProjeto, fetchProjectsSnapshot, updateProjetoStatus } from '../lib/supabase/supabase-data'
+import { createProjeto, deleteProjeto, fetchProjectsSnapshot, updateProjetoStatus } from '../lib/data'
 
 const STATUS_OPTIONS = [
   { label: 'Todos os status', value: 'todos' },
@@ -48,7 +47,6 @@ function getProjectStatusLabel(status: string) {
 export function ProjectsPage() {
   const location = useLocation()
   const { data, error, isLoading, reload } = useAsyncData(fetchProjectsSnapshot)
-  useRealtimeSync(['configuracoes', 'clientes', 'projetos'], reload, { pollIntervalMs: 15000 })
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('todos')
   const [form, setForm] = useState({

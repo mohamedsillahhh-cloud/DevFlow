@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAsyncData } from '../../hooks/use-async-data'
 import { useNavigationShortcuts } from '../../hooks/use-keyboard-shortcuts'
-import { fetchConfiguracoes, saveConfiguracoes } from '../../lib/supabase/supabase-data'
+import { fetchConfiguracoes, saveConfiguracoes } from '../../lib/data'
 
 const NAV_ITEMS = [
   { icon: BarChart3, label: 'Dashboard', path: '/dashboard' },

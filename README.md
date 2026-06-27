@@ -22,7 +22,7 @@
     <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
     <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=fff" alt="Vite" />
     <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=fff" alt="Tailwind CSS" />
-    <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=fff" alt="Supabase" />
+    <img src="https://img.shields.io/badge/Dexie-1E90FF?style=for-the-badge&logo=indexeddb&logoColor=fff" alt="Dexie.js" />
     <img src="https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=fff" alt="Vitest" />
   </p>
 
@@ -104,19 +104,14 @@ graph TD
         E --> F[lib/data layer]
     end
 
-    subgraph Data
-        F --> G[Supabase Client]
-        G --> H[(PostgreSQL)]
-    end
-
-    subgraph Realtime
-        G -.-> I[WebSocket]
-        I -.-> E
+    subgraph Storage
+        F --> G[Dexie.js]
+        G --> H[(IndexedDB)]
     end
 
     style A fill:#3630A3,color:#fff
     style H fill:#2D3748,color:#fff
-    style G fill:#3ECF8E,color:#000
+    style G fill:#1E90FF,color:#fff
 ```
 
 ### Application Flow
@@ -161,7 +156,6 @@ erDiagram
 
 - Node.js >= 20.x
 - npm >= 10.x
-- A [Supabase](https://supabase.com) account (free tier works)
 
 ### Setup
 
@@ -170,18 +164,11 @@ erDiagram
 git clone https://github.com/your-org/devflow.git
 cd devflow
 
-# 2. Configure environment variables
-cp .env.example .env
-# Edit .env with your Supabase project credentials
-
-# 3. Install dependencies
+# 2. Install dependencies
 cd web
 npm install
 
-# 4. (Optional) Apply security policies in Supabase
-# Open database/supabase_policies.sql in the Supabase SQL Editor
-
-# 5. Start development server
+# 3. Start development server
 npm run dev
 ```
 
@@ -201,13 +188,12 @@ The application will be available at `http://localhost:5173`.
 
 ### Deployment
 
-The app is ready for deployment on **Vercel**:
+The app is ready for deployment on **Vercel** (no environment variables needed):
 
 1. Connect the repository to Vercel
 2. Set **Root Directory** to `web`
-3. Add environment variables in the Vercel dashboard
-4. **Build Command**: `npm run build`
-5. **Output Directory**: `dist`
+3. **Build Command**: `npm run build`
+4. **Output Directory**: `dist`
 
 The `vercel.json` file includes:
 - SPA rewrites (all routes → `index.html`)
@@ -215,26 +201,7 @@ The `vercel.json` file includes:
 
 ---
 
-## Environment Variables
-
-| Variable | Required | Description |
-|---|---|---|
-| `VITE_SUPABASE_URL` | Yes | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Yes | Supabase anonymous/public key |
-| `SUPABASE_URL` | No | URL for Python backup scripts |
-| `SUPABASE_KEY` | No | Service role key for Python scripts |
-
-> **Only the anon key should be used in the frontend.**  
-> The service role key is only needed for backend/CLI scripts.
-
-### Required Supabase Tables
-
-For the application to function, the following tables must exist in Supabase:
-- `clientes`, `projetos`, `gastos`, `receitas`
-- `investimentos`, `aportes`, `tempo_projeto`
-- `configuracoes`, `pagamentos`
-
-Run `database/supabase_policies.sql` in the SQL Editor to configure the necessary security policies.
+No environment variables are required. All data is stored locally in your browser's IndexedDB via Dexie.js.
 
 ---
 
@@ -246,7 +213,7 @@ Full documentation is available in the [`docs/`](docs/) folder:
 - [Database](docs/database.md) — Schema, relationships, RLS policies
 - [Deployment](docs/deployment.md) — Vercel, Supabase setup, CI/CD
 - [FAQ](docs/faq.md) — Common questions and troubleshooting
-- [API Reference](docs/api.md) — Data access layer and Supabase queries
+- [API Reference](docs/api.md) — Data access layer and Dexie queries
 - [Decision Log](docs/decisions.md) — Architecture decisions and rationale
 
 ---
@@ -264,7 +231,7 @@ Full documentation is available in the [`docs/`](docs/) folder:
 | [React Router](https://reactrouter.com/) | 7.x | SPA Routing |
 | [Recharts](https://recharts.org/) | 2.x | Responsive charts |
 | [Lucide React](https://lucide.dev/) | 0.577 | Icons |
-| [Supabase JS](https://supabase.com/docs/reference/javascript) | 2.x | Database client + Realtime |
+| [Dexie.js](https://dexie.org/) | 6.x | IndexedDB wrapper — local-first storage |
 | [Zod](https://zod.dev/) | - | Schema validation |
 | [ExcelJS](https://github.com/exceljs/exceljs) | 4.x | Excel generation |
 | [jsPDF](https://github.com/parallax/jsPDF) | 2.x | PDF generation |
@@ -282,9 +249,9 @@ Full documentation is available in the [`docs/`](docs/) folder:
 
 ## Architecture Decisions
 
-### Why Supabase instead of a custom backend?
+### Why Dexie.js (IndexedDB) instead of a backend?
 
-Supabase provides PostgreSQL, authentication, realtime, and storage in a single service, eliminating the need to maintain a separate backend. For a solo project or small business, it's the right choice.
+Dexie.js provides a clean async API over IndexedDB with zero configuration, no server, no environment variables, and full offline support. The adapter pattern in `lib/data/` allows adding a remote backend (e.g., Supabase, REST API) later without touching page code.
 
 ### Why React Router v7 with nested layouts?
 
@@ -293,9 +260,9 @@ The `AppLayout` component serves as the main layout with `<Outlet />` for render
 - Shared mobile menu state
 - Global theme application
 
-### Why polling + Realtime?
+### Why local-first instead of cloud?
 
-The `useRealtimeSync` hook combines Supabase WebSocket subscriptions with a polling fallback to ensure data is always up-to-date, even when the realtime connection fails.
+Local-first with IndexedDB means zero latency, full offline support, no SSR/server costs, and instant UI updates after mutations. Data is always available regardless of network status.
 
 ### Why CSS Variables instead of pure Tailwind?
 
@@ -306,7 +273,7 @@ CSS custom properties (`--brand`, `--surface-1`, etc.) enable dynamic theming (d
 ## Roadmap
 
 - [ ] Integration tests with Playwright
-- [ ] Offline mode with IndexedDB
+- [ ] Cloud sync (cross-device data synchronization)
 - [ ] Push notifications for deadline alerts
 - [ ] REST API (Python FastAPI) for batch processing
 - [ ] i18n multi-language support

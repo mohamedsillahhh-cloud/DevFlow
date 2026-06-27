@@ -12,7 +12,6 @@ import { Panel } from '../components/ui/panel'
 import { StatCard } from '../components/ui/stat-card'
 import { StatusBadge } from '../components/ui/status-badge'
 import { useAsyncData } from '../hooks/use-async-data'
-import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
   BUTTON_SECONDARY,
   deadlineColor,
@@ -34,7 +33,7 @@ import {
 } from '../lib/format'
 import { getWorkspaceSection } from '../lib/navigation'
 
-import { fetchDashboardSnapshot } from '../lib/supabase/supabase-data'
+import { fetchDashboardSnapshot } from '../lib/data'
 
 const STATUS_DEFINITIONS = [
   {
@@ -88,9 +87,6 @@ function monthStamp(reference = new Date()) {
 export function DashboardPage() {
   const location = useLocation()
   const { data, error, isLoading, reload } = useAsyncData(fetchDashboardSnapshot)
-  useRealtimeSync(['configuracoes', 'projetos', 'gastos', 'receitas', 'investimentos', 'aportes', 'tempo_projeto'], reload, {
-    pollIntervalMs: 12000,
-  })
   if (isLoading && !data) {
     return <FullScreenLoader label="A carregar o dashboard..." />
   }

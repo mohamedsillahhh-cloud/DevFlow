@@ -6,7 +6,6 @@ import { PageSectionNav } from '../components/layout/page-section-nav'
 import { Panel } from '../components/ui/panel'
 import { StatCard } from '../components/ui/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
-import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
@@ -27,12 +26,11 @@ import {
   deleteAporte,
   deleteInvestimento,
   fetchInvestmentsSnapshot,
-} from '../lib/supabase/supabase-data'
+} from '../lib/data'
 
 export function InvestmentsPage() {
   const location = useLocation()
   const { data, error, isLoading, reload } = useAsyncData(fetchInvestmentsSnapshot)
-  useRealtimeSync(['configuracoes', 'investimentos', 'aportes'], reload, { pollIntervalMs: 12000 })
   const [investmentForm, setInvestmentForm] = useState({
     active: true,
     name: '',

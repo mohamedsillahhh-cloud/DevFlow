@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { FullScreenLoader } from '../components/ui/full-screen-loader'
 import { Panel } from '../components/ui/panel'
 import { useAsyncData } from '../hooks/use-async-data'
-import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
@@ -10,11 +9,10 @@ import {
   INPUT_BASE,
   formatCurrency,
 } from '../lib/format'
-import { fetchConfiguracoes, saveConfiguracoes } from '../lib/supabase/supabase-data'
+import { fetchConfiguracoes, saveConfiguracoes } from '../lib/data'
 
 export function ConfigPage() {
   const { data, error, isLoading, reload } = useAsyncData(fetchConfiguracoes)
-  useRealtimeSync(['configuracoes'], reload, { pollIntervalMs: 15000 })
   const [form, setForm] = useState({
     alerta_conta_dias: '3',
     alerta_prazo_dias: '7',

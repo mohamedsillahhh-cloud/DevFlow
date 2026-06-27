@@ -23,7 +23,7 @@ web/                  React 19 + Vite + TypeScript
 │   ├── hooks/          Custom React hooks
 │   ├── lib/
 │   │   ├── export/     Export utilities (CSV, XLSX, PDF)
-│   │   ├── supabase/   Supabase client and data access
+│   │   ├── data/       Dexie.js database and CRUD operations
 │   │   ├── cn.ts       Class name utility
 │   │   ├── format.ts   Formatting and date utilities
 │   │   ├── navigation.ts

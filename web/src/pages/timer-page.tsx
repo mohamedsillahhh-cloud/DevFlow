@@ -8,7 +8,6 @@ import { PageSectionNav } from '../components/layout/page-section-nav'
 import { Panel } from '../components/ui/panel'
 import { StatCard } from '../components/ui/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
-import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
@@ -24,7 +23,7 @@ import {
   shiftMonth,
 } from '../lib/format'
 import { getWorkspaceSection } from '../lib/navigation'
-import { fetchTimerSnapshot, saveConfiguracoes, startWorkSession, stopWorkSession } from '../lib/supabase/supabase-data'
+import { fetchTimerSnapshot, saveConfiguracoes, startWorkSession, stopWorkSession } from '../lib/data'
 
 type ProjectRatesMap = Record<string, number>
 
@@ -56,7 +55,6 @@ function formatDecimalHours(totalMinutes: number) {
 export function TimerPage() {
   const location = useLocation()
   const { data, error, isLoading, reload } = useAsyncData(fetchTimerSnapshot)
-  useRealtimeSync(['configuracoes', 'projetos', 'tempo_projeto'], reload, { pollIntervalMs: 8000 })
   const [selectedProjectId, setSelectedProjectId] = useState('')
   const [startDescription, setStartDescription] = useState('')
   const [stopDescription, setStopDescription] = useState('')
