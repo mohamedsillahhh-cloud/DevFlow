@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { FullScreenLoader } from '../components/ui/full-screen-loader'
 import { Panel } from '../components/ui/panel'
-import { useAsyncData } from '../hooks/use-async-data'
+import { useAsyncData } from '../hooks/use-data'
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,

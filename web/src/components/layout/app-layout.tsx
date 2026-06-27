@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { useAsyncData } from '../../hooks/use-async-data'
+import { useAsyncData } from '../../hooks/use-data'
 import { useNavigationShortcuts } from '../../hooks/use-keyboard-shortcuts'
 import { fetchConfiguracoes, saveConfiguracoes } from '../../lib/data'
 

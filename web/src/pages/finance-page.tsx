@@ -16,7 +16,7 @@ import { MonthYearPicker } from '../components/ui/month-year-picker'
 import { PageSectionNav } from '../components/layout/page-section-nav'
 import { Panel } from '../components/ui/panel'
 import { StatCard } from '../components/ui/stat-card'
-import { useAsyncData } from '../hooks/use-async-data'
+import { useAsyncData } from '../hooks/use-data'
 import { cx } from '../lib/cn'
 import { downloadCsv } from '../lib/export/export'
 import {

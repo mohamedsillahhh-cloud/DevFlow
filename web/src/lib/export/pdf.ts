@@ -9,16 +9,14 @@ export async function exportToPdfCompleto(
   filename?: string,
 ) {
   const { default: jsPDF } = await import('jspdf')
-  await import('jspdf-autotable')
+  const { default: autoTable } = await import('jspdf-autotable')
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const d = doc as any
   const margin = 15
 
-  d.setFontSize(18)
-  d.text('Relatório Completo DevFlow', margin, 20)
-  d.setFontSize(10)
-  d.text(`Gerado em: ${new Date().toLocaleString('pt-PT')}`, margin, 27)
+  doc.setFontSize(18)
+  doc.text('Relatório Completo DevFlow', margin, 20)
+  doc.setFontSize(10)
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-PT')}`, margin, 27)
 
   const totalRec = receitas.reduce((s, r) => s + (r.valor || 0), 0)
   const totalGas = gastos.reduce((s, g) => s + (g.valor || 0), 0)
@@ -27,9 +25,10 @@ export async function exportToPdfCompleto(
   const totalPago = projetos.reduce((s, p) => s + (p.valor_pago || 0), 0)
   const totalHoras = sessoes.reduce((s, sess) => s + (sess.duracao_min || 0), 0) / 60
 
-  d.setFontSize(14)
-  d.text('Resumo Financeiro', margin, 37)
-  d.autoTable({
+  doc.setFontSize(14)
+  doc.text('Resumo Financeiro', margin, 37)
+  let lastY = 0
+  autoTable(doc, {
     startY: 40,
     head: [['Indicador', 'Valor']],
     body: [
@@ -48,12 +47,14 @@ export async function exportToPdfCompleto(
     columnStyles: { 0: { cellWidth: 100 }, 1: { cellWidth: 60, halign: 'right' } },
     margin: { left: margin, right: margin },
   })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  lastY = (autoTable as any).lastAutoTable.finalY + 10
 
   if (projetos.length > 0) {
-    const y = d.lastAutoTable.finalY + 10
-    if (y > 250) d.addPage()
-    d.setFontSize(14)
-    d.text('Projetos', margin, y)
+    const y = lastY
+    if (y > 250) doc.addPage()
+    doc.setFontSize(14)
+    doc.text('Projetos', margin, y)
 
     const projBody = projetos.map((p) => [
       getClientName(p),
@@ -63,7 +64,7 @@ export async function exportToPdfCompleto(
       (p.valor_pago ?? 0).toFixed(2),
       projectDueAmount(p).toFixed(2),
     ])
-    d.autoTable({
+    autoTable(doc, {
       startY: y + 4,
       head: [['Cliente', 'Projeto', 'Status', 'Total', 'Pago', 'Aberto']],
       body: projBody,
@@ -73,13 +74,15 @@ export async function exportToPdfCompleto(
       alternateRowStyles: { fillColor: [245, 245, 245] },
       margin: { left: margin, right: margin },
     })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    lastY = (autoTable as any).lastAutoTable.finalY + 10
   }
 
   if (gastos.length > 0) {
-    const y = d.lastAutoTable.finalY + 10
-    if (y > 250) d.addPage()
-    d.setFontSize(14)
-    d.text('Gastos (últimos 50)', margin, y)
+    const y = lastY
+    if (y > 250) doc.addPage()
+    doc.setFontSize(14)
+    doc.text('Gastos (últimos 50)', margin, y)
 
     const gastoBody = gastos.slice(0, 50).map((g) => [
       formatDate(g.data),
@@ -88,7 +91,7 @@ export async function exportToPdfCompleto(
       (g.valor || 0).toFixed(2),
       g.pago === 1 ? 'Sim' : 'Não',
     ])
-    d.autoTable({
+    autoTable(doc, {
       startY: y + 4,
       head: [['Data', 'Descrição', 'Categoria', 'Valor', 'Pago']],
       body: gastoBody,
@@ -105,13 +108,15 @@ export async function exportToPdfCompleto(
         4: { cellWidth: 15, halign: 'center' },
       },
     })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    lastY = (autoTable as any).lastAutoTable.finalY + 10
   }
 
   if (receitas.length > 0) {
-    const y = d.lastAutoTable.finalY + 10
-    if (y > 250) d.addPage()
-    d.setFontSize(14)
-    d.text('Receitas (últimas 50)', margin, y)
+    const y = lastY
+    if (y > 250) doc.addPage()
+    doc.setFontSize(14)
+    doc.text('Receitas (últimas 50)', margin, y)
 
     const recBody = receitas.slice(0, 50).map((r) => [
       formatDate(r.data),
@@ -119,7 +124,7 @@ export async function exportToPdfCompleto(
       r.origem || '-',
       (r.valor || 0).toFixed(2),
     ])
-    d.autoTable({
+    autoTable(doc, {
       startY: y + 4,
       head: [['Data', 'Descrição', 'Origem', 'Valor']],
       body: recBody,
@@ -135,8 +140,10 @@ export async function exportToPdfCompleto(
         3: { cellWidth: 25, halign: 'right' },
       },
     })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    lastY = (autoTable as any).lastAutoTable.finalY + 10
   }
 
   const name = filename ? `devflow-relatorio-${filename}` : `devflow-relatorio-${new Date().toISOString().slice(0, 10)}`
-  d.save(`${name}.pdf`)
+  doc.save(`${name}.pdf`)
 }

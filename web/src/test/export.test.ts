@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { EXPORT_PRESETS, getExportFilename, type ExportPreset, type ExportColumn } from '../lib/export/export'
+import { describe, expect, it } from 'vitest'
+import { EXPORT_PRESETS, getExportFilename, type ExportPreset } from '../lib/export/export'
 
 describe('EXPORT_PRESETS', () => {
   it('defines receitas preset', () => {

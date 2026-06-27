@@ -11,7 +11,7 @@ import { PageSectionNav } from '../components/layout/page-section-nav'
 import { Panel } from '../components/ui/panel'
 import { StatCard } from '../components/ui/stat-card'
 import { StatusBadge } from '../components/ui/status-badge'
-import { useAsyncData } from '../hooks/use-async-data'
+import { useAsyncData } from '../hooks/use-data'
 import {
   BUTTON_SECONDARY,
   deadlineColor,
