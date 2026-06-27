@@ -1,12 +1,12 @@
 import { Download, PlayCircle, RefreshCcw, Save, Square } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ExportDropdown } from '../components/export-dropdown'
-import { FullScreenLoader } from '../components/full-screen-loader'
-import { downloadCsv } from '../lib/csv'
-import { PageSectionNav } from '../components/page-section-nav'
-import { Panel } from '../components/panel'
-import { StatCard } from '../components/stat-card'
+import { ExportDropdown } from '../components/shared/export-dropdown'
+import { FullScreenLoader } from '../components/ui/full-screen-loader'
+import { downloadCsv } from '../lib/export/export'
+import { PageSectionNav } from '../components/layout/page-section-nav'
+import { Panel } from '../components/ui/panel'
+import { StatCard } from '../components/ui/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
 import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
@@ -24,7 +24,7 @@ import {
   shiftMonth,
 } from '../lib/format'
 import { getWorkspaceSection } from '../lib/navigation'
-import { fetchTimerSnapshot, saveConfiguracoes, startWorkSession, stopWorkSession } from '../lib/supabase-data'
+import { fetchTimerSnapshot, saveConfiguracoes, startWorkSession, stopWorkSession } from '../lib/supabase/supabase-data'
 
 type ProjectRatesMap = Record<string, number>
 
@@ -320,12 +320,12 @@ export function TimerPage() {
       {section !== 'historico' ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <StatCard
-          accent={activeSession ? '#1d9e75' : '#666666'}
+          accent={activeSession ? 'var(--color-accent-green)' : 'var(--text-muted)'}
           label={activeSession ? 'Sessao ativa' : 'Sem sessao ativa'}
           value={activeSession ? formatClockDuration(activeSession, now) : '--:--:--'}
         />
-        <StatCard accent="#378add" label="Sessoes no mes" value={String(monthSessions.length)} />
-        <StatCard accent="#ef9f27" label="Horas no mes" value={formatDurationMinutes(totalMonthMinutes)} />
+        <StatCard accent="var(--color-accent-blue)" label="Sessoes no mes" value={String(monthSessions.length)} />
+        <StatCard accent="var(--color-accent-orange)" label="Horas no mes" value={formatDurationMinutes(totalMonthMinutes)} />
         <StatCard
           accent="var(--brand)"
           label="Faturavel"
@@ -483,7 +483,7 @@ export function TimerPage() {
 
                       <div className="mt-3 grid gap-2 text-xs text-[var(--text-secondary)] md:grid-cols-2">
                         <p>Taxa usada: <span className="font-mono text-[var(--text-primary)]">{formatCurrency(item.rate, currency)}</span></p>
-                        <p>Faturavel: <span className="font-mono text-[#1d9e75]">{formatCurrency(item.estimatedAmount, currency)}</span></p>
+                        <p>Faturavel: <span className="font-mono text-[var(--color-accent-green)]">{formatCurrency(item.estimatedAmount, currency)}</span></p>
                       </div>
                     </div>
                   )

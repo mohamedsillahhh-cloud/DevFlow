@@ -9,21 +9,22 @@ import {
 } from 'lucide-react'
 import { useDeferredValue, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ComparisonAreaChart, DonutChart, MiniBarChart } from '../components/data-viz'
-import { ExportDropdown } from '../components/export-dropdown'
-import { FullScreenLoader } from '../components/full-screen-loader'
-import { MonthYearPicker } from '../components/month-year-picker'
-import { PageSectionNav } from '../components/page-section-nav'
-import { Panel } from '../components/panel'
-import { StatCard } from '../components/stat-card'
+import { ComparisonAreaChart, DonutChart, MiniBarChart } from '../components/charts/data-viz'
+import { ExportDropdown } from '../components/shared/export-dropdown'
+import { FullScreenLoader } from '../components/ui/full-screen-loader'
+import { MonthYearPicker } from '../components/ui/month-year-picker'
+import { PageSectionNav } from '../components/layout/page-section-nav'
+import { Panel } from '../components/ui/panel'
+import { StatCard } from '../components/ui/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
 import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import { cx } from '../lib/cn'
-import { downloadCsv } from '../lib/csv'
+import { downloadCsv } from '../lib/export/export'
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
   INPUT_BASE,
+  TEXTAREA_BASE,
   formatCurrency,
   formatDate,
   formatInputDateValue,
@@ -44,10 +45,9 @@ import {
   deleteGasto,
   deleteReceita,
   fetchFinanceSnapshot,
-} from '../lib/supabase-data'
+} from '../lib/supabase/supabase-data'
 import type { Gasto, Receita } from '../lib/types'
 
-const TEXTAREA_BASE = `${INPUT_BASE} min-h-[110px] resize-y`
 const CUSTOM_CATEGORY_VALUE = '__custom__'
 const DEFAULT_EXPENSE_CATEGORIES = [
   'Operacao',
@@ -864,19 +864,19 @@ export function FinancePage() {
           value={formatCurrency(saldo, currency)}
         />
         <StatCard
-          accent="#ef9f27"
+          accent="var(--color-accent-orange)"
           label="Pendencias"
           subtitle={`${pendentes.length} conta(s) em aberto`}
           value={formatCurrency(pendenteValor, currency)}
         />
         <StatCard
-          accent="#6c9cff"
+          accent="var(--color-accent-purple)"
           label="A receber"
           subtitle={`${formatCoverage(expenseCoverage)} de cobertura media`}
           value={formatCurrency(pendingReceivables, currency)}
         />
         <StatCard
-          accent="#378add"
+          accent="var(--color-accent-blue)"
           label="Margem"
           subtitle="receita vs gasto"
           value={formatRatio(cashMargin)}

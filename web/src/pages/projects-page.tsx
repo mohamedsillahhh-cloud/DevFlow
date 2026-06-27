@@ -1,18 +1,19 @@
 import { BriefcaseBusiness, Filter, PlusCircle, RefreshCcw, Search, Trash2 } from 'lucide-react'
 import { useDeferredValue, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { EmptyState } from '../components/empty-state'
-import { FullScreenLoader } from '../components/full-screen-loader'
-import { PageSectionNav } from '../components/page-section-nav'
-import { Panel } from '../components/panel'
-import { StatCard } from '../components/stat-card'
-import { StatusBadge } from '../components/status-badge'
+import { EmptyState } from '../components/ui/empty-state'
+import { FullScreenLoader } from '../components/ui/full-screen-loader'
+import { PageSectionNav } from '../components/layout/page-section-nav'
+import { Panel } from '../components/ui/panel'
+import { StatCard } from '../components/ui/stat-card'
+import { StatusBadge } from '../components/ui/status-badge'
 import { useAsyncData } from '../hooks/use-async-data'
 import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
   INPUT_BASE,
+  TEXTAREA_BASE,
   deadlineColor,
   formatCurrency,
   formatDate,
@@ -22,7 +23,7 @@ import {
   projectDueAmount,
 } from '../lib/format'
 import { getWorkspaceSection } from '../lib/navigation'
-import { createProjeto, deleteProjeto, fetchProjectsSnapshot, updateProjetoStatus } from '../lib/supabase-data'
+import { createProjeto, deleteProjeto, fetchProjectsSnapshot, updateProjetoStatus } from '../lib/supabase/supabase-data'
 
 const STATUS_OPTIONS = [
   { label: 'Todos os status', value: 'todos' },
@@ -35,7 +36,6 @@ const STATUS_OPTIONS = [
 ]
 
 const PROJECT_STATUS_OPTIONS = STATUS_OPTIONS.filter((option) => option.value !== 'todos')
-const TEXTAREA_BASE = `${INPUT_BASE} min-h-[110px] resize-y`
 
 function scrollToProjectForm() {
   document.getElementById('project-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -429,25 +429,25 @@ export function ProjectsPage() {
       {['overview', 'pipeline'].includes(section) ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <StatCard
-          accent="#ef9f27"
+          accent="var(--color-accent-orange)"
           label="A receber"
           subtitle={`${filteredProjects.length} projetos filtrados`}
           value={formatCurrency(amountDue, currency)}
         />
         <StatCard
-          accent="#378add"
+          accent="var(--color-accent-blue)"
           label="Em andamento"
           subtitle="pipeline ativo"
           value={String(inProgress)}
         />
         <StatCard
-          accent="#e24b4a"
+          accent="var(--color-accent-red)"
           label="Atrasados"
           subtitle="prazo vencido"
           value={String(overdue)}
         />
         <StatCard
-          accent="#1d9e75"
+          accent="var(--color-accent-green)"
           label="Concluidos"
           subtitle={`${projetos.length} projetos na base`}
           value={String(paidProjects)}

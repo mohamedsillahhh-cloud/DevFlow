@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { FullScreenLoader } from '../components/full-screen-loader'
-import { Panel } from '../components/panel'
-import { useAuth } from '../hooks/use-auth'
+import { FullScreenLoader } from '../components/ui/full-screen-loader'
+import { Panel } from '../components/ui/panel'
 import { useAsyncData } from '../hooks/use-async-data'
 import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
@@ -11,12 +10,11 @@ import {
   INPUT_BASE,
   formatCurrency,
 } from '../lib/format'
-import { fetchConfiguracoes, saveConfiguracoes } from '../lib/supabase-data'
+import { fetchConfiguracoes, saveConfiguracoes } from '../lib/supabase/supabase-data'
 
 export function ConfigPage() {
   const { data, error, isLoading, reload } = useAsyncData(fetchConfiguracoes)
   useRealtimeSync(['configuracoes'], reload, { pollIntervalMs: 15000 })
-  const { updatePassword, user } = useAuth()
   const [form, setForm] = useState({
     alerta_conta_dias: '3',
     alerta_prazo_dias: '7',
@@ -29,13 +27,6 @@ export function ConfigPage() {
   const [feedback, setFeedback] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const [passwordForm, setPasswordForm] = useState({
-    confirmPassword: '',
-    newPassword: '',
-  })
-  const [passwordFeedback, setPasswordFeedback] = useState<string | null>(null)
-  const [passwordError, setPasswordError] = useState<string | null>(null)
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
 
   const [prevConfigData, setPrevConfigData] = useState(data)
   if (data && data !== prevConfigData) {
@@ -90,41 +81,6 @@ export function ConfigPage() {
     }
   }
 
-  async function handlePasswordUpdate() {
-    setPasswordFeedback(null)
-    setPasswordError(null)
-
-    const normalizedPassword = passwordForm.newPassword.trim()
-    const normalizedConfirmPassword = passwordForm.confirmPassword.trim()
-
-    if (normalizedPassword.length < 8) {
-      setPasswordError('A nova senha precisa de pelo menos 8 caracteres.')
-      return
-    }
-
-    if (normalizedPassword !== normalizedConfirmPassword) {
-      setPasswordError('A confirmacao da senha nao coincide.')
-      return
-    }
-
-    setIsUpdatingPassword(true)
-
-    try {
-      await updatePassword(normalizedPassword)
-      setPasswordForm({
-        confirmPassword: '',
-        newPassword: '',
-      })
-      setPasswordFeedback('Senha atualizada com sucesso.')
-    } catch (caughtError) {
-      setPasswordError(
-        caughtError instanceof Error ? caughtError.message : 'Nao foi possivel atualizar a senha.',
-      )
-    } finally {
-      setIsUpdatingPassword(false)
-    }
-  }
-
   return (
     <div className="grid gap-6 xl:grid-cols-[1.15fr,0.85fr]">
       <Panel
@@ -138,7 +94,7 @@ export function ConfigPage() {
       >
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-2">
-            <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Nome</span>
+            <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--color-label)]">Nome</span>
             <input
               className={INPUT_BASE}
               onChange={(event) => setForm((current) => ({ ...current, nome_usuario: event.target.value }))}
@@ -148,7 +104,7 @@ export function ConfigPage() {
           </label>
 
           <label className="space-y-2">
-            <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Moeda</span>
+            <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--color-label)]">Moeda</span>
             <select
               className={INPUT_BASE}
               onChange={(event) => setForm((current) => ({ ...current, moeda: event.target.value }))}
@@ -163,7 +119,7 @@ export function ConfigPage() {
           </label>
 
           <label className="space-y-2">
-            <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Tema</span>
+            <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--color-label)]">Tema</span>
             <select
               className={INPUT_BASE}
               onChange={(event) => setForm((current) => ({ ...current, tema: event.target.value }))}
@@ -175,7 +131,7 @@ export function ConfigPage() {
           </label>
 
           <label className="space-y-2 md:col-span-2">
-            <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Pasta de backup</span>
+            <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--color-label)]">Pasta de backup</span>
             <input
               className={INPUT_BASE}
               onChange={(event) => setForm((current) => ({ ...current, caminho_backup: event.target.value }))}
@@ -185,7 +141,7 @@ export function ConfigPage() {
           </label>
 
           <label className="space-y-2">
-            <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Dias para prazo</span>
+            <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--color-label)]">Dias para prazo</span>
             <input
               className={INPUT_BASE}
               onChange={(event) =>
@@ -197,7 +153,7 @@ export function ConfigPage() {
           </label>
 
           <label className="space-y-2">
-            <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Dias para contas</span>
+            <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--color-label)]">Dias para contas</span>
             <input
               className={INPUT_BASE}
               onChange={(event) =>
@@ -215,14 +171,13 @@ export function ConfigPage() {
 
       <div className="space-y-6">
         <Panel description="Resumo rapido do ambiente configurado." title="Preview">
-          <div className="rounded-2xl border border-[#171717] bg-[#090909] p-5">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Formato monetario atual</p>
-            <p className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-[#f0f0f0]">
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-5">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--color-label)]">Formato monetario atual</p>
+            <p className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-[var(--text-primary)]">
               {formatCurrency(0, form.moeda)}
             </p>
-            <div className="mt-6 space-y-2 text-sm text-[#888888]">
+            <div className="mt-6 space-y-2 text-sm text-[var(--text-muted)]">
               <p>Utilizador: {form.nome_usuario || 'nao definido'}</p>
-              <p>E-mail da conta: {user?.email || 'nao autenticado'}</p>
               <p>Alerta de prazo: {form.alerta_prazo_dias || '0'} dia(s)</p>
               <p>Alerta de contas: {form.alerta_conta_dias || '0'} dia(s)</p>
               <p>Ultimo backup: {form.ultimo_backup || 'nunca'}</p>
@@ -230,57 +185,6 @@ export function ConfigPage() {
           </div>
         </Panel>
 
-        <Panel
-          actions={
-            <button
-              className={BUTTON_PRIMARY}
-              disabled={isUpdatingPassword}
-              onClick={() => void handlePasswordUpdate()}
-              type="button"
-            >
-              Atualizar senha
-            </button>
-          }
-          description="A troca de senha usa a sessao atual do Supabase e mantem o acesso na conta autenticada."
-          title="Seguranca"
-        >
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text-secondary)]">
-              Conta autenticada: <span className="text-[var(--text-primary)]">{user?.email || '-'}</span>
-            </div>
-
-            <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Nova senha</span>
-              <input
-                className={INPUT_BASE}
-                onChange={(event) =>
-                  setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))
-                }
-                placeholder="Minimo de 8 caracteres"
-                type="password"
-                value={passwordForm.newPassword}
-              />
-            </label>
-
-            <label className="space-y-2">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[#666666]">Confirmar nova senha</span>
-              <input
-                className={INPUT_BASE}
-                onChange={(event) =>
-                  setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))
-                }
-                placeholder="Repete a nova senha"
-                type="password"
-                value={passwordForm.confirmPassword}
-              />
-            </label>
-
-            {passwordFeedback ? (
-              <p className="text-sm text-[var(--color-success)]">{passwordFeedback}</p>
-            ) : null}
-            {passwordError ? <p className="text-sm text-[var(--color-danger)]">{passwordError}</p> : null}
-          </div>
-        </Panel>
       </div>
     </div>
   )

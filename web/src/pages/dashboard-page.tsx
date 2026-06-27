@@ -4,13 +4,13 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
-import { ComparisonAreaChart, DonutChart, MiniBarChart } from '../components/data-viz'
-import { ExportCompleto, ExportDropdown } from '../components/export-dropdown'
-import { FullScreenLoader } from '../components/full-screen-loader'
-import { PageSectionNav } from '../components/page-section-nav'
-import { Panel } from '../components/panel'
-import { StatCard } from '../components/stat-card'
-import { StatusBadge } from '../components/status-badge'
+import { ComparisonAreaChart, DonutChart, MiniBarChart } from '../components/charts/data-viz'
+import { ExportCompleto, ExportDropdown } from '../components/shared/export-dropdown'
+import { FullScreenLoader } from '../components/ui/full-screen-loader'
+import { PageSectionNav } from '../components/layout/page-section-nav'
+import { Panel } from '../components/ui/panel'
+import { StatCard } from '../components/ui/stat-card'
+import { StatusBadge } from '../components/ui/status-badge'
 import { useAsyncData } from '../hooks/use-async-data'
 import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
@@ -34,7 +34,7 @@ import {
 } from '../lib/format'
 import { getWorkspaceSection } from '../lib/navigation'
 
-import { fetchDashboardSnapshot } from '../lib/supabase-data'
+import { fetchDashboardSnapshot } from '../lib/supabase/supabase-data'
 
 const STATUS_DEFINITIONS = [
   {
@@ -250,7 +250,7 @@ export function DashboardPage() {
 
         <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
           <div className="flex items-center gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] px-5 py-3 text-sm text-[var(--text-secondary)]">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#53371a] bg-[rgba(140,96,15,0.18)] text-[var(--color-warning)]">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--alert-warning-border)] bg-[var(--alert-warning-bg)] text-[var(--color-warning)]">
               <AlertTriangle className="h-4 w-4" />
             </span>
             <span>{alerts.length > 0 ? `${alerts.length} alerta(s) ativo(s)` : 'Nenhum alerta ativo no momento'}</span>
@@ -303,8 +303,8 @@ export function DashboardPage() {
               key={alert.message}
               className={`rounded-2xl border px-5 py-4 text-sm transition hover:border-opacity-80 ${
                 alert.danger
-                  ? 'border-[#4a1f2a] bg-[rgba(113,29,43,0.16)] text-[var(--text-primary)]'
-                  : 'border-[#5a4722] bg-[rgba(140,96,15,0.16)] text-[var(--text-primary)]'
+                  ? 'border-[var(--alert-danger-border)] bg-[var(--alert-danger-bg)] text-[var(--text-primary)]'
+                  : 'border-[var(--alert-warning-border)] bg-[var(--alert-warning-bg)] text-[var(--text-primary)]'
               }`}
             >
               {alert.message}
@@ -340,7 +340,7 @@ export function DashboardPage() {
             value={formatCurrency(pendingReceivables, currency)}
           />
           <StatCard
-            accent="#6c9cff"
+            accent="var(--color-accent-purple)"
             label="Ticket medio"
             subtitle="media por receita no mes"
             value={formatCurrency(averageTicket, currency)}

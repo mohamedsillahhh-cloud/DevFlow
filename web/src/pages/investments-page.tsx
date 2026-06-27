@@ -1,16 +1,17 @@
 import { PlusCircle, RefreshCcw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { FullScreenLoader } from '../components/full-screen-loader'
-import { PageSectionNav } from '../components/page-section-nav'
-import { Panel } from '../components/panel'
-import { StatCard } from '../components/stat-card'
+import { FullScreenLoader } from '../components/ui/full-screen-loader'
+import { PageSectionNav } from '../components/layout/page-section-nav'
+import { Panel } from '../components/ui/panel'
+import { StatCard } from '../components/ui/stat-card'
 import { useAsyncData } from '../hooks/use-async-data'
 import { useRealtimeSync } from '../hooks/use-realtime-sync'
 import {
   BUTTON_PRIMARY,
   BUTTON_SECONDARY,
   INPUT_BASE,
+  TEXTAREA_BASE,
   formatCurrency,
   formatDate,
   formatInputDateValue,
@@ -26,9 +27,7 @@ import {
   deleteAporte,
   deleteInvestimento,
   fetchInvestmentsSnapshot,
-} from '../lib/supabase-data'
-
-const TEXTAREA_BASE = `${INPUT_BASE} min-h-[110px] resize-y`
+} from '../lib/supabase/supabase-data'
 
 export function InvestmentsPage() {
   const location = useLocation()
@@ -438,9 +437,9 @@ export function InvestmentsPage() {
 
       {['overview', 'carteira'].includes(section) ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <StatCard accent="#378add" label="Total investido" value={formatCurrency(totalInvestido, currency)} />
-        <StatCard accent="#1d9e75" label="Aportado este mes" value={formatCurrency(aportadoMes, currency)} />
-        <StatCard accent="#ef9f27" label="Rendimento acumulado" value={formatCurrency(rendimentoTotal, currency)} />
+        <StatCard accent="var(--color-accent-blue)" label="Total investido" value={formatCurrency(totalInvestido, currency)} />
+        <StatCard accent="var(--color-accent-green)" label="Aportado este mes" value={formatCurrency(aportadoMes, currency)} />
+        <StatCard accent="var(--color-accent-orange)" label="Rendimento acumulado" value={formatCurrency(rendimentoTotal, currency)} />
         <StatCard
           accent="var(--brand)"
           label="Metas atingidas"
@@ -516,7 +515,7 @@ export function InvestmentsPage() {
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]">
                       <div
-                        className="h-full rounded-full bg-[#378add]"
+                        className="h-full rounded-full bg-[var(--color-accent-blue)]"
                         style={{ width: `${Math.max(percent, percent > 0 ? 6 : 0)}%` }}
                       />
                     </div>
@@ -559,7 +558,7 @@ export function InvestmentsPage() {
                     </td>
                     <td
                       className={`border-y border-[var(--border-subtle)] bg-[var(--surface-1)] px-4 py-3 font-mono ${
-                        item.tipo === 'resgate' ? 'text-[#e24b4a]' : 'text-[#1d9e75]'
+                        item.tipo === 'resgate' ? 'text-[var(--color-accent-red)]' : 'text-[var(--color-accent-green)]'
                       }`}
                     >
                       {item.tipo === 'resgate' ? '-' : '+'}
