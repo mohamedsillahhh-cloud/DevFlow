@@ -1,6 +1,5 @@
 <div align="center">
   <br />
-  <img src="assets/logo.png" alt="DevFlow Logo" width="120" />
   <h1 align="center">DevFlow</h1>
   <p align="center">
     <strong>Freelancer Operations Cockpit</strong>
