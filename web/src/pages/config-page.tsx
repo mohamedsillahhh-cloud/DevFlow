@@ -68,7 +68,7 @@ export function ConfigPage() {
     try {
       await saveConfiguracoes(form)
       // Sincronizar tema com localStorage e aplicar ao documento
-      window.localStorage.setItem('devflow-theme-mode', form.tema)
+      window.localStorage.setItem('app-theme-mode', form.tema)
       document.documentElement.setAttribute('data-theme', form.tema)
       setFeedback('Configuracoes guardadas com sucesso.')
       await reload()

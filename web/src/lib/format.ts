@@ -252,7 +252,7 @@ export function getSessionProjectTitle(session: TempoProjeto) {
 }
 
 export function getUserDisplayName(config: ConfigMap, email?: string | null) {
-  return config.nome_usuario?.trim() || email || 'DevFlow'
+  return config.nome_usuario?.trim() || email || 'User'
 }
 
 export function groupByMonth<T>(

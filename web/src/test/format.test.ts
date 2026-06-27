@@ -253,8 +253,8 @@ describe('getRelationItem', () => {
 
 describe('getClientName', () => {
   it('returns client nome when client exists', () => {
-    const project = { clientes: { nome: 'João Silva' } } as Projeto
-    expect(getClientName(project)).toBe('João Silva')
+    const project = { clientes: { nome: 'Cliente ABC' } } as Projeto
+    expect(getClientName(project)).toBe('Cliente ABC')
   })
 
   it('returns fallback when no client', () => {
@@ -421,15 +421,15 @@ describe('getSessionProjectTitle', () => {
 
 describe('getUserDisplayName', () => {
   it('returns config name', () => {
-    expect(getUserDisplayName({ nome_usuario: 'João' })).toBe('João')
+    expect(getUserDisplayName({ nome_usuario: 'User' })).toBe('User')
   })
 
   it('returns email fallback', () => {
-    expect(getUserDisplayName({ nome_usuario: '' }, 'joao@email.com')).toBe('joao@email.com')
+    expect(getUserDisplayName({ nome_usuario: '' }, 'user@email.com')).toBe('user@email.com')
   })
 
   it('returns default fallback', () => {
-    expect(getUserDisplayName({ nome_usuario: '' }, null)).toBe('DevFlow')
+    expect(getUserDisplayName({ nome_usuario: '' }, null)).toBe('User')
   })
 })
 

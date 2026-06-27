@@ -65,7 +65,7 @@ const PAGE_TITLES = [
 ]
 
 type ThemeMode = 'dark' | 'light'
-const THEME_STORAGE_KEY = 'devflow-theme-mode'
+const THEME_STORAGE_KEY = 'app-theme-mode'
 
 export function AppLayout() {
   const location = useLocation()
@@ -105,7 +105,7 @@ export function AppLayout() {
   const heading =
     PAGE_TITLES.find((item) => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)) ??
     PAGE_TITLES[1]
-  const displayName = configuracoes?.nome_usuario?.trim() || 'DevFlow'
+  const displayName = configuracoes?.nome_usuario?.trim() || 'User'
   const isDark = theme === 'dark'
 
   // Aplicar tema ao documento quando theme muda
