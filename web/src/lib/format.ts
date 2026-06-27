@@ -30,6 +30,8 @@ export const BUTTON_SECONDARY =
 export const INPUT_BASE =
   'w-full rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] shadow-[var(--shadow-soft)] transition focus:border-[var(--border-strong)] focus:ring-4 focus:ring-[var(--brand-soft)]'
 
+export const TEXTAREA_BASE = `${INPUT_BASE} min-h-[110px] resize-y`
+
 export function mapConfiguracoes(rows: Array<{ chave: string; valor: string }>): ConfigMap {
   return rows.reduce<ConfigMap>(
     (accumulator, item) => {
@@ -90,11 +92,11 @@ export function formatMonthLabel(value: Date) {
 
 export function parseDateValue(value: string | Date | null | undefined) {
   if (value instanceof Date) {
-    return new Date(value)
+    return Number.isNaN(value.getTime()) ? new Date() : new Date(value)
   }
 
   if (!value) {
-    return new Date(Number.NaN)
+    return new Date()
   }
 
   if (DATE_ONLY_PATTERN.test(value)) {
@@ -102,7 +104,8 @@ export function parseDateValue(value: string | Date | null | undefined) {
     return new Date(year!, month! - 1, day!, 12)
   }
 
-  return new Date(value)
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed
 }
 
 export function formatInputDateValue(reference = new Date()) {
@@ -113,22 +116,24 @@ export function formatInputDateValue(reference = new Date()) {
 }
 
 export function formatRatio(value: number) {
-  if (!Number.isFinite(value) || value <= 0) {
+  if (!Number.isFinite(value)) {
     return '0%'
   }
-  return `${Math.round(value * 100)}%`
+  const sign = value < 0 ? '-' : ''
+  return `${sign}${Math.round(Math.abs(value) * 100)}%`
 }
 
 export function formatCoverage(value: number) {
-  if (!Number.isFinite(value) || value <= 0) {
+  if (!Number.isFinite(value)) {
     return '0,0 meses'
   }
-  return `${value.toFixed(1).replace('.', ',')} meses`
+  const sign = value < 0 ? '-' : ''
+  return `${sign}${Math.abs(value).toFixed(1).replace('.', ',')} meses`
 }
 
 export function deadlineColor(value: string | null | undefined) {
   if (!value) {
-    return '#378add'
+    return 'var(--color-deadline-none)'
   }
 
   const today = new Date()
@@ -138,15 +143,15 @@ export function deadlineColor(value: string | null | undefined) {
   const diff = Math.floor((target.getTime() - today.getTime()) / 86400000)
 
   if (diff < 0) {
-    return '#e24b4a'
+    return 'var(--color-deadline-overdue)'
   }
   if (diff <= 3) {
-    return '#e94560'
+    return 'var(--color-deadline-urgent)'
   }
   if (diff <= 7) {
-    return '#ef9f27'
+    return 'var(--color-deadline-soon)'
   }
-  return '#1d9e75'
+  return 'var(--color-deadline-far)'
 }
 
 export function formatPercent(partial: number, total: number) {

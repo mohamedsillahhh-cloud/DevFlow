@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase/supabase'
 
 interface UseRealtimeSyncOptions {
   pollIntervalMs?: number
@@ -26,6 +26,9 @@ export function useRealtimeSync(
       return
     }
 
+    const abortController = new AbortController()
+    const { signal } = abortController
+
     let scheduledRefresh: ReturnType<typeof setTimeout> | null = null
 
     const triggerRefresh = () => {
@@ -34,12 +37,14 @@ export function useRealtimeSync(
       }
 
       scheduledRefresh = setTimeout(() => {
-        void refreshRef.current()
+        if (!signal.aborted) {
+          void refreshRef.current()
+        }
       }, 180)
     }
 
-    const handleVisibilityRefresh = () => {
-      if (document.visibilityState === 'visible') {
+    const safeRefresh = () => {
+      if (!signal.aborted) {
         void refreshRef.current()
       }
     }
@@ -57,26 +62,29 @@ export function useRealtimeSync(
     )
 
     channel.subscribe((status) => {
-      setIsLive(status === 'SUBSCRIBED')
+      if (!signal.aborted) {
+        setIsLive(status === 'SUBSCRIBED')
+      }
     })
 
     const pollId = window.setInterval(() => {
       if (document.visibilityState === 'visible') {
-        void refreshRef.current()
+        safeRefresh()
       }
     }, pollIntervalMs)
 
-    window.addEventListener('focus', handleVisibilityRefresh)
-    document.addEventListener('visibilitychange', handleVisibilityRefresh)
+    window.addEventListener('focus', safeRefresh)
+    document.addEventListener('visibilitychange', safeRefresh)
 
     return () => {
+      abortController.abort()
       if (scheduledRefresh) {
         clearTimeout(scheduledRefresh)
       }
 
       window.clearInterval(pollId)
-      window.removeEventListener('focus', handleVisibilityRefresh)
-      document.removeEventListener('visibilitychange', handleVisibilityRefresh)
+      window.removeEventListener('focus', safeRefresh)
+      document.removeEventListener('visibilitychange', safeRefresh)
       void supabase.removeChannel(channel)
     }
   }, [pollIntervalMs, tableKey])
