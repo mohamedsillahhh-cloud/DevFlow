@@ -1,5 +1,5 @@
 import { X } from 'lucide-react'
-import { cx } from '../lib/cn'
+import { cx } from '../../lib/cn'
 
 interface AlertBannerProps {
   danger?: boolean

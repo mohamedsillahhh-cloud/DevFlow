@@ -1,4 +1,4 @@
-import { cx } from '../lib/cn'
+import { cx } from '../../lib/cn'
 
 interface PaginationProps {
   currentPage: number
