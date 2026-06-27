@@ -2,19 +2,17 @@
   <br />
   <h1 align="center">DevFlow</h1>
   <p align="center">
-    <strong>Freelancer Operations Cockpit</strong>
+    <strong>Open-source operations cockpit for freelancers and small teams</strong>
     <br />
-    Gestão financeira, projetos, timer e investimentos — tudo num só lugar.
+    Dashboard, projects, finances, time tracking, and investments — all in one place.
   </p>
 
   <p align="center">
-    <a href="#-sobre-o-projeto">Sobre</a> •
-    <a href="#-funcionalidades">Funcionalidades</a> •
-    <a href="#-arquitetura">Arquitetura</a> •
-    <a href="#%EF%B8%8F-estrutura">Estrutura</a> •
-    <a href="#-tecnologias">Tecnologias</a> •
-    <a href="#-como-executar">Como Executar</a> •
-    <a href="#-variáveis-de-ambiente">Variáveis</a>
+    <a href="#features">Features</a> •
+    <a href="#architecture">Architecture</a> •
+    <a href="#quick-start">Quick Start</a> •
+    <a href="#documentation">Docs</a> •
+    <a href="#contributing">Contributing</a>
   </p>
 
   <br />
@@ -31,7 +29,6 @@
   <p align="center">
     <img src="https://img.shields.io/github/license/sillah/devflow?style=flat-square" alt="License" />
     <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome" />
-    <img src="https://img.shields.io/badge/status-production%20ready-00D4AA?style=flat-square" alt="Status" />
   </p>
 </div>
 
@@ -39,63 +36,63 @@
 
 ---
 
-## Sobre o Projeto
+## About
 
-**DevFlow** é um cockpit de gestão para freelancers e pequenos negócios. Ele centraliza:
+**DevFlow** is a web-based operations cockpit for freelancers and small businesses. It centralizes day-to-day management into a single interface:
 
-- **Dashboard executivo** com visão geral de receitas, gastos, saldo e projeções
-- **Gestão de projetos** com pipeline financeiro, status e prazos
-- **Controlo financeiro** com receitas, gastos, categorias e exportação Excel/CSV/PDF
-- **Timer de trabalho** com faturação por projeto e taxas horárias
-- **Gestão de investimentos** com aportes, resgates e metas patrimoniais
-- **Alertas inteligentes** para prazos próximos e contas a pagar
+- **Executive dashboard** with revenue, expenses, balance, and projections
+- **Project management** with financial pipeline, status, and deadlines
+- **Financial control** with income, expenses, categories, and CSV/Excel/PDF export
+- **Work timer** with per-project billing and hourly rates
+- **Investment tracking** with contributions, withdrawals, and goal progress
+- **Smart alerts** for approaching deadlines and pending bills
 
-### Público-alvo
+### Target Audience
 
-Profissionais autónomos, freelancers e pequenas equipas que precisam de um sistema simples mas completo para gerir as operações do dia-a-dia.
+Solo professionals, freelancers, and small teams who need a simple but complete system to run their operations.
 
 ---
 
-## Funcionalidades
+## Features
 
 ### Dashboard
-| Funcionalidade | Descrição |
+| Feature | Description |
 |---|---|
-| Visão geral | Receitas, gastos, saldo, ticket médio do mês |
-| Performance 6M | Gráfico de área comparando receitas vs gastos |
-| Radar pipeline | Donut chart com distribuição de status dos projetos |
-| Desk Excel | Margem operacional, taxa de cobrança, cobertura de caixa |
-| Alertas | Prazos próximos, contas a vencer, projetos em atraso |
-| Exportação | CSV, Excel formatado e PDF do relatório completo |
+| Overview | Revenue, expenses, balance, average ticket for the month |
+| 6-month performance | Area chart comparing revenue vs expenses |
+| Pipeline radar | Donut chart showing project status distribution |
+| Excel-ready desk | Operating margin, collection rate, cash coverage |
+| Alerts | Approaching deadlines, bills due, overdue projects |
+| Export | CSV, formatted Excel, and PDF full report |
 
-### Projetos
-- CRUD completo com criação automática de clientes
-- Pipeline financeiro com valor total, pago e em aberto
-- Filtros por status e pesquisa textual
-- Atualização rápida de status
-- Links para repositório e staging
+### Projects
+- Full CRUD with automatic client creation
+- Financial pipeline with total, paid, and outstanding amounts
+- Status filters and text search
+- Quick status updates
+- Repository and staging URL links
 
-### Finanças
-- Registo de receitas e gastos com categorias
-- Filtro por período, categoria e estado de pagamento
-- Gráficos de análise mensal
-- Exportação por período
+### Finances
+- Income and expense records with categories
+- Filter by period, category, and payment status
+- Monthly analysis charts
+- Period-based export
 
 ### Timer
-- Controlo start/stop com seleção de projeto
-- Cálculo automático de duração
-- Faturação estimada com taxas por projeto
-- Histórico de sessões
+- Start/stop control with project selection
+- Automatic duration calculation
+- Estimated billing with per-project rates
+- Session history
 
-### Investimentos
-- Registo de ativos com metas de valor e data
-- Aportes, resgates e rendimentos
-- Progresso visual por investimento
-- Alocação por tipo de ativo
+### Investments
+- Asset registration with value and date goals
+- Contributions, withdrawals, and returns
+- Visual progress tracking per investment
+- Allocation by asset type
 
 ---
 
-## Arquitetura
+## Architecture
 
 ```mermaid
 graph TD
@@ -122,296 +119,217 @@ graph TD
     style G fill:#3ECF8E,color:#000
 ```
 
-### Fluxo da Aplicação
+### Application Flow
 
 ```mermaid
 flowchart LR
-    A[Utilizador] --> B{Dashboard}
-    B --> C[Visão Geral]
+    A[User] --> B{Dashboard}
+    B --> C[Overview]
     B --> D[Pipeline]
-    B --> E[Operações]
-    B --> F[Fluxo]
+    B --> E[Operations]
+    B --> F[Flow]
 
-    C --> G[StatCards]
-    C --> H[Gráficos]
-    C --> I[Alertas]
-    C --> J[Exportação]
+    C --> G[Stat Cards]
+    C --> H[Charts]
+    C --> I[Alerts]
+    C --> J[Export]
 
-    D --> K[Financeiro]
-    D --> L[Contas a Pagar]
+    D --> K[Financial]
+    D --> L[Pending Bills]
 
-    E --> M[Resumo Mensal]
-    E --> N[Próximos Prazos]
+    E --> M[Monthly Summary]
+    E --> N[Upcoming Deadlines]
 ```
 
-### Modelo de Dados
+### Data Model
 
 ```mermaid
 erDiagram
-    CLIENTES ||--o{ PROJETOS : possui
-    PROJETOS ||--o{ RECEITAS : gera
-    PROJETOS ||--o{ TEMPO_PROJETO : regista
-    PROJETOS ||--o{ PAGAMENTOS : tem
-    GASTOS ||--|| CATEGORIAS : pertence
-    INVESTIMENTOS ||--o{ APORTES : recebe
+    CLIENTS ||--o{ PROJECTS : has
+    PROJECTS ||--o{ INCOME : generates
+    PROJECTS ||--o{ TIME_ENTRIES : tracks
+    PROJECTS ||--o{ PAYMENTS : has
+    EXPENSES ||--|| CATEGORIES : belongs_to
+    INVESTMENTS ||--o{ CONTRIBUTIONS : receives
 ```
 
 ---
 
-## Estrutura do Projeto
+## Quick Start
 
-```
-devflow/
-├── web/                          # Frontend (React + Vite)
-│   ├── public/                   # Assets estáticos
-│   └── src/
-│       ├── @types/               # Declarações TypeScript
-│       ├── components/           # Componentes reutilizáveis
-│       │   ├── ui/               # UI primitives (Panel, Skeleton, Badge)
-│       │   ├── charts/           # Gráficos (Area, Bar, Donut, Pie)
-│       │   ├── layout/           # Layout (AppLayout, Sidebar, Header)
-│       │   └── shared/           # Shared (EmptyState, ErrorBoundary)
-│       ├── hooks/                # Custom hooks
-│       ├── lib/                  # Utilitários, configurações, tipos
-│       │   ├── supabase/         # Supabase client + data layer
-│       │   └── format/           # Formatadores financeiros
-│       ├── pages/                # Páginas da aplicação
-│       ├── test/                 # Testes unitários
-│       └── main.tsx              # Entry point
-├── database/                     # Modelos Python + SQL policies
-├── supabase/
-│   └── migrations/               # Migrações da base de dados
-├── assets/                       # Logos, imagens
-├── documentacao/                 # Documentação adicional
-├── .editorconfig
-├── .env.example
-├── .prettierrc
-└── README.md
-```
-
-### Estrutura Detalhada (Frontend)
-
-```
-web/src/
-├── @types/
-│   └── lucide-react.d.ts         # Tipos para os ícones
-│
-├── components/
-│   ├── ui/                       # Componentes base
-│   │   ├── panel.tsx
-│   │   ├── skeleton.tsx
-│   │   ├── stat-card.tsx
-│   │   ├── status-badge.tsx
-│   │   ├── pagination.tsx
-│   │   ├── notice-banner.tsx
-│   │   └── alert-banner.tsx
-│   ├── charts/                   # Visualização de dados
-│   │   ├── data-viz.tsx          # Area, Bar, Donut, Pie charts
-│   │   └── rate-card.tsx
-│   ├── layout/                   # Layout e navegação
-│   │   ├── app-layout.tsx
-│   │   └── page-section-nav.tsx
-│   └── shared/                   # Componentes partilhados
-│       ├── error-boundary.tsx
-│       ├── empty-state.tsx
-│       ├── full-screen-loader.tsx
-│       ├── export-dropdown.tsx
-│       └── month-year-picker.tsx
-│
-├── hooks/
-│   ├── use-async-data.ts         # Data fetching com AbortController
-│   └── use-realtime-sync.ts      # Subscrição realtime + polling
-│
-├── lib/
-│   ├── supabase/
-│   │   ├── client.ts             # Cliente Supabase
-│   │   └── data.ts               # Operações CRUD
-│   ├── format/
-│   │   ├── currency.ts           # formatCurrency, formatRatio, etc.
-│   │   ├── date.ts               # parseDateValue, formatDate, getMonthBounds
-│   │   └── project.ts            # isOpenProject, projectDueAmount, etc.
-│   ├── export/
-│   │   ├── csv.ts                # Exportação CSV
-│   │   ├── excel.ts              # Exportação Excel (.xlsx)
-│   │   └── pdf.ts                # Exportação PDF
-│   ├── types.ts                  # Interfaces e tipos
-│   ├── schemas.ts                # Validação Zod
-│   ├── cn.ts                     # classnames utility
-│   └── navigation.ts             # Helpers de rota
-│
-├── pages/
-│   ├── dashboard-page.tsx        # Dashboard principal
-│   ├── finance-page.tsx          # Gestão financeira
-│   ├── projects-page.tsx         # Gestão de projetos
-│   ├── investments-page.tsx      # Gestão de investimentos
-│   ├── timer-page.tsx            # Timer de trabalho
-│   └── config-page.tsx           # Configurações
-│
-├── test/
-│   ├── setup.ts                  # Setup do Vitest
-│   └── format.test.ts            # Testes de formatação
-│
-├── App.tsx                       # Router principal
-├── main.tsx                      # Entry point
-└── index.css                     # Estilos globais + design tokens
-```
-
----
-
-## Tecnologias
-
-### Frontend
-
-| Tecnologia | Versão | Propósito |
-|---|---|---|
-| [React](https://react.dev/) | 19.x | UI Library |
-| [TypeScript](https://www.typescriptlang.org/) | 5.7 | Type Safety |
-| [Vite](https://vitejs.dev/) | 8.x | Build Tool |
-| [Tailwind CSS](https://tailwindcss.com/) | 3.4 | Estilos utilitários |
-| [React Router](https://reactrouter.com/) | 7.x | Roteamento SPA |
-| [Recharts](https://recharts.org/) | 2.x | Gráficos responsivos |
-| [Lucide React](https://lucide.dev/) | 0.577 | Ícones |
-| [Supabase JS](https://supabase.com/docs/reference/javascript) | 2.x | Cliente de BD + Realtime |
-| [Zod](https://zod.dev/) | - | Validação de schemas |
-| [ExcelJS](https://github.com/exceljs/exceljs) | 4.x | Geração de Excel |
-| [jsPDF](https://github.com/parallax/jsPDF) | 2.x | Geração de PDF |
-
-### Qualidade
-
-| Ferramenta | Propósito |
-|---|---|
-| [Vitest](https://vitest.dev/) | Testes unitários |
-| [ESLint](https://eslint.org/) + TypeScript ESLint | Linting |
-| [Prettier](https://prettier.io/) | Formatação de código |
-| [EditorConfig](https://editorconfig.org/) | Consistência entre editores |
-
----
-
-## Como Executar
-
-### Pré-requisitos
+### Prerequisites
 
 - Node.js >= 20.x
 - npm >= 10.x
-- Uma conta [Supabase](https://supabase.com) (gratuita)
+- A [Supabase](https://supabase.com) account (free tier works)
 
 ### Setup
 
 ```bash
-# 1. Clonar o repositório
-git clone https://github.com/your-username/devflow.git
+# 1. Clone the repository
+git clone https://github.com/your-org/devflow.git
 cd devflow
 
-# 2. Configurar variáveis de ambiente
+# 2. Configure environment variables
 cp .env.example .env
-# Editar .env com as credenciais do teu projeto Supabase
+# Edit .env with your Supabase project credentials
 
-# 3. Instalar dependências
+# 3. Install dependencies
 cd web
 npm install
 
-# 4. (Opcional) Aplicar políticas de segurança no Supabase
-# Abrir database/supabase_policies.sql no SQL Editor do Supabase
+# 4. (Optional) Apply security policies in Supabase
+# Open database/supabase_policies.sql in the Supabase SQL Editor
 
-# 5. Iniciar em desenvolvimento
+# 5. Start development server
 npm run dev
 ```
 
-A aplicação estará disponível em `http://localhost:5173`.
+The application will be available at `http://localhost:5173`.
 
-### Scripts
+### Available Scripts
 
-| Comando | Descrição |
+| Command | Description |
 |---|---|
-| `npm run dev` | Inicia servidor de desenvolvimento |
-| `npm run build` | Compila TypeScript + build de produção |
-| `npm run preview` | Preview do build de produção |
-| `npm run lint` | Verifica código com ESLint |
-| `npm run test` | Executa testes unitários |
-| `npm run test:watch` | Testes em modo watch |
-| `npm run typecheck` | Verificação de tipos TypeScript |
+| `npm run dev` | Start development server |
+| `npm run build` | TypeScript check + production build |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint checks |
+| `npm run typecheck` | Run TypeScript type checking |
+| `npm run test` | Run unit tests |
+| `npm run test:watch` | Run tests in watch mode |
 
-### Deploy
+### Deployment
 
-A aplicação está pronta para deploy na **Vercel**:
+The app is ready for deployment on **Vercel**:
 
-1. Conecta o repositório à Vercel
-2. Define **Root Directory** como `web`
-3. Adiciona as variáveis de ambiente no painel da Vercel
+1. Connect the repository to Vercel
+2. Set **Root Directory** to `web`
+3. Add environment variables in the Vercel dashboard
 4. **Build Command**: `npm run build`
 5. **Output Directory**: `dist`
 
-O ficheiro `vercel.json` já inclui:
-- Rewrites para SPA (toda as rotas → `index.html`)
-- Headers de segurança (CSP, HSTS, X-Frame-Options)
+The `vercel.json` file includes:
+- SPA rewrites (all routes → `index.html`)
+- Security headers (CSP, HSTS, X-Frame-Options)
 
 ---
 
-## Variáveis de Ambiente
+## Environment Variables
 
-| Variável | Obrigatória | Descrição |
+| Variable | Required | Description |
 |---|---|---|
-| `VITE_SUPABASE_URL` | Sim | URL do projeto Supabase |
-| `VITE_SUPABASE_ANON_KEY` | Sim | Chave anónima/pública do Supabase |
-| `SUPABASE_URL` | Não | URL para scripts Python (backup) |
-| `SUPABASE_KEY` | Não | Service role key para scripts Python |
+| `VITE_SUPABASE_URL` | Yes | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Yes | Supabase anonymous/public key |
+| `SUPABASE_URL` | No | URL for Python backup scripts |
+| `SUPABASE_KEY` | No | Service role key for Python scripts |
 
-> **Apenas a chave anónima (`anon key`) deve ser usada no frontend.**  
-> A service role key só é necessária para scripts de backend/CLI.
+> **Only the anon key should be used in the frontend.**  
+> The service role key is only needed for backend/CLI scripts.
 
-### Configuração do Supabase
+### Required Supabase Tables
 
-Para o projeto funcionar, as seguintes tabelas precisam de existir no Supabase:
+For the application to function, the following tables must exist in Supabase:
 - `clientes`, `projetos`, `gastos`, `receitas`
 - `investimentos`, `aportes`, `tempo_projeto`
 - `configuracoes`, `pagamentos`
 
-Execute o script `database/supabase_policies.sql` no SQL Editor para configurar as políticas de segurança necessárias.
+Run `database/supabase_policies.sql` in the SQL Editor to configure the necessary security policies.
 
 ---
 
-## Decisões de Arquitetura
+## Documentation
 
-### Porquê Supabase e não um backend próprio?
+Full documentation is available in the [`docs/`](docs/) folder:
 
-O Supabase fornece PostgreSQL, autenticação, realtime e storage num único serviço, eliminando a necessidade de manter um backend separado. Para um projecto individual/pequeno negócio, é a escolha certa.
+- [Architecture](docs/architecture.md) — Component design, data flow, routing
+- [Database](docs/database.md) — Schema, relationships, RLS policies
+- [Deployment](docs/deployment.md) — Vercel, Supabase setup, CI/CD
+- [FAQ](docs/faq.md) — Common questions and troubleshooting
+- [API Reference](docs/api.md) — Data access layer and Supabase queries
+- [Decision Log](docs/decisions.md) — Architecture decisions and rationale
 
-### Porquê React Router v7 com layout aninhado?
+---
 
-O `AppLayout` funciona como layout principal, com `<Outlet />` para renderizar as páginas filhas. Isto permite:
-- Sidebar e header consistentes em todas as páginas
-- Estado do menu mobile partilhado
-- Tema aplicado globalmente
+## Technology Stack
 
-### Porquê polling + Realtime?
+### Frontend
 
-O `useRealtimeSync` combina subscrições WebSocket do Supabase com um fallback de polling para garantir que os dados estão sempre actualizados, mesmo quando a ligação realtime falha.
+| Technology | Version | Purpose |
+|---|---|---|
+| [React](https://react.dev/) | 19.x | UI Library |
+| [TypeScript](https://www.typescriptlang.org/) | 5.7 | Type Safety |
+| [Vite](https://vitejs.dev/) | 8.x | Build Tool |
+| [Tailwind CSS](https://tailwindcss.com/) | 3.4 | Utility-first styling |
+| [React Router](https://reactrouter.com/) | 7.x | SPA Routing |
+| [Recharts](https://recharts.org/) | 2.x | Responsive charts |
+| [Lucide React](https://lucide.dev/) | 0.577 | Icons |
+| [Supabase JS](https://supabase.com/docs/reference/javascript) | 2.x | Database client + Realtime |
+| [Zod](https://zod.dev/) | - | Schema validation |
+| [ExcelJS](https://github.com/exceljs/exceljs) | 4.x | Excel generation |
+| [jsPDF](https://github.com/parallax/jsPDF) | 2.x | PDF generation |
 
-### Porquê CSS Variables e não Tailwind puro?
+### Quality
 
-As variáveis CSS (`--brand`, `--surface-1`, etc.) permitem theming dinâmico (dark/light) com transições suaves, mantendo a consistência visual.
+| Tool | Purpose |
+|---|---|
+| [Vitest](https://vitest.dev/) | Unit testing |
+| [ESLint](https://eslint.org/) + TypeScript ESLint | Code linting |
+| [Prettier](https://prettier.io/) | Code formatting |
+| [EditorConfig](https://editorconfig.org/) | Editor consistency |
+
+---
+
+## Architecture Decisions
+
+### Why Supabase instead of a custom backend?
+
+Supabase provides PostgreSQL, authentication, realtime, and storage in a single service, eliminating the need to maintain a separate backend. For a solo project or small business, it's the right choice.
+
+### Why React Router v7 with nested layouts?
+
+The `AppLayout` component serves as the main layout with `<Outlet />` for rendering child pages. This enables:
+- Consistent sidebar and header across all pages
+- Shared mobile menu state
+- Global theme application
+
+### Why polling + Realtime?
+
+The `useRealtimeSync` hook combines Supabase WebSocket subscriptions with a polling fallback to ensure data is always up-to-date, even when the realtime connection fails.
+
+### Why CSS Variables instead of pure Tailwind?
+
+CSS custom properties (`--brand`, `--surface-1`, etc.) enable dynamic theming (dark/light mode) with smooth transitions while maintaining visual consistency.
 
 ---
 
 ## Roadmap
 
-- [ ] Testes de integração com Cypress/Playwright
-- [ ] Modo offline com IndexedDB
-- [ ] Notificações push para alertas de prazos
-- [ ] API REST (Python FastAPI) para processamento batch
-- [ ] Multilinguagem (i18n)
-- [ ] Dashboard customizável (drag & drop)
-- [ ] Integração com Stripe para facturação automática
-- [ ] App mobile (React Native)
+- [ ] Integration tests with Playwright
+- [ ] Offline mode with IndexedDB
+- [ ] Push notifications for deadline alerts
+- [ ] REST API (Python FastAPI) for batch processing
+- [ ] i18n multi-language support
+- [ ] Customizable dashboard (drag & drop)
+- [ ] Stripe integration for automated invoicing
+- [ ] Mobile app (React Native)
 
 ---
 
-## Licença
+## Contributing
 
-Distribuído sob a licença MIT. Consulta o ficheiro `LICENSE` para mais informações.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+This project follows [conventional commits](https://www.conventionalcommits.org/) and enforces TypeScript strict mode.
+
+---
+
+## License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
 ---
 
 <div align="center">
-  <p>Feito com dedicação por <a href="https://github.com/sillah">Mohamed Sillah</a></p>
+  <sub>Built with openness for the freelancer community</sub>
 </div>
